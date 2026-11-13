@@ -11,8 +11,8 @@ local ROWS = 16
 local OWNER_ROWS = 9
 local OWNER_H = 34
 
-local BD = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 }
-local TEMPLATE = BackdropTemplateMixin and "BackdropTemplate" or nil
+local N = Nexo
+local BD, TEMPLATE = N.BD, N.TEMPLATE
 local ACC = { 0.36, 0.86, 0.62 }
 local ACC_HEX = "|cff5cdb9e"
 local DASH = "|cff666666—|r"
@@ -23,52 +23,27 @@ local state = { filter = nil, loc = "all", text = "", sort = "name", asc = true,
 ---------------------------------------------------------------------------
 -- Utilidades
 ---------------------------------------------------------------------------
-local function Panel(parent, bg, border)
-    local f = CreateFrame("Frame", nil, parent, TEMPLATE)
-    f:SetBackdrop(BD)
-    bg = bg or { 0.08, 0.10, 0.09, 0.92 }
-    border = border or { 0.16, 0.25, 0.21, 1 }
-    f:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
-    f:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
-    return f
-end
+local K = N.Kit({
+    acc = ACC,
+    panelBg = { 0.08, 0.10, 0.09, 0.92 }, panelBorder = { 0.16, 0.25, 0.21, 1 },
+    btnOn = { 0.08, 0.28, 0.19 }, btnOnText = { 0.78, 1, 0.9 },
+    btnOff = { 0.11, 0.13, 0.12 }, btnBorder = { 0.20, 0.30, 0.25 }, btnHover = { 0.28, 0.66, 0.48 },
+    winBg = { 0.04, 0.05, 0.04 }, winBorder = { 0.20, 0.55, 0.40 },
+    headBg = { 0.05, 0.14, 0.10 }, sub = { 0.5, 0.7, 0.6 },
+    closeBg = { 0.06, 0.12, 0.09 }, closeBorder = { 0.18, 0.42, 0.31 }, closeX = { 0.78, 0.95, 0.87 },
+})
+local Panel, Text, Tex, Button, SectionTitle = K.Panel, K.Text, K.Tex, K.Button, K.SectionTitle
+local ShortName, Plural = N.ShortName, N.Plural
 
-local function Text(parent, size, template, layer)
-    local fs = parent:CreateFontString(nil, layer or "OVERLAY", template or "GameFontHighlight")
-    if size then
-        local font, _, flags = fs:GetFont()
-        fs:SetFont(font, size, flags)
-    end
-    return fs
-end
+local function ClassHex(class) return N.ClassHex(class, "ffcfe8dc") end
 
-local function Tex(parent, layer, r, g, b, a, sub)
-    local t = parent:CreateTexture(nil, layer or "ARTWORK", nil, sub)
-    t:SetColorTexture(r, g, b, a or 1)
-    return t
-end
-
-local function ClassHex(class)
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if not c then return "ffcfe8dc" end
-    return ("ff%02x%02x%02x"):format(c.r * 255, c.g * 255, c.b * 255)
-end
-
-local function ClassRGB(class)
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if not c then return ACC[1], ACC[2], ACC[3] end
-    return c.r, c.g, c.b
-end
+local function ClassRGB(class) return N.ClassRGB(class, ACC[1], ACC[2], ACC[3]) end
 
 local function QualityRGB(q)
     local c = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[q]
     if c then return c.r, c.g, c.b end
     return 1, 1, 1
 end
-
-local function ShortName(key) return (key:match("^(.-) %- ") or key) end
-
-local function Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
 
 local function Ago(t)
     if not t then return nil end
@@ -88,145 +63,27 @@ local function LocText(o)
     return table.concat(parts, " · ")
 end
 
-local function Button(parent, w, h, label, onClick)
-    local b = CreateFrame("Button", nil, parent, TEMPLATE)
-    b:SetSize(w, h)
-    b:SetBackdrop(BD)
-    b.text = Text(b, 12)
-    b.text:SetPoint("CENTER")
-    b.text:SetText(label)
-    function b:SetActive(on)
-        self.active = on
-        if on then
-            self:SetBackdropColor(0.08, 0.28, 0.19, 1)
-            self:SetBackdropBorderColor(ACC[1], ACC[2], ACC[3], 1)
-            self.text:SetTextColor(0.78, 1, 0.9)
-        else
-            self:SetBackdropColor(0.11, 0.13, 0.12, 1)
-            self:SetBackdropBorderColor(0.20, 0.30, 0.25, 1)
-            self.text:SetTextColor(0.85, 0.85, 0.85)
-        end
-    end
-    b:SetActive(false)
-    b:SetScript("OnEnter", function(s) if not s.active then s:SetBackdropBorderColor(0.28, 0.66, 0.48, 1) end end)
-    b:SetScript("OnLeave", function(s) if not s.active then s:SetBackdropBorderColor(0.20, 0.30, 0.25, 1) end end)
-    b:SetScript("OnClick", onClick)
-    return b
-end
-
-local function SectionTitle(parent, label)
-    local t = Text(parent, 12, "GameFontNormal")
-    t:SetPoint("TOPLEFT", 10, -8)
-    t:SetText(label)
-    t:SetTextColor(ACC[1], ACC[2], ACC[3])
-    local line = Tex(parent, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.25)
-    line:SetHeight(1)
-    line:SetPoint("TOPLEFT", 8, -24)
-    line:SetPoint("TOPRIGHT", -8, -24)
-    return t
-end
-
 ---------------------------------------------------------------------------
 -- Ventana principal
 ---------------------------------------------------------------------------
-local main = CreateFrame("Frame", "AlijoMainFrame", UIParent, TEMPLATE)
-main:SetSize(W, H)
-main:SetPoint("CENTER")
-main:SetFrameStrata("HIGH")
-main:SetToplevel(true)
-main:SetBackdrop(BD)
-main:SetBackdropColor(0.04, 0.05, 0.04, 0.96)
-main:SetBackdropBorderColor(0.20, 0.55, 0.40, 1)
-main:EnableMouse(true)
-main:SetMovable(true)
-main:SetClampedToScreen(true)
-main:RegisterForDrag("LeftButton")
-main:SetScript("OnDragStart", main.StartMoving)
-main:SetScript("OnDragStop", function(s)
-    s:StopMovingOrSizing()
-    local p, _, rp, x, y = s:GetPoint()
-    ns.db.settings.pos = { p, rp, x, y }
-end)
-main:Hide()
-tinsert(UISpecialFrames, "AlijoMainFrame")
-
--- Cabecera
-local header = Tex(main, "BACKGROUND", 0.05, 0.14, 0.10, 1, 1)
-header:SetPoint("TOPLEFT", 1, -1)
-header:SetPoint("TOPRIGHT", -1, -1)
-header:SetHeight(50)
-local headerLine = Tex(main, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.6)
-headerLine:SetHeight(1)
-headerLine:SetPoint("TOPLEFT", header, "BOTTOMLEFT")
-headerLine:SetPoint("TOPRIGHT", header, "BOTTOMRIGHT")
-
-local logo = main:CreateTexture(nil, "ARTWORK")
-logo:SetTexture("Interface\\Icons\\INV_Box_01")
-logo:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-logo:SetSize(34, 34)
-logo:SetPoint("TOPLEFT", 12, -9)
-
-local title = Text(main, 20, "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 10, -1)
-title:SetText("Alijo")
-title:SetTextColor(ACC[1], ACC[2], ACC[3])
-
-local subtitle = Text(main, 11)
-subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
-subtitle:SetTextColor(0.5, 0.7, 0.6)
-subtitle:SetText("Inventario de la cuenta · WoW Forever")
-
--- Botón cerrar
-local close = CreateFrame("Button", nil, main, TEMPLATE)
-close:SetSize(24, 24)
-close:SetPoint("TOPRIGHT", -12, -13)
-close:SetBackdrop(BD)
-close:SetBackdropColor(0.06, 0.12, 0.09, 1)
-close:SetBackdropBorderColor(0.18, 0.42, 0.31, 1)
-local closeX1 = Tex(close, "ARTWORK", 0.78, 0.95, 0.87, 1)
-closeX1:SetSize(14, 2)
-closeX1:SetPoint("CENTER")
-closeX1:SetRotation(math.rad(45))
-local closeX2 = Tex(close, "ARTWORK", 0.78, 0.95, 0.87, 1)
-closeX2:SetSize(14, 2)
-closeX2:SetPoint("CENTER")
-closeX2:SetRotation(math.rad(-45))
-close:SetScript("OnEnter", function(s)
-    s:SetBackdropColor(0.55, 0.12, 0.10, 1)
-    s:SetBackdropBorderColor(1, 0.4, 0.3, 1)
-end)
-close:SetScript("OnLeave", function(s)
-    s:SetBackdropColor(0.06, 0.12, 0.09, 1)
-    s:SetBackdropBorderColor(0.18, 0.42, 0.31, 1)
-end)
-close:SetScript("OnClick", function() main:Hide() end)
+local main, close = K.Window({
+    name = "AlijoMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Box_01",
+    title = "Alijo", subtitle = "Inventario de la cuenta · WoW Forever",
+    settings = function() return ns.db and ns.db.settings end,
+})
 
 -- Selector de personaje
 local ResetScroll
-local charBtn
-charBtn = Button(main, 210, 24, "", function(_, mouse)
-    local list = ns.CharList()
-    local idx = 0
-    for i, k in ipairs(list) do if k == state.filter then idx = i end end
-    if mouse == "RightButton" then idx = idx - 1 else idx = idx + 1 end
-    if idx > #list then idx = 0 elseif idx < 0 then idx = #list end
-    state.filter = list[idx]
-    ResetScroll()
-    ns.Refresh()
-end)
-charBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-charBtn:SetPoint("RIGHT", close, "LEFT", -10, 0)
-local charArrows = Text(charBtn, 11)
-charArrows:SetPoint("RIGHT", -8, 0)
-charArrows:SetText("|cff888888< >|r")
-charBtn:HookScript("OnEnter", function(s)
-    GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
-    GameTooltip:AddLine("Personaje")
-    GameTooltip:AddLine("Clic izquierdo: siguiente", 0.8, 0.8, 0.8)
-    GameTooltip:AddLine("Clic derecho: anterior", 0.8, 0.8, 0.8)
-    GameTooltip:Show()
-end)
-charBtn:HookScript("OnLeave", function() GameTooltip:Hide() end)
+local charBtn = K.CharButton(main, close, {
+    list = function() return ns.CharList() end,
+    get = function() return state.filter end,
+    set = function(key)
+        state.filter = key
+        ResetScroll()
+        ns.Refresh()
+    end,
+    all = true,
+})
 
 ---------------------------------------------------------------------------
 -- Barra de búsqueda y pestañas de sitio
@@ -707,57 +564,6 @@ end
 ---------------------------------------------------------------------------
 -- Botón del minimapa
 ---------------------------------------------------------------------------
-local mb = CreateFrame("Button", "AlijoMinimapButton", Minimap)
-mb:SetSize(31, 31)
-mb:SetFrameStrata("MEDIUM")
-mb:SetFrameLevel(8)
-mb:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-mb:RegisterForDrag("LeftButton")
-mb:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-local mbBg = mb:CreateTexture(nil, "BACKGROUND")
-mbBg:SetSize(20, 20)
-mbBg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
-mbBg:SetPoint("TOPLEFT", 7, -5)
-local mbIcon = mb:CreateTexture(nil, "ARTWORK")
-mbIcon:SetSize(18, 18)
-mbIcon:SetTexture("Interface\\Icons\\INV_Box_01")
-mbIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-mbIcon:SetPoint("TOPLEFT", 7, -6)
-local mbBorder = mb:CreateTexture(nil, "OVERLAY")
-mbBorder:SetSize(53, 53)
-mbBorder:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-mbBorder:SetPoint("TOPLEFT")
-
-local function PlaceMinimap()
-    local a = math.rad(ns.db.settings.minimap.angle or 260)
-    local rx = (Minimap:GetWidth() / 2) + 10
-    local ry = (Minimap:GetHeight() / 2) + 10
-    local x, y = math.cos(a), math.sin(a)
-    local shape = GetMinimapShape and GetMinimapShape() or "ROUND"
-    if shape == "SQUARE" then
-        local m = math.max(math.abs(x), math.abs(y))
-        x, y = x / m, y / m
-    end
-    mb:ClearAllPoints()
-    mb:SetPoint("CENTER", Minimap, "CENTER", x * rx, y * ry)
-end
-
-function ns.UpdateMinimapButton()
-    PlaceMinimap()
-    mb:SetShown(not ns.db.settings.minimap.hide)
-end
-
-mb:SetScript("OnDragStart", function(self)
-    self:SetScript("OnUpdate", function()
-        local mx, my = Minimap:GetCenter()
-        local cx, cy = GetCursorPosition()
-        local scale = Minimap:GetEffectiveScale()
-        cx, cy = cx / scale, cy / scale
-        ns.db.settings.minimap.angle = math.deg(math.atan2(cy - my, cx - mx))
-        PlaceMinimap()
-    end)
-end)
-mb:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
 
 local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
@@ -775,9 +581,12 @@ local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:Show()
 end
 
-mb:SetScript("OnClick", function() ns.Toggle() end)
-mb:SetScript("OnEnter", function(self) ShowSummaryTooltip(self) end)
-mb:SetScript("OnLeave", function() GameTooltip:Hide() end)
+-- El botón del minimapa es el de Nexo, compartido por todos los addons
+N.Register({
+    id = "Alijo", name = "Alijo", icon = "Interface\\Icons\\INV_Box_01", color = ACC, slash = "/alijo",
+    toggle = function() ns.Toggle() end,
+    tooltip = ShowSummaryTooltip,
+})
 
 -- Menú de complementos (AddonCompartment)
 function Alijo_OnCompartmentClick() ns.Toggle() end
@@ -788,13 +597,7 @@ function Alijo_OnCompartmentLeave() GameTooltip:Hide() end
 -- Inicio
 ---------------------------------------------------------------------------
 function ns.OnInit()
-    local pos = ns.db.settings.pos
-    if pos then
-        main:ClearAllPoints()
-        main:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
-    end
+    state.filter = ns.charKey   -- por defecto, el personaje con el que estás jugando
+    main:RestorePos()
     HookTooltips()
-    ns.UpdateMinimapButton()
-    Minimap:HookScript("OnSizeChanged", PlaceMinimap)
-    C_Timer.After(1, PlaceMinimap)
 end

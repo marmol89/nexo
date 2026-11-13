@@ -1,45 +1,22 @@
 -- Senda: registro de la subida de nivel
 local ADDON, ns = ...
+local N = Nexo
 
-local floor, max, min, abs = math.floor, math.max, math.min, math.abs
-local DAY = 86400
-local TICK = 5            -- cada cuántos segundos se anota el tiempo
+local max, min, abs = math.max, math.min, math.abs
 local RESUME_GAP = 180    -- si vuelves antes de esto (p. ej. /reload), sigue la misma sesión
 local RECENT = 900        -- ventana del ritmo "reciente" (15 min)
 local MARK_WINDOW = 1.5   -- margen para relacionar una ganancia con su origen
 local P = "|cffb88cffSenda:|r "
 
----------------------------------------------------------------------------
--- Formato
----------------------------------------------------------------------------
-function ns.Dur(s)
-    s = floor((s or 0) + 0.5)
-    if s <= 0 then return "0 min" end
-    if s < 60 then return "<1 min" end
-    local d, h, m = floor(s / DAY), floor(s / 3600) % 24, floor(s / 60) % 60
-    if d > 0 then return ("%dd %dh"):format(d, h) end
-    if h > 0 then return ("%dh %02dm"):format(h, m) end
-    return m .. " min"
-end
-
--- 12345 -> "12.345"
-function ns.Num(n)
-    local s, k = tostring(floor((n or 0) + 0.5)), nil
-    repeat
-        s, k = s:gsub("^(-?%d+)(%d%d%d)", "%1.%2")
-    until k == 0
-    return s
-end
-
-local function DayKey(t) return date("%Y-%m-%d", t or time()) end
-ns.DayKey = DayKey
+-- Formato: el del núcleo
+ns.Dur, ns.Num, ns.DayKey = N.Dur, N.Num, N.DayKey
+local DayKey = N.DayKey
 
 ---------------------------------------------------------------------------
 -- Base de datos
 ---------------------------------------------------------------------------
 local db, char, charKey
 local session             -- sesión en curso (se guarda en char.session para sobrevivir a un /reload)
-local lastTick
 local lastXP, lastMax, xpLevel   -- última lectura de experiencia y a qué nivel pertenecía
 
 -- Registro de un nivel:
@@ -71,9 +48,8 @@ local function InitDB()
     db = SendaDB
     db.chars = db.chars or {}
     db.settings = db.settings or {}
-    db.settings.minimap = db.settings.minimap or { angle = 200, hide = false }
 
-    charKey = UnitName("player") .. " - " .. GetRealmName()
+    charKey = N.CharKey()
     db.chars[charKey] = db.chars[charKey] or { levels = {}, days = {} }
     char = db.chars[charKey]
     char.levels = char.levels or {}
@@ -100,7 +76,6 @@ end
 local function StartSession()
     local now = time()
     local s = char.session
-    lastTick = now
     if s and s.last and now >= s.last and (now - s.last) <= RESUME_GAP then
         session = s
     else
@@ -112,13 +87,9 @@ local function StartSession()
     ns.session = session
 end
 
-local function Tick()
+-- El núcleo avisa cada pocos segundos con el tiempo de juego transcurrido
+local function Tick(dt, now)
     if not session then return end
-    local now = time()
-    local dt = now - lastTick
-    lastTick = now
-    if dt <= 0 then return end
-    if dt > 300 then dt = TICK end   -- el equipo estuvo suspendido: no lo cuentes
 
     local rec = LevelRec(char, char.level)
     rec.sec = rec.sec + dt
@@ -267,32 +238,17 @@ local function OnXP()
 end
 
 ---------------------------------------------------------------------------
--- /played (solo se pide aquí si Bitácora no está: ella ya lo pide en silencio)
+-- Reloj y /played: los da el núcleo
 ---------------------------------------------------------------------------
-local hiddenChat
-local function RestoreChat()
-    if not hiddenChat then return end
-    for _, f in ipairs(hiddenChat) do f:RegisterEvent("TIME_PLAYED_MSG") end
-    hiddenChat = nil
-end
+N.OnTick(Tick)
 
-local function AskPlayed()
-    if not RequestTimePlayed then return end
-    local loaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
-    if loaded and loaded("Bitacora") then return end
-    if not hiddenChat then
-        hiddenChat = {}
-        for i = 1, (NUM_CHAT_WINDOWS or 10) do
-            local f = _G["ChatFrame" .. i]
-            if f and f.IsEventRegistered and f:IsEventRegistered("TIME_PLAYED_MSG") then
-                f:UnregisterEvent("TIME_PLAYED_MSG")
-                hiddenChat[#hiddenChat + 1] = f
-            end
-        end
-        C_Timer.After(8, RestoreChat)
-    end
-    RequestTimePlayed()
-end
+-- El tiempo real en el nivel actual sustituye al medido (cubre lo anterior a instalar Senda)
+N.OnPlayed(function(_, levelTime)
+    if not session or type(levelTime) ~= "number" then return end
+    local rec = LevelRec(char, char.level)
+    rec.sec, rec.real = levelTime, true
+    if ns.OnDataChanged then ns.OnDataChanged() end
+end)
 
 ---------------------------------------------------------------------------
 -- Consultas para la interfaz
@@ -395,7 +351,6 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_LOGIN" then
         Snapshot()
         StartSession()
-        C_Timer.After(4, AskPlayed)
     elseif event == "PLAYER_XP_UPDATE" then
         if session then OnXP() end
     elseif event == "PLAYER_LEVEL_UP" then
@@ -412,31 +367,12 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "UI_INFO_MESSAGE" then
         local a, b = ...
         OnSystemText(type(b) == "string" and b or a)
-    elseif event == "TIME_PLAYED_MSG" then
-        local _, levelTime = ...
-        if session and type(levelTime) == "number" then
-            local rec = LevelRec(char, char.level)
-            rec.sec, rec.real = levelTime, true
-            if ns.OnDataChanged then ns.OnDataChanged() end
-        end
-        C_Timer.After(0.2, RestoreChat)
-    elseif event == "PLAYER_LOGOUT" then
-        Tick()
-    end
-end)
-
-local acc = 0
-ev:SetScript("OnUpdate", function(self, el)
-    acc = acc + el
-    if acc >= TICK then
-        acc = 0
-        Tick()
     end
 end)
 
 local function Reg(e) return pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LOGOUT"); Reg("PLAYER_XP_UPDATE"); Reg("PLAYER_LEVEL_UP")
-Reg("UPDATE_EXHAUSTION"); Reg("TIME_PLAYED_MSG"); Reg("CHAT_MSG_COMBAT_XP_GAIN"); Reg("CHAT_MSG_SYSTEM")
+Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_XP_UPDATE"); Reg("PLAYER_LEVEL_UP")
+Reg("UPDATE_EXHAUSTION"); Reg("CHAT_MSG_COMBAT_XP_GAIN"); Reg("CHAT_MSG_SYSTEM")
 Reg("UI_INFO_MESSAGE")
 hasTurnIn = Reg("QUEST_TURNED_IN") and true or false
 
@@ -460,9 +396,7 @@ SlashCmdList.SENDA = function(msg)
         db.settings.announce = (db.settings.announce == false)
         print(P .. "aviso al subir de nivel " .. (db.settings.announce and "activado" or "desactivado") .. ".")
     elseif msg == "minimapa" then
-        db.settings.minimap.hide = not db.settings.minimap.hide
-        if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
-        print(P .. "botón del minimapa " .. (db.settings.minimap.hide and "oculto" or "visible") .. ".")
+        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print("  |cffffff00/senda|r - abrir/cerrar la ventana")

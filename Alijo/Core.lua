@@ -74,9 +74,8 @@ local function InitDB()
     db.items = db.items or {}          -- caché: [itemID] = { n = nombre, q = calidad, i = icono }
     db.warband = db.warband or { items = {} }
     db.settings = db.settings or {}
-    db.settings.minimap = db.settings.minimap or { angle = 260, hide = false }
 
-    charKey = UnitName("player") .. " - " .. GetRealmName()
+    charKey = Nexo.CharKey()
     db.chars[charKey] = db.chars[charKey] or { bags = {}, bank = {}, equip = {} }
     char = db.chars[charKey]
     local _, class = UnitClass("player")
@@ -317,9 +316,7 @@ SlashCmdList.ALIJO = function(msg)
         db.settings.tooltip = not ns.TooltipEnabled()
         print(P .. "recuento en el tooltip de los objetos " .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
     elseif low == "minimapa" then
-        db.settings.minimap.hide = not db.settings.minimap.hide
-        if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
-        print(P .. "botón del minimapa " .. (db.settings.minimap.hide and "oculto" or "visible") .. ".")
+        print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
         local found

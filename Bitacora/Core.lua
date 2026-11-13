@@ -1,39 +1,19 @@
 -- Bitácora: registro del tiempo de juego
 local ADDON, ns = ...
+local N = Nexo
 
 local floor = math.floor
 local DAY = 86400
-local TICK = 5            -- cada cuántos segundos se anota el tiempo
 local RESUME_GAP = 180    -- si vuelves antes de esto (p. ej. /reload), sigue la misma sesión
 local MIN_SESSION = 60    -- las sesiones más cortas no se guardan
 local MAX_SESSIONS = 600  -- sesiones guardadas por personaje (los totales por día nunca se pierden)
 local TRIM_TO = 500
 
 ---------------------------------------------------------------------------
--- Formato y fechas
+-- Formato y fechas: los del núcleo
 ---------------------------------------------------------------------------
-function ns.Dur(s)
-    s = floor((s or 0) + 0.5)
-    if s <= 0 then return "0 min" end
-    if s < 60 then return "<1 min" end
-    local d, h, m = floor(s / DAY), floor(s / 3600) % 24, floor(s / 60) % 60
-    if d > 0 then return ("%dd %dh"):format(d, h) end
-    if h > 0 then return ("%dh %02dm"):format(h, m) end
-    return m .. " min"
-end
-
-local function DayKey(t) return date("%Y-%m-%d", t or time()) end
-ns.DayKey = DayKey
-
-function ns.DayKeyToTime(dk)
-    local y, m, d = dk:match("(%d+)-(%d+)-(%d+)")
-    return time({ year = tonumber(y), month = tonumber(m), day = tonumber(d), hour = 12 })
-end
-
-function ns.MidnightDaysAgo(n)
-    local d = date("*t", time() - n * DAY)
-    return time({ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 })
-end
+ns.Dur, ns.DayKey, ns.DayKeyToTime, ns.MidnightDaysAgo = N.Dur, N.DayKey, N.DayKeyToTime, N.MidnightDaysAgo
+local DayKey = N.DayKey
 
 -- Número de día correlativo (para calcular rachas sin líos de cambio de hora)
 local function DayNum(dk)
@@ -49,17 +29,15 @@ end
 local db, char, charKey
 local session            -- sesión en curso (es también la última entrada de char.sessions)
 local zoneTime = {}      -- segundos por zona en esta sesión
-local lastTick
 
 local function InitDB()
     BitacoraDB = BitacoraDB or {}
     db = BitacoraDB
     db.chars = db.chars or {}
     db.settings = db.settings or {}
-    db.settings.minimap = db.settings.minimap or { angle = 230, hide = false }
     db.settings.period = db.settings.period or "week"
 
-    charKey = UnitName("player") .. " - " .. GetRealmName()
+    charKey = N.CharKey()
     db.chars[charKey] = db.chars[charKey] or { days = {}, sessions = {}, firstSeen = time() }
     char = db.chars[charKey]
     local _, class = UnitClass("player")
@@ -83,7 +61,6 @@ local function StartSession()
     local now = time()
     local ss = char.sessions
     local last = ss[#ss]
-    lastTick = now
     zoneTime = {}
     if last and not last.est and now >= last.s and (now - (last.s + last.d)) <= RESUME_GAP then
         session = last
@@ -101,13 +78,9 @@ local function StartSession()
     ns.session = session
 end
 
-local function Tick()
+-- El núcleo avisa cada pocos segundos con el tiempo de juego transcurrido
+local function Tick(dt, now)
     if not session then return end
-    local now = time()
-    local dt = now - lastTick
-    lastTick = now
-    if dt <= 0 then return end
-    if dt > 300 then dt = TICK end   -- el equipo estuvo suspendido: no lo cuentes
 
     local day = char.days[DayKey(now)]
     if not day then
@@ -254,30 +227,15 @@ function ns.RemoveEstimated()
 end
 
 ---------------------------------------------------------------------------
--- /played real (pedido en silencio, sin ensuciar el chat)
+-- Reloj y /played real: los da el núcleo
 ---------------------------------------------------------------------------
-local hiddenChat
-local function RestoreChat()
-    if not hiddenChat then return end
-    for _, f in ipairs(hiddenChat) do f:RegisterEvent("TIME_PLAYED_MSG") end
-    hiddenChat = nil
-end
+N.OnTick(Tick)
 
-local function AskPlayed()
-    if not RequestTimePlayed then return end
-    if not hiddenChat then
-        hiddenChat = {}
-        for i = 1, (NUM_CHAT_WINDOWS or 10) do
-            local f = _G["ChatFrame" .. i]
-            if f and f.IsEventRegistered and f:IsEventRegistered("TIME_PLAYED_MSG") then
-                f:UnregisterEvent("TIME_PLAYED_MSG")
-                hiddenChat[#hiddenChat + 1] = f
-            end
-        end
-        C_Timer.After(8, RestoreChat)
-    end
-    RequestTimePlayed()
-end
+N.OnPlayed(function(total, level)
+    if not char then return end
+    char.played, char.playedLevel = total, level or 0
+    if ns.Refresh then ns.Refresh() end
+end)
 
 ---------------------------------------------------------------------------
 -- Agregados para la interfaz
@@ -466,35 +424,16 @@ ev:SetScript("OnEvent", function(self, event, ...)
             end
         end
         StartSession()
-        C_Timer.After(3, AskPlayed)
-    elseif event == "TIME_PLAYED_MSG" then
-        local total, level = ...
-        if type(total) == "number" then
-            char.played, char.playedLevel = total, level or 0
-            if ns.Refresh then ns.Refresh() end
-        end
-        C_Timer.After(0.2, RestoreChat)
     elseif event == "PLAYER_LEVEL_UP" then
         local lvl = ...
         char.level = lvl
         if char.played then char.playedLevel = 0 end
         if session then session.l1 = lvl end
-    elseif event == "PLAYER_LOGOUT" then
-        Tick()
-    end
-end)
-
-local acc = 0
-ev:SetScript("OnUpdate", function(self, el)
-    acc = acc + el
-    if acc >= TICK then
-        acc = 0
-        Tick()
     end
 end)
 
 local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LOGOUT"); Reg("PLAYER_LEVEL_UP"); Reg("TIME_PLAYED_MSG")
+Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LEVEL_UP")
 
 ---------------------------------------------------------------------------
 -- Comandos
@@ -508,7 +447,7 @@ SlashCmdList.BITACORA = function(msg)
         InitDB()
         session = nil
         StartSession()
-        AskPlayed()
+        N.RequestPlayed()
         print(P .. "registro de este personaje borrado.")
         if ns.Refresh then ns.Refresh() end
     elseif msg == "reset" then
@@ -530,9 +469,7 @@ SlashCmdList.BITACORA = function(msg)
         print(P .. n .. (n == 1 and " sesión estimada eliminada" or " sesiones estimadas eliminadas") .. ". No se volverá a importar hasta que escribas |cffffff00/bita importar|r.")
         if ns.Refresh then ns.Refresh() end
     elseif msg == "minimapa" then
-        db.settings.minimap.hide = not db.settings.minimap.hide
-        if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
-        print(P .. "botón del minimapa " .. (db.settings.minimap.hide and "oculto" or "visible") .. ".")
+        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print("  |cffffff00/bita|r - abrir/cerrar la ventana")

@@ -53,23 +53,19 @@ end
 local db, char, charKey
 ns.session = { i = 0, o = 0, start = time() }
 
-local function DayKey(t) return date("%Y-%m-%d", t or time()) end
-ns.DayKey = DayKey
-
-function ns.MidnightDaysAgo(n)
-    local d = date("*t", time() - n * DAY)
-    return time({ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 })
-end
+-- Fechas: las del núcleo
+local N = Nexo
+local DayKey = N.DayKey
+ns.DayKey, ns.MidnightDaysAgo = N.DayKey, N.MidnightDaysAgo
 
 local function InitDB()
     TesoreroDB = TesoreroDB or {}
     db = TesoreroDB
     db.chars = db.chars or {}
     db.settings = db.settings or {}
-    db.settings.minimap = db.settings.minimap or { angle = 200, hide = false }
     db.settings.period = db.settings.period or "week"
 
-    charKey = UnitName("player") .. " - " .. GetRealmName()
+    charKey = N.CharKey()
     db.chars[charKey] = db.chars[charKey] or { tx = {}, days = {}, totals = {}, firstSeen = time() }
     char = db.chars[charKey]
     local _, class = UnitClass("player")
@@ -342,9 +338,7 @@ SlashCmdList.TESORERO = function(msg)
     elseif msg == "reset" then
         print(P .. "esto borrará TODO el historial de " .. charKey .. ". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo.")
     elseif msg == "minimapa" then
-        db.settings.minimap.hide = not db.settings.minimap.hide
-        if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
-        print(P .. "botón del minimapa " .. (db.settings.minimap.hide and "oculto" or "visible") .. ".")
+        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print("  |cffffff00/tesoro|r - abrir/cerrar la ventana")

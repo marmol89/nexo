@@ -11,9 +11,8 @@ local RANK_ROWS = 10
 local RANK_ROW_H = 18
 local BAR_W = 70
 
-local BD = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 }
-local TEMPLATE = BackdropTemplateMixin and "BackdropTemplate" or nil
-local DAY_NAMES = { "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" }
+local N = Nexo
+local DAY_NAMES = N.DAY_NAMES
 local ACC = { 0.40, 0.78, 1.00 }     -- azul: tiempo activo
 local AFK = { 0.55, 0.55, 0.62 }     -- gris: tiempo ausente
 local GREEN = { 0.29, 0.87, 0.5 }
@@ -29,190 +28,37 @@ local state = { filter = nil, period = "week" }
 ---------------------------------------------------------------------------
 -- Utilidades
 ---------------------------------------------------------------------------
-local function Panel(parent, bg, border)
-    local f = CreateFrame("Frame", nil, parent, TEMPLATE)
-    f:SetBackdrop(BD)
-    bg = bg or { 0.08, 0.09, 0.11, 0.92 }
-    border = border or { 0.16, 0.21, 0.27, 1 }
-    f:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
-    f:SetBackdropBorderColor(border[1], border[2], border[3], border[4])
-    return f
-end
-
-local function Text(parent, size, template, layer)
-    local fs = parent:CreateFontString(nil, layer or "OVERLAY", template or "GameFontHighlight")
-    if size then
-        local font, _, flags = fs:GetFont()
-        fs:SetFont(font, size, flags)
-    end
-    return fs
-end
-
-local function Tex(parent, layer, r, g, b, a, sub)
-    local t = parent:CreateTexture(nil, layer or "ARTWORK", nil, sub)
-    t:SetColorTexture(r, g, b, a or 1)
-    return t
-end
-
-local function ClassHex(class)
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if not c then return "ffffffff" end
-    return ("ff%02x%02x%02x"):format(c.r * 255, c.g * 255, c.b * 255)
-end
-
-local function ClassRGB(class)
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if not c then return 1, 1, 1 end
-    return c.r, c.g, c.b
-end
-
-local function ShortName(key) return (key:match("^(.-) %- ") or key) end
-
-local function DayLabel(t)
-    if ns.DayKey(t) == ns.DayKey() then return "Hoy" end
-    if ns.DayKey(t) == ns.DayKey(time() - 86400) then return "Ayer" end
-    return DAY_NAMES[tonumber(date("%w", t)) + 1] .. " " .. date("%d/%m", t)
-end
-
-local function Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
-
-local function Button(parent, w, h, label, onClick)
-    local b = CreateFrame("Button", nil, parent, TEMPLATE)
-    b:SetSize(w, h)
-    b:SetBackdrop(BD)
-    b.text = Text(b, 12)
-    b.text:SetPoint("CENTER")
-    b.text:SetText(label)
-    function b:SetActive(on)
-        self.active = on
-        if on then
-            self:SetBackdropColor(0.08, 0.22, 0.34, 1)
-            self:SetBackdropBorderColor(0.40, 0.78, 1, 1)
-            self.text:SetTextColor(0.75, 0.92, 1)
-        else
-            self:SetBackdropColor(0.11, 0.12, 0.14, 1)
-            self:SetBackdropBorderColor(0.20, 0.26, 0.32, 1)
-            self.text:SetTextColor(0.85, 0.85, 0.85)
-        end
-    end
-    b:SetActive(false)
-    b:SetScript("OnEnter", function(s) if not s.active then s:SetBackdropBorderColor(0.30, 0.60, 0.80, 1) end end)
-    b:SetScript("OnLeave", function(s) if not s.active then s:SetBackdropBorderColor(0.20, 0.26, 0.32, 1) end end)
-    b:SetScript("OnClick", onClick)
-    return b
-end
-
-local function SectionTitle(parent, label)
-    local t = Text(parent, 12, "GameFontNormal")
-    t:SetPoint("TOPLEFT", 10, -8)
-    t:SetText(label)
-    t:SetTextColor(ACC[1], ACC[2], ACC[3])
-    local line = Tex(parent, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.25)
-    line:SetHeight(1)
-    line:SetPoint("TOPLEFT", 8, -24)
-    line:SetPoint("TOPRIGHT", -8, -24)
-    return t
-end
+local K = N.Kit({
+    acc = ACC,
+    panelBg = { 0.08, 0.09, 0.11, 0.92 }, panelBorder = { 0.16, 0.21, 0.27, 1 },
+    btnOn = { 0.08, 0.22, 0.34 }, btnOnText = { 0.75, 0.92, 1 },
+    btnOff = { 0.11, 0.12, 0.14 }, btnBorder = { 0.20, 0.26, 0.32 }, btnHover = { 0.30, 0.60, 0.80 },
+    winBg = { 0.04, 0.04, 0.05 }, winBorder = { 0.22, 0.48, 0.68 },
+    headBg = { 0.05, 0.11, 0.17 }, sub = { 0.5, 0.62, 0.72 },
+    closeBg = { 0.06, 0.10, 0.14 }, closeBorder = { 0.18, 0.36, 0.50 }, closeX = { 0.75, 0.88, 0.95 },
+})
+local Panel, Text, Tex, Button, SectionTitle = K.Panel, K.Text, K.Tex, K.Button, K.SectionTitle
+local ClassHex, ClassRGB, ShortName, DayLabel, Plural = N.ClassHex, N.ClassRGB, N.ShortName, N.DayLabel, N.Plural
 
 ---------------------------------------------------------------------------
 -- Ventana principal
 ---------------------------------------------------------------------------
-local main = CreateFrame("Frame", "BitacoraMainFrame", UIParent, TEMPLATE)
-main:SetSize(W, H)
-main:SetPoint("CENTER")
-main:SetFrameStrata("HIGH")
-main:SetToplevel(true)
-main:SetBackdrop(BD)
-main:SetBackdropColor(0.04, 0.04, 0.05, 0.96)
-main:SetBackdropBorderColor(0.22, 0.48, 0.68, 1)
-main:EnableMouse(true)
-main:SetMovable(true)
-main:SetClampedToScreen(true)
-main:RegisterForDrag("LeftButton")
-main:SetScript("OnDragStart", main.StartMoving)
-main:SetScript("OnDragStop", function(s)
-    s:StopMovingOrSizing()
-    local p, _, rp, x, y = s:GetPoint()
-    ns.db.settings.pos = { p, rp, x, y }
-end)
-main:Hide()
-tinsert(UISpecialFrames, "BitacoraMainFrame")
-
--- Cabecera
-local header = Tex(main, "BACKGROUND", 0.05, 0.11, 0.17, 1, 1)
-header:SetPoint("TOPLEFT", 1, -1)
-header:SetPoint("TOPRIGHT", -1, -1)
-header:SetHeight(50)
-local headerLine = Tex(main, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.6)
-headerLine:SetHeight(1)
-headerLine:SetPoint("TOPLEFT", header, "BOTTOMLEFT")
-headerLine:SetPoint("TOPRIGHT", header, "BOTTOMRIGHT")
-
-local logo = main:CreateTexture(nil, "ARTWORK")
-logo:SetTexture("Interface\\Icons\\INV_Misc_PocketWatch_01")
-logo:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-logo:SetSize(34, 34)
-logo:SetPoint("TOPLEFT", 12, -9)
-
-local title = Text(main, 20, "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 10, -1)
-title:SetText("Bitácora")
-title:SetTextColor(ACC[1], ACC[2], ACC[3])
-
-local subtitle = Text(main, 11)
-subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -2)
-subtitle:SetTextColor(0.5, 0.62, 0.72)
-subtitle:SetText("Tiempo de juego · WoW Forever")
-
--- Botón cerrar
-local close = CreateFrame("Button", nil, main, TEMPLATE)
-close:SetSize(24, 24)
-close:SetPoint("TOPRIGHT", -12, -13)
-close:SetBackdrop(BD)
-close:SetBackdropColor(0.06, 0.10, 0.14, 1)
-close:SetBackdropBorderColor(0.18, 0.36, 0.50, 1)
-local closeX1 = Tex(close, "ARTWORK", 0.75, 0.88, 0.95, 1)
-closeX1:SetSize(14, 2)
-closeX1:SetPoint("CENTER")
-closeX1:SetRotation(math.rad(45))
-local closeX2 = Tex(close, "ARTWORK", 0.75, 0.88, 0.95, 1)
-closeX2:SetSize(14, 2)
-closeX2:SetPoint("CENTER")
-closeX2:SetRotation(math.rad(-45))
-close:SetScript("OnEnter", function(s)
-    s:SetBackdropColor(0.55, 0.12, 0.10, 1)
-    s:SetBackdropBorderColor(1, 0.4, 0.3, 1)
-end)
-close:SetScript("OnLeave", function(s)
-    s:SetBackdropColor(0.06, 0.10, 0.14, 1)
-    s:SetBackdropBorderColor(0.18, 0.36, 0.50, 1)
-end)
-close:SetScript("OnClick", function() main:Hide() end)
+local main, close = K.Window({
+    name = "BitacoraMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
+    title = "Bitácora", subtitle = "Tiempo de juego · WoW Forever",
+    settings = function() return ns.db and ns.db.settings end,
+})
 
 -- Selector de personaje
-local charBtn
-charBtn = Button(main, 210, 24, "", function(_, mouse)
-    local list = ns.CharList()
-    local idx = 0
-    for i, k in ipairs(list) do if k == state.filter then idx = i end end
-    if mouse == "RightButton" then idx = idx - 1 else idx = idx + 1 end
-    if idx > #list then idx = 0 elseif idx < 0 then idx = #list end
-    state.filter = list[idx]
-    ns.Refresh()
-end)
-charBtn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-charBtn:SetPoint("RIGHT", close, "LEFT", -10, 0)
-local charArrows = Text(charBtn, 11)
-charArrows:SetPoint("RIGHT", -8, 0)
-charArrows:SetText("|cff888888< >|r")
-charBtn:HookScript("OnEnter", function(s)
-    GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
-    GameTooltip:AddLine("Personaje")
-    GameTooltip:AddLine("Clic izquierdo: siguiente", 0.8, 0.8, 0.8)
-    GameTooltip:AddLine("Clic derecho: anterior", 0.8, 0.8, 0.8)
-    GameTooltip:Show()
-end)
-charBtn:HookScript("OnLeave", function() GameTooltip:Hide() end)
+local charBtn = K.CharButton(main, close, {
+    list = function() return ns.CharList() end,
+    get = function() return state.filter end,
+    set = function(key)
+        state.filter = key
+        ns.Refresh()
+    end,
+    all = true,
+})
 
 -- Pestañas de periodo
 local periodBtns = {}
@@ -243,39 +89,8 @@ local cardDefs = {
     { "Sesión actual", { 0.80, 0.45, 1 }, "Interface\\Icons\\Ability_Hunter_EagleEye" },
 }
 for i, def in ipairs(cardDefs) do
-    local c = Panel(main, { 0.08, 0.08, 0.10, 1 })
-    c:SetSize(CARD_W, 66)
+    local c = K.Card(main, CARD_W, def[1], def[2], def[3], 16, true)
     c:SetPoint("TOPLEFT", PAD + (i - 1) * (CARD_W + 10), -94)
-    local accent = Tex(c, "ARTWORK", def[2][1], def[2][2], def[2][3], 1)
-    accent:SetPoint("TOPLEFT", 1, -1)
-    accent:SetPoint("BOTTOMLEFT", 1, 1)
-    accent:SetWidth(3)
-    local glow = Tex(c, "BACKGROUND", def[2][1], def[2][2], def[2][3], 0.06, 2)
-    glow:SetPoint("TOPLEFT", 4, -1)
-    glow:SetPoint("BOTTOMLEFT", 4, 1)
-    glow:SetWidth(60)
-    local ic = c:CreateTexture(nil, "ARTWORK")
-    ic:SetTexture(def[3])
-    ic:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    ic:SetSize(22, 22)
-    ic:SetPoint("TOPRIGHT", -8, -8)
-    ic:SetAlpha(0.85)
-    c.label = Text(c, 11)
-    c.label:SetPoint("TOPLEFT", 12, -9)
-    c.label:SetTextColor(0.65, 0.65, 0.65)
-    c.label:SetText(def[1]:upper())
-    c.value = Text(c, 16)
-    c.value:SetPoint("TOPLEFT", 12, -26)
-    c.value:SetPoint("RIGHT", -6, 0)
-    c.value:SetJustifyH("LEFT")
-    c.value:SetWordWrap(false)
-    c.value:SetTextColor(def[2][1], def[2][2], def[2][3])
-    c.sub = Text(c, 10)
-    c.sub:SetPoint("BOTTOMLEFT", 12, 8)
-    c.sub:SetPoint("RIGHT", -6, 0)
-    c.sub:SetJustifyH("LEFT")
-    c.sub:SetWordWrap(false)
-    c.sub:SetTextColor(0.55, 0.55, 0.55)
     cards[i] = c
 end
 
@@ -812,57 +627,6 @@ end
 ---------------------------------------------------------------------------
 -- Botón del minimapa
 ---------------------------------------------------------------------------
-local mb = CreateFrame("Button", "BitacoraMinimapButton", Minimap)
-mb:SetSize(31, 31)
-mb:SetFrameStrata("MEDIUM")
-mb:SetFrameLevel(8)
-mb:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-mb:RegisterForDrag("LeftButton")
-mb:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-local mbBg = mb:CreateTexture(nil, "BACKGROUND")
-mbBg:SetSize(20, 20)
-mbBg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
-mbBg:SetPoint("TOPLEFT", 7, -5)
-local mbIcon = mb:CreateTexture(nil, "ARTWORK")
-mbIcon:SetSize(18, 18)
-mbIcon:SetTexture("Interface\\Icons\\INV_Misc_PocketWatch_01")
-mbIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-mbIcon:SetPoint("TOPLEFT", 7, -6)
-local mbBorder = mb:CreateTexture(nil, "OVERLAY")
-mbBorder:SetSize(53, 53)
-mbBorder:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-mbBorder:SetPoint("TOPLEFT")
-
-local function PlaceMinimap()
-    local a = math.rad(ns.db.settings.minimap.angle or 230)
-    local rx = (Minimap:GetWidth() / 2) + 10
-    local ry = (Minimap:GetHeight() / 2) + 10
-    local x, y = math.cos(a), math.sin(a)
-    local shape = GetMinimapShape and GetMinimapShape() or "ROUND"
-    if shape == "SQUARE" then
-        local m = math.max(math.abs(x), math.abs(y))
-        x, y = x / m, y / m
-    end
-    mb:ClearAllPoints()
-    mb:SetPoint("CENTER", Minimap, "CENTER", x * rx, y * ry)
-end
-
-function ns.UpdateMinimapButton()
-    PlaceMinimap()
-    mb:SetShown(not ns.db.settings.minimap.hide)
-end
-
-mb:SetScript("OnDragStart", function(self)
-    self:SetScript("OnUpdate", function()
-        local mx, my = Minimap:GetCenter()
-        local cx, cy = GetCursorPosition()
-        local scale = Minimap:GetEffectiveScale()
-        cx, cy = cx / scale, cy / scale
-        ns.db.settings.minimap.angle = math.deg(math.atan2(cy - my, cx - mx))
-        PlaceMinimap()
-    end)
-end)
-mb:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
 
 local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
@@ -881,9 +645,12 @@ local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:Show()
 end
 
-mb:SetScript("OnClick", function() ns.Toggle() end)
-mb:SetScript("OnEnter", function(self) ShowSummaryTooltip(self) end)
-mb:SetScript("OnLeave", function() GameTooltip:Hide() end)
+-- El botón del minimapa es el de Nexo, compartido por todos los addons
+N.Register({
+    id = "Bitacora", name = "Bitácora", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", color = ACC, slash = "/bita",
+    toggle = function() ns.Toggle() end,
+    tooltip = ShowSummaryTooltip,
+})
 
 -- Menú de complementos (AddonCompartment)
 function Bitacora_OnCompartmentClick() ns.Toggle() end
@@ -896,12 +663,5 @@ function Bitacora_OnCompartmentLeave() GameTooltip:Hide() end
 function ns.OnInit()
     state.period = ns.db.settings.period or "week"
     state.filter = ns.charKey
-    local pos = ns.db.settings.pos
-    if pos then
-        main:ClearAllPoints()
-        main:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
-    end
-    ns.UpdateMinimapButton()
-    Minimap:HookScript("OnSizeChanged", PlaceMinimap)
-    C_Timer.After(1, PlaceMinimap)
+    main:RestorePos()
 end

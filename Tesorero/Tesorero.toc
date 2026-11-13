@@ -2,7 +2,9 @@
 ## Title: |cffffd100Tesorero|r
 ## Notes: Historial completo de tu oro: cuánto ganas, cuánto gastas y en qué.
 ## Author: marmol89
-## Version: 1.0.0
+## Version: 1.1.0
+## Dependencies: Nexo
+## Group: Nexo
 ## IconTexture: Interface\Icons\INV_Misc_Coin_02
 ## SavedVariables: TesoreroDB
 ## AddonCompartmentFunc: Tesorero_OnCompartmentClick

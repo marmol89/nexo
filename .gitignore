@@ -1,0 +1,5 @@
+# Copias de seguridad locales (no se suben)
+# - datos guardados del juego: llevan el nombre de la cuenta
+# - versiones anteriores a Nexo: ya están en el primer commit del historial
+_copia_datos_guardados/
+_copia_antes_de_nexo/

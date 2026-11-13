@@ -2,7 +2,9 @@
 ## Title: |cff66c7ffBitácora|r
 ## Notes: Tu tiempo de juego: cuánto juegas cada día, en qué personaje, en qué zona y en cada sesión.
 ## Author: marmol89
-## Version: 1.1.0
+## Version: 1.2.0
+## Dependencies: Nexo
+## Group: Nexo
 ## OptionalDeps: Tesorero
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## SavedVariables: BitacoraDB
