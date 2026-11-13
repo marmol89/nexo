@@ -1,0 +1,16 @@
+## Interface: 16001
+## Title: |cffe0a84cOficio|r
+## Notes: Profesiones de toda la cuenta: nivel de cada una, recetas que conoce cada personaje y enfriamientos de fabricación.
+## Author: marmol89
+## Version: 0.1.0
+## Dependencies: Nexo
+## OptionalDeps: Alijo
+## Group: Nexo
+## IconTexture: Interface\Icons\Trade_BlackSmithing
+## SavedVariables: OficioDB
+## AddonCompartmentFunc: Oficio_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: Oficio_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: Oficio_OnCompartmentLeave
+
+Core.lua
+UI.lua

@@ -1,6 +1,6 @@
 # Addons de World of Warcraft
 
-Cinco addons propios para World of Warcraft (cliente Classic, interfaz `16001`), con la interfaz en español. Cuatro de ellos registran algo distinto de tu cuenta y un quinto, **Nexo**, es el núcleo que comparten.
+Seis addons propios para World of Warcraft (cliente Classic, interfaz `16001`), con la interfaz en español. Cinco de ellos registran algo distinto de tu cuenta y el sexto, **Nexo**, es el núcleo que comparten.
 
 | Addon | Qué hace | Comando |
 |---|---|---|
@@ -9,23 +9,24 @@ Cinco addons propios para World of Warcraft (cliente Classic, interfaz `16001`),
 | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` |
 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` |
 | **Senda** | Subida de nivel: experiencia por hora, tiempo para subir, tiempo en cada nivel y origen de la experiencia. | `/senda` |
+| **Oficio** | Profesiones: nivel de cada una, qué recetas conoce cada personaje y enfriamientos de fabricación. | `/oficio` |
 
 ## Instalación
 
-1. Copia las cinco carpetas (`Nexo`, `Tesorero`, `Bitacora`, `Alijo` y `Senda`) a `World of Warcraft\<versión>\Interface\AddOns`.
+1. Copia las seis carpetas (`Nexo`, `Tesorero`, `Bitacora`, `Alijo`, `Senda` y `Oficio`) a `World of Warcraft\<versión>\Interface\AddOns`.
 2. Reinicia el juego por completo. Con `/reload` no basta cuando se añade un addon nuevo o cambia un `.toc`.
-3. En la lista de addons, Tesorero, Bitácora, Alijo y Senda aparecen agrupados debajo de Nexo.
+3. En la lista de addons, Tesorero, Bitácora, Alijo, Senda y Oficio aparecen agrupados debajo de Nexo.
 
-Nexo tiene que estar activado: los otros cuatro dependen de él y no cargan sin él. No hace falta instalar los cuatro; cada uno funciona con solo Nexo.
+Nexo tiene que estar activado: los otros cinco dependen de él y no cargan sin él. No hace falta instalar los cinco; cada uno funciona con solo Nexo.
 
 ## Comandos
 
-Tesorero, Bitácora, Alijo y Senda abren o cierran su ventana si su comando se escribe sin nada más, y los cuatro aceptan `ayuda` y `minimapa`.
+Tesorero, Bitácora, Alijo, Senda y Oficio abren o cierran su ventana si su comando se escribe sin nada más, y los cinco aceptan `ayuda` y `minimapa`.
 
 ### Nexo
 
 - `/nexo`: lista los addons conectados.
-- `/nexo minimapa`: muestra u oculta el botón del minimapa, que es compartido. Al pulsarlo sale un menú con los cuatro addons.
+- `/nexo minimapa`: muestra u oculta el botón del minimapa, que es compartido. Al pulsarlo sale un menú con los addons instalados.
 
 ### Tesorero (`/tesoro` o `/tesorero`)
 
@@ -48,10 +49,20 @@ Tesorero, Bitácora, Alijo y Senda abren o cierran su ventana si su comando se e
 - `/senda avisos`: activa o desactiva el resumen en el chat al subir de nivel.
 - `/senda reset`: borra el registro del personaje actual (pide confirmación).
 
+### Oficio (`/oficio`)
+
+- `/oficio <texto>`: abre la ventana buscando ese texto en las recetas y en sus materiales.
+- `/oficio avisos`: activa o desactiva el aviso en el chat, al entrar, de los enfriamientos que ya están listos.
+- `/oficio olvidar <personaje>`: borra lo registrado de un personaje.
+- `/oficio reset`: borra lo registrado del personaje actual (pide confirmación).
+
 ## Cosas que conviene saber
 
 - **Cada personaje aparece cuando entras con él.** Ningún addon puede leer datos de un personaje desconectado.
 - **El banco solo se registra al abrirlo.** Alijo necesita que visites el banco una vez con cada personaje.
+- **Las recetas solo se registran al abrir la ventana de la profesión.** Oficio necesita que abras cada profesión una vez con cada personaje, y otra vez cuando aprendas recetas nuevas. Los niveles se leen solos al entrar.
+- **Los enfriamientos se calculan desde la última vez que abriste la profesión.** Si fabricas algo con enfriamiento, Oficio lo sabe porque la ventana está abierta en ese momento.
+- **Los materiales de una receta se cruzan con Alijo.** Si Alijo está activado, Oficio muestra cuántas unidades de cada material hay en la cuenta (bolsas y banco).
 - **El historial empieza al instalar.** El juego no guarda el pasado. La única excepción es Bitácora, que puede estimarlo a partir de Tesorero y lo marca como estimado.
 - **El origen de la experiencia y del oro es deducido.** El juego solo avisa de que la cantidad ha cambiado; Senda y Tesorero lo relacionan con lo que ocurre en ese instante (una muerte, una misión entregada, un mercader abierto). Lo que no se identifica cae en "Otros".
 
@@ -66,6 +77,7 @@ Cada addon guarda lo suyo en `WTF\Account\<cuenta>\SavedVariables`, en un archiv
 | Bitácora | `BitacoraDB` |
 | Alijo | `AlijoDB` |
 | Senda | `SendaDB` |
+| Oficio | `OficioDB` |
 
 Actualizar los addons no toca esos archivos. Para hacer una copia de seguridad, cópialos con el juego cerrado, porque al salir los sobrescribe.
 
@@ -101,4 +113,4 @@ En su `.toc` hacen falta estas dos líneas para que dependa de Nexo y aparezca a
 
 ## Estado
 
-Los cinco addons están probados en el juego por su autor en un único cliente. No hay pruebas automáticas.
+Nexo, Tesorero, Bitácora, Alijo y Senda están probados en el juego por su autor en un único cliente. De Oficio (0.1.0) se ha visto funcionar en el juego el registro de niveles y de recetas, el detalle de materiales y el cruce con Alijo, con un solo personaje; los enfriamientos y el uso con varios personajes están sin probar. No hay pruebas automáticas.
