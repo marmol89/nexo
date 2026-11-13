@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: |cfff0786aLonja|r
+## Notes: Precios de la casa de subastas: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta.
+## Author: marmol89
+## Version: 0.1.0
+## Dependencies: Nexo
+## Group: Nexo
+## IconTexture: Interface\Icons\INV_Hammer_15
+## SavedVariables: LonjaDB
+## AddonCompartmentFunc: Lonja_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: Lonja_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: Lonja_OnCompartmentLeave
+
+Core.lua
+UI.lua

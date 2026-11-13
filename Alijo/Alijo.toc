@@ -2,7 +2,7 @@
 ## Title: |cff5cdb9eAlijo|r
 ## Notes: Inventario de toda la cuenta: busca cualquier objeto y mira qué personaje lo tiene, en bolsas, banco o equipado.
 ## Author: marmol89
-## Version: 1.1.0
+## Version: 1.2.0
 ## Dependencies: Nexo
 ## Group: Nexo
 ## IconTexture: Interface\Icons\INV_Box_01
