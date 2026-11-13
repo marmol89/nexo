@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: |cff5cdb9eAlijo|r
+## Notes: Inventario de toda la cuenta: busca cualquier objeto y mira qué personaje lo tiene, en bolsas, banco o equipado.
+## Author: marmol89
+## Version: 1.0.0
+## IconTexture: Interface\Icons\INV_Box_01
+## SavedVariables: AlijoDB
+## AddonCompartmentFunc: Alijo_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: Alijo_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: Alijo_OnCompartmentLeave
+
+Core.lua
+UI.lua
