@@ -33,15 +33,9 @@ local function InitDB()
     db.profNames = db.profNames or {}     -- profesiones vistas al abrir su ventana
     db.settings = db.settings or {}
 
-    charKey = Nexo.CharKey()
-    db.chars[charKey] = db.chars[charKey] or {}
-    char = db.chars[charKey]
+    char, charKey = Nexo.InitChar(db.chars)
     char.profs = char.profs or {}
     char.cds = char.cds or {}
-    local _, class = UnitClass("player")
-    char.class = class
-    char.name = UnitName("player")
-    char.level = UnitLevel("player")
     ns.db, ns.char, ns.charKey = db, char, charKey
 end
 
@@ -132,7 +126,7 @@ end
 ---------------------------------------------------------------------------
 -- Recetas (ventana de profesión; encantamiento usa la ventana "Craft")
 ---------------------------------------------------------------------------
-local function ItemID(link) return link and tonumber(link:match("item:(%d+)")) end
+local ItemID = Nexo.ItemID
 
 -- Guarda una receta conocida por este personaje, con sus datos compartidos y su enfriamiento
 local function StoreRecipe(p, prof, name, diff, itemID, icon, reags, cd)
@@ -302,25 +296,12 @@ local function ScanCraft()
 end
 
 -- Muchos eventos seguidos = un solo escaneo
-local pending = {}
-local function Queue(what, fn)
-    if pending[what] then return end
-    pending[what] = true
-    C_Timer.After(0.5, function()
-        pending[what] = nil
-        fn()
-    end)
-end
+local function Queue(what, fn) Nexo.Debounce("Oficio." .. what, 0.5, fn) end
 
 ---------------------------------------------------------------------------
 -- Consultas
 ---------------------------------------------------------------------------
-function ns.CharList()
-    local list = {}
-    for k in pairs(db.chars) do list[#list + 1] = k end
-    table.sort(list)
-    return list
-end
+function ns.CharList() return Nexo.Keys(db.chars) end
 
 -- Profesiones de un personaje, las principales primero
 function ns.Profs(key)
@@ -403,12 +384,7 @@ end
 
 -- Cuántas unidades de un objeto hay en la cuenta según Alijo (nil si Alijo no está)
 function ns.Have(id)
-    if not id or not AlijoDB or not AlijoDB.chars then return nil end
-    local total = 0
-    for _, c in pairs(AlijoDB.chars) do
-        total = total + (c.bags and c.bags[id] or 0) + (c.bank and c.bank[id] or 0)
-    end
-    return total
+    if Alijo and Alijo.Have then return Alijo.Have(id) end
 end
 
 -- Precio por unidad de un objeto en la subasta según Lonja (nil si Lonja no está o no lo ha visto)
@@ -457,11 +433,10 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LEVEL_UP")
-Reg("SKILL_LINES_CHANGED"); Reg("CHAT_MSG_SKILL")
-Reg("TRADE_SKILL_SHOW"); Reg("TRADE_SKILL_UPDATE"); Reg("CRAFT_SHOW"); Reg("CRAFT_UPDATE")
-Reg("TRADE_SKILL_LIST_UPDATE"); Reg("TRADE_SKILL_DATA_SOURCE_CHANGED"); Reg("NEW_RECIPE_LEARNED")
+Nexo.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_LEVEL_UP",
+    "SKILL_LINES_CHANGED", "CHAT_MSG_SKILL",
+    "TRADE_SKILL_SHOW", "TRADE_SKILL_UPDATE", "CRAFT_SHOW", "CRAFT_UPDATE",
+    "TRADE_SKILL_LIST_UPDATE", "TRADE_SKILL_DATA_SOURCE_CHANGED", "NEW_RECIPE_LEARNED")
 
 ---------------------------------------------------------------------------
 -- Comandos
@@ -519,10 +494,7 @@ SlashCmdList.OFICIO = function(msg)
         print(P .. "esto borrará las profesiones y recetas guardadas de " .. charKey .. ". Escribe |cffffff00/oficio reset confirmar|r para hacerlo.")
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
-        local found
-        for key, c in pairs(db.chars) do
-            if key ~= charKey and ((c.name or ""):lower() == who or key:lower() == who) then found = key end
-        end
+        local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
             print(P .. "profesiones de " .. found .. " borradas.")

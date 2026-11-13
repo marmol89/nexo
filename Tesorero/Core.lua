@@ -26,20 +26,8 @@ ns.CATS = {
 ---------------------------------------------------------------------------
 -- Formato de dinero
 ---------------------------------------------------------------------------
-local BLN = BreakUpLargeNumbers or tostring
-local function coin(tex, size) return ("|TInterface\\MoneyFrame\\UI-%sIcon:%d:%d:2:0|t"):format(tex, size, size) end
-
--- full = muestra todas las monedas; si no, versión compacta (oro+plata)
-function ns.Money(c, size, full)
-    size = size or 12
-    c = floor(abs(c or 0) + 0.5)
-    local g, s, cu = floor(c / 10000), floor(c / 100) % 100, c % 100
-    local out = {}
-    if g > 0 then out[#out + 1] = BLN(g) .. coin("Gold", size) end
-    if s > 0 and (full or g < 1000) then out[#out + 1] = s .. coin("Silver", size) end
-    if (cu > 0 and (full or g == 0)) or #out == 0 then out[#out + 1] = cu .. coin("Copper", size) end
-    return table.concat(out, " ")
-end
+-- Money(cobre, tamaño, full): el del núcleo. full = todas las monedas; si no, versión compacta
+ns.Money = Nexo.Money
 
 function ns.Signed(c, size, full)
     if c > 0 then return "|cff4ade80+" .. ns.Money(c, size, full) .. "|r"
@@ -65,13 +53,7 @@ local function InitDB()
     db.settings = db.settings or {}
     db.settings.period = db.settings.period or "week"
 
-    charKey = N.CharKey()
-    db.chars[charKey] = db.chars[charKey] or { tx = {}, days = {}, totals = {}, firstSeen = time() }
-    char = db.chars[charKey]
-    local _, class = UnitClass("player")
-    char.class = class
-    char.name = UnitName("player")
-    char.level = UnitLevel("player")
+    char, charKey = N.InitChar(db.chars, { tx = {}, days = {}, totals = {}, firstSeen = time() })
     ns.db, ns.char, ns.charKey = db, char, charKey
 end
 
@@ -104,23 +86,12 @@ end
 ---------------------------------------------------------------------------
 -- Agregados para la interfaz
 ---------------------------------------------------------------------------
-local PERIOD_DAYS = { today = 1, week = 7, month = 30 }
-ns.PERIODS = { { "today", "Hoy" }, { "week", "7 días" }, { "month", "30 días" }, { "all", "Siempre" } }
+local PERIOD_DAYS = N.PERIOD_DAYS
+ns.PERIODS = N.PERIODS
 
-function ns.CharList()
-    local list = {}
-    for k in pairs(db.chars) do list[#list + 1] = k end
-    table.sort(list)
-    return list
-end
+function ns.CharList() return N.Keys(db.chars) end
 
-local function EachChar(filter, fn)
-    if filter then
-        if db.chars[filter] then fn(db.chars[filter], filter) end
-    else
-        for k, c in pairs(db.chars) do fn(c, k) end
-    end
-end
+local function EachChar(filter, fn) N.EachChar(db.chars, filter, fn) end
 
 -- Devuelve: ingresos, gastos, porCategoria{cat={i,o}}
 function ns.Aggregate(filter, period)
@@ -316,11 +287,10 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_ENTERING_WORLD"); Reg("PLAYER_MONEY"); Reg("PLAYER_LEVEL_UP")
-for e in pairs(OPEN) do Reg(e) end
-for e in pairs(CLOSE) do Reg(e) end
-for e in pairs(STAMP) do Reg(e) end
+N.Reg(ev, "ADDON_LOADED", "PLAYER_ENTERING_WORLD", "PLAYER_MONEY", "PLAYER_LEVEL_UP")
+for e in pairs(OPEN) do N.Reg(ev, e) end
+for e in pairs(CLOSE) do N.Reg(ev, e) end
+for e in pairs(STAMP) do N.Reg(ev, e) end
 
 ---------------------------------------------------------------------------
 -- Comandos

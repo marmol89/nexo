@@ -139,19 +139,12 @@ end
 ---------------------------------------------------------------------------
 -- Tarjetas resumen
 ---------------------------------------------------------------------------
-local cards = {}
-local CARD_W = (W - PAD * 2 - 10 * 3) / 4
-local cardDefs = {
+local cards = K.Cards(main, {
     { "Experiencia por hora", ACC, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
     { "Para subir de nivel", GOLD, "Interface\\Icons\\INV_Misc_Map_01" },
     { "Esta sesión", GREEN, "Interface\\Icons\\INV_Misc_Note_01" },
     { "En este nivel", REST, "Interface\\Icons\\INV_Misc_Book_09" },
-}
-for i, def in ipairs(cardDefs) do
-    local c = K.Card(main, CARD_W, def[1], def[2], def[3], 16, true)
-    c:SetPoint("TOPLEFT", PAD + (i - 1) * (CARD_W + 10), -124)
-    cards[i] = c
-end
+}, { x = PAD, y = -124, w = W - PAD * 2, valueSize = 16, tint = true })
 
 ---------------------------------------------------------------------------
 -- Gráfico: tiempo por nivel
@@ -172,46 +165,17 @@ chartHint:SetText("últimos " .. CHART_LEVELS .. " niveles")
 
 local PLOT_H = 104
 local PLOT_BOTTOM = 22
-local slotW = (LEFT_W - 20) / CHART_LEVELS
-local baseLine = Tex(chart, "ARTWORK", 1, 1, 1, 0.15)
-baseLine:SetHeight(1)
-baseLine:SetPoint("BOTTOMLEFT", 10, PLOT_BOTTOM)
-baseLine:SetPoint("BOTTOMRIGHT", -10, PLOT_BOTTOM)
-
-local gridLabels = {}
-for i, frac in ipairs({ 0.5, 1 }) do
-    local g = Tex(chart, "BACKGROUND", 1, 1, 1, 0.05, 2)
-    g:SetHeight(1)
-    g:SetPoint("BOTTOMLEFT", 10, PLOT_BOTTOM + PLOT_H * frac)
-    g:SetPoint("BOTTOMRIGHT", -10, PLOT_BOTTOM + PLOT_H * frac)
-    local l = Text(chart, 9)
-    l:SetPoint("BOTTOMRIGHT", g, "TOPRIGHT", 0, 1)
-    l:SetTextColor(0.45, 0.45, 0.45)
-    gridLabels[i] = { frac = frac, fs = l }
-end
-
-local slots = {}
-for i = 1, CHART_LEVELS do
-    local s = CreateFrame("Frame", nil, chart)
-    s:SetSize(slotW, PLOT_H + PLOT_BOTTOM)
-    s:SetPoint("BOTTOMLEFT", 10 + (i - 1) * slotW, 0)
-    s:EnableMouse(true)
-    s.hl = Tex(s, "BACKGROUND", ACC[1], ACC[2], ACC[3], 0.08, 3)
-    s.hl:SetPoint("TOPLEFT", 1, 0)
-    s.hl:SetPoint("BOTTOMRIGHT", -1, PLOT_BOTTOM)
-    s.hl:Hide()
-    s.bar = Tex(s, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.95)
-    s.bar:SetWidth(math.max(4, math.floor(slotW - 6)))
-    s.bar:SetPoint("BOTTOM", s, "BOTTOM", 0, PLOT_BOTTOM + 1)
-    s.label = Text(s, 9)
-    s.label:SetPoint("BOTTOM", 0, 6)
-    s:SetScript("OnEnter", function(self)
-        self.hl:Show()
-        if self.data then LevelTooltip(self, self.data) end
-    end)
-    s:SetScript("OnLeave", function(self) self.hl:Hide() GameTooltip:Hide() end)
-    slots[i] = s
-end
+local slots, gridLabels = K.Chart(chart, {
+    n = CHART_LEVELS, w = LEFT_W, plotH = PLOT_H, plotBottom = PLOT_BOTTOM,
+    build = function(s, slotW)
+        s.bar = Tex(s, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.95)
+        s.bar:SetWidth(math.max(4, math.floor(slotW - 6)))
+        s.bar:SetPoint("BOTTOM", s, "BOTTOM", 0, PLOT_BOTTOM + 1)
+        s.label = Text(s, 9)
+        s.label:SetPoint("BOTTOM", 0, 6)
+    end,
+    tooltip = function(s, e) LevelTooltip(s, e) end,
+})
 
 local chartEmpty = Text(chart, 11)
 chartEmpty:SetPoint("CENTER", 0, 4)
@@ -394,19 +358,7 @@ end)
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footLine = Tex(main, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.2)
-footLine:SetHeight(1)
-footLine:SetPoint("BOTTOMLEFT", 1, FOOT_H)
-footLine:SetPoint("BOTTOMRIGHT", -1, FOOT_H)
-
-local footer = Text(main, 11)
-footer:SetPoint("BOTTOMLEFT", PAD, 10)
-footer:SetTextColor(0.75, 0.75, 0.75)
-
-local footRight = Text(main, 10)
-footRight:SetPoint("BOTTOMRIGHT", -PAD, 10)
-footRight:SetTextColor(0.45, 0.45, 0.45)
-footRight:SetText("/senda ayuda")
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/senda ayuda" })
 
 ---------------------------------------------------------------------------
 -- Refrescar todo
@@ -569,31 +521,12 @@ function ns.Refresh()
 end
 
 -- Los datos cambian a ráfagas (varias ganancias seguidas): refresca como mucho cada 0,3 s
-local pending = false
 function ns.OnDataChanged()
-    if pending or not main:IsShown() then return end
-    pending = true
-    C_Timer.After(0.3, function()
-        pending = false
-        ns.Refresh()
-    end)
+    if main:IsShown() then Nexo.Debounce("Senda.refresh", 0.3, ns.Refresh) end
 end
 
-main:SetScript("OnShow", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839)
-    ns.Refresh()
-end)
-main:SetScript("OnHide", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840)
-end)
-main.elapsed = 0
-main:SetScript("OnUpdate", function(self, el)
-    self.elapsed = self.elapsed + el
-    if self.elapsed > 5 then
-        self.elapsed = 0
-        ns.Refresh()
-    end
-end)
+function main:OnOpen() ns.Refresh() end
+main:Every(5, function() ns.Refresh() end)
 
 function ns.Toggle()
     main:SetShown(not main:IsShown())

@@ -1,8 +1,6 @@
 -- Oficio: interfaz
 local ADDON, ns = ...
 
-local GetItemInfo = GetItemInfo or (C_Item and C_Item.GetItemInfo)
-
 local W, H = 780, 560
 local PAD = 14
 local LIST_W = 480
@@ -13,7 +11,6 @@ local LINES = 20
 local BAR_W = W - PAD * 2 - LIST_W - 10 - 20
 
 local N = Nexo
-local BD, TEMPLATE = N.BD, N.TEMPLATE
 local ACC = { 0.88, 0.66, 0.30 }
 local ACC_HEX = "|cffe0a84c"
 local GREY = "|cff9a958c"
@@ -76,7 +73,8 @@ local main, close = K.Window({
     settings = function() return ns.db and ns.db.settings end,
 })
 
-local ResetScroll
+local list
+local function ResetScroll() list:Reset() end
 local charBtn = K.CharButton(main, close, {
     list = function() return ns.CharList() end,
     get = function() return state.filter end,
@@ -91,31 +89,15 @@ local charBtn = K.CharButton(main, close, {
 ---------------------------------------------------------------------------
 -- Búsqueda y filtro de profesión
 ---------------------------------------------------------------------------
-local search = CreateFrame("EditBox", "OficioSearchBox", main, TEMPLATE)
-search:SetSize(230, 22)
-search:SetPoint("TOPLEFT", PAD, -62)
-search:SetBackdrop(BD)
-search:SetBackdropColor(0.09, 0.08, 0.07, 1)
-search:SetBackdropBorderColor(0.32, 0.26, 0.17, 1)
-search:SetAutoFocus(false)
-search:SetFontObject(ChatFontNormal)
-search:SetTextInsets(8, 8, 0, 0)
-search:SetMaxLetters(40)
-local placeholder = Text(search, 11)
-placeholder:SetPoint("LEFT", 8, 0)
-placeholder:SetTextColor(0.5, 0.47, 0.42)
-placeholder:SetText("Buscar receta o material...")
-search:SetScript("OnEscapePressed", function(s) s:ClearFocus() end)
-search:SetScript("OnEnterPressed", function(s) s:ClearFocus() end)
-search:SetScript("OnEditFocusGained", function(s) s:SetBackdropBorderColor(ACC[1], ACC[2], ACC[3], 1) end)
-search:SetScript("OnEditFocusLost", function(s) s:SetBackdropBorderColor(0.32, 0.26, 0.17, 1) end)
-search:SetScript("OnTextChanged", function(s)
-    local t = s:GetText() or ""
-    placeholder:SetShown(t == "")
-    state.text = t:lower():gsub("^%s+", ""):gsub("%s+$", "")
-    ResetScroll()
-    ns.Refresh()
-end)
+local search = K.Search(main, {
+    name = "OficioSearchBox", x = PAD, y = -62, hint = "Buscar receta o material...",
+    bg = { 0.09, 0.08, 0.07 }, border = { 0.32, 0.26, 0.17 }, hintColor = { 0.5, 0.47, 0.42 },
+    onChange = function(text)
+        state.text = text
+        ResetScroll()
+        ns.Refresh()
+    end,
+})
 
 -- Clic izquierdo: profesión siguiente; derecho: anterior; la primera opción es "todas"
 local profBtn = Button(main, 190, 22, "", function(_, mouse)
@@ -145,56 +127,7 @@ local TOP_Y = -94
 local FOOT_H = 30
 local contentH = H + TOP_Y - FOOT_H - 8
 
-local listPanel = Panel(main)
-listPanel:SetPoint("TOPLEFT", PAD, TOP_Y)
-listPanel:SetSize(LIST_W, contentH)
-local listLine = Tex(listPanel, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.25)
-listLine:SetHeight(1)
-listLine:SetPoint("TOPLEFT", 8, -24)
-listLine:SetPoint("TOPRIGHT", -8, -24)
-
-local sortBtns = {}
-local function SortHeader(key, label, x, width)
-    local b = CreateFrame("Button", nil, listPanel)
-    b:SetSize(width, 18)
-    b:SetPoint("TOPLEFT", x, -4)
-    b.text = Text(b, 11, "GameFontNormal")
-    b.text:SetPoint("LEFT", 0, 0)
-    b.label = label
-    b.key = key
-    b:SetScript("OnClick", function()
-        if state.sort == key then
-            state.asc = not state.asc
-        else
-            state.sort = key
-            state.asc = true
-        end
-        ResetScroll()
-        ns.Refresh()
-    end)
-    sortBtns[#sortBtns + 1] = b
-    return b
-end
-SortHeader("name", "Receta", 36, 190)
-SortHeader("prof", "Profesión", 236, 100)
-local whoHeader = Text(listPanel, 11, "GameFontNormal")
-whoHeader:SetPoint("TOPLEFT", 340, -7)
-whoHeader:SetText("Quién")
-whoHeader:SetTextColor(ACC[1], ACC[2], ACC[3])
-
-local scroll = CreateFrame("ScrollFrame", "OficioListScroll", listPanel, "FauxScrollFrameTemplate")
-scroll:SetPoint("TOPLEFT", 4, -30)
-scroll:SetPoint("BOTTOMRIGHT", -26, 10)
-
-function ResetScroll()
-    local sb = scroll.ScrollBar or _G["OficioListScrollScrollBar"]
-    if sb then sb:SetValue(0) end
-    FauxScrollFrame_SetOffset(scroll, 0)
-end
-
-local listData = {}
-local rows = {}
-local UpdateList, UpdateDetail
+local UpdateDetail
 
 local function MakersText(e)
     local parts = {}
@@ -206,104 +139,50 @@ local function MakersText(e)
     return table.concat(parts, ", ")
 end
 
-local function ShowItemTooltip(owner, id)
-    if not id then return end
-    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
-    GameTooltip:SetHyperlink("item:" .. id)
-    GameTooltip:Show()
-end
-
-for i = 1, ROWS do
-    local r = CreateFrame("Button", nil, listPanel)
-    r:SetHeight(ROW_H)
-    r:SetPoint("TOPLEFT", 6, -30 - (i - 1) * ROW_H)
-    r:SetPoint("RIGHT", scroll, "RIGHT", 0, 0)
-    r.bg = Tex(r, "BACKGROUND", 1, 1, 1, (i % 2 == 0) and 0.03 or 0)
-    r.bg:SetAllPoints()
-    r.hl = Tex(r, "BACKGROUND", ACC[1], ACC[2], ACC[3], 0.08, 1)
-    r.hl:SetAllPoints()
-    r.hl:Hide()
-    r.sel = Tex(r, "BACKGROUND", ACC[1], ACC[2], ACC[3], 0.16, 2)
-    r.sel:SetAllPoints()
-    r.sel:Hide()
-    r.icon = r:CreateTexture(nil, "ARTWORK")
-    r.icon:SetSize(20, 20)
-    r.icon:SetPoint("LEFT", 4, 0)
-    r.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    r.name = Text(r, 12)
-    r.name:SetPoint("LEFT", 30, 0)
-    r.name:SetWidth(196)
-    r.name:SetJustifyH("LEFT")
-    r.name:SetWordWrap(false)
-    r.prof = Text(r, 11)
-    r.prof:SetPoint("LEFT", 230, 0)
-    r.prof:SetWidth(100)
-    r.prof:SetJustifyH("LEFT")
-    r.prof:SetWordWrap(false)
-    r.prof:SetTextColor(0.72, 0.68, 0.6)
-    r.who = Text(r, 11)
-    r.who:SetPoint("LEFT", 334, 0)
-    r.who:SetPoint("RIGHT", -4, 0)
-    r.who:SetJustifyH("LEFT")
-    r.who:SetWordWrap(false)
-    r:SetScript("OnEnter", function(self)
-        self.hl:Show()
-        if self.data then ShowItemTooltip(self, self.data.item) end
-    end)
-    r:SetScript("OnLeave", function(self) self.hl:Hide() GameTooltip:Hide() end)
-    r:SetScript("OnClick", function(self)
-        local e = self.data
-        if not e then return end
-        if IsShiftKeyDown() and e.item and GetItemInfo then
-            local _, link = GetItemInfo(e.item)
-            if link then
-                if ChatEdit_InsertLink then
-                    ChatEdit_InsertLink(link)
-                elseif ChatFrameUtil and ChatFrameUtil.InsertLink then
-                    ChatFrameUtil.InsertLink(link)
-                end
-            end
-            return
-        end
+list = K.List(main, {
+    name = "OficioListScroll", x = PAD, y = TOP_Y, w = LIST_W, h = contentH,
+    rows = ROWS, rowH = ROW_H, nameW = 196, emptyW = 360,
+    build = function(r)
+        r.prof = Text(r, 11)
+        r.prof:SetPoint("LEFT", 230, 0)
+        r.prof:SetWidth(100)
+        r.prof:SetJustifyH("LEFT")
+        r.prof:SetWordWrap(false)
+        r.prof:SetTextColor(0.72, 0.68, 0.6)
+        r.who = Text(r, 11)
+        r.who:SetPoint("LEFT", 334, 0)
+        r.who:SetPoint("RIGHT", -4, 0)
+        r.who:SetJustifyH("LEFT")
+        r.who:SetWordWrap(false)
+    end,
+    fill = function(r, e)
+        r.prof:SetText(e.prof)
+        r.who:SetText(MakersText(e))
+    end,
+    item = function(e) return e.item end,
+    selected = function(e) return state.selProf == e.prof and state.selName == e.name end,
+    click = function(e)
         if state.selProf == e.prof and state.selName == e.name then
             state.selProf, state.selName = nil, nil     -- segundo clic: volver al resumen
         else
             state.selProf, state.selName = e.prof, e.name
         end
-        UpdateList()
         UpdateDetail()
-    end)
-    rows[i] = r
-end
+    end,
+})
+local listPanel, listEmpty = list.panel, list.empty
 
-local listEmpty = Text(listPanel, 12)
-listEmpty:SetPoint("CENTER", -10, 0)
-listEmpty:SetWidth(360)
-listEmpty:SetTextColor(0.5, 0.5, 0.5)
+local sorter = K.Sorter(listPanel, state, function()
+    ResetScroll()
+    ns.Refresh()
+end, { 0.72, 0.62, 0.45 })
+sorter:Add("name", "Receta", 36, 190, "LEFT", true)
+sorter:Add("prof", "Profesión", 236, 100, "LEFT", true)
+local whoHeader = Text(listPanel, 11, "GameFontNormal")
+whoHeader:SetPoint("TOPLEFT", 340, -7)
+whoHeader:SetText("Quién")
+whoHeader:SetTextColor(ACC[1], ACC[2], ACC[3])
 
-function UpdateList()
-    local offset = FauxScrollFrame_GetOffset(scroll)
-    FauxScrollFrame_Update(scroll, #listData, ROWS, ROW_H)
-    for i = 1, ROWS do
-        local r = rows[i]
-        local e = listData[offset + i]
-        r.data = e
-        if e then
-            r.icon:SetTexture(e.icon)
-            r.name:SetText(e.name)
-            r.prof:SetText(e.prof)
-            r.who:SetText(MakersText(e))
-            r.sel:SetShown(state.selProf == e.prof and state.selName == e.name)
-            r:Show()
-        else
-            r:Hide()
-        end
-    end
-    listEmpty:SetShown(#listData == 0)
-end
-scroll:SetScript("OnVerticalScroll", function(self, offset)
-    FauxScrollFrame_OnVerticalScroll(self, offset, ROW_H, UpdateList)
-end)
 
 ---------------------------------------------------------------------------
 -- Panel derecho: resumen de profesiones o detalle de la receta elegida
@@ -314,75 +193,14 @@ detail:SetPoint("TOPRIGHT", main, "TOPRIGHT", -PAD, TOP_Y)
 detail:SetHeight(contentH)
 local dTitle = SectionTitle(detail, "Profesiones")
 
-local dIcon = detail:CreateTexture(nil, "ARTWORK")
-dIcon:SetSize(36, 36)
-dIcon:SetPoint("TOPLEFT", 10, -34)
-dIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-local dName = Text(detail, 13)
-dName:SetPoint("TOPLEFT", dIcon, "TOPRIGHT", 8, 0)
-dName:SetPoint("RIGHT", -10, 0)
-dName:SetJustifyH("LEFT")
-dName:SetJustifyV("TOP")
-if dName.SetMaxLines then dName:SetMaxLines(2) end
+local dIcon, dName = K.DetailHead(detail)
 local dSub = Text(detail, 11)
 dSub:SetPoint("BOTTOMLEFT", dIcon, "BOTTOMRIGHT", 8, 0)
 dSub:SetTextColor(0.72, 0.68, 0.6)
 
 -- Líneas genéricas: { l = texto izquierdo, r = texto derecho, bar = 0..1, color = {r, g, b}, item = id }
-local lineRows = {}
-for i = 1, LINES do
-    local r = CreateFrame("Frame", nil, detail)
-    r:SetHeight(LINE_H)
-    r:EnableMouse(true)
-    r.r = Text(r, 11)
-    r.r:SetPoint("RIGHT", 0, 1)
-    r.r:SetJustifyH("RIGHT")
-    r.l = Text(r, 11)
-    r.l:SetPoint("LEFT", 0, 1)
-    r.l:SetPoint("RIGHT", r.r, "LEFT", -6, 0)
-    r.l:SetJustifyH("LEFT")
-    r.l:SetWordWrap(false)
-    r.barBg = Tex(r, "BACKGROUND", 1, 1, 1, 0.06)
-    r.barBg:SetHeight(2)
-    r.barBg:SetPoint("BOTTOMLEFT", 0, 0)
-    r.barBg:SetPoint("BOTTOMRIGHT", 0, 0)
-    r.bar = Tex(r, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.9)
-    r.bar:SetHeight(2)
-    r.bar:SetPoint("BOTTOMLEFT", 0, 0)
-    r:SetScript("OnEnter", function(self) ShowItemTooltip(self, self.item) end)
-    r:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    lineRows[i] = r
-end
-
-local function RenderLines(lines, top)
-    local max = math.min(LINES, math.floor((contentH - top - 8) / LINE_H))
-    if #lines > max then
-        lines[max] = { l = GREY .. "y " .. (#lines - max + 1) .. " líneas más|r" }
-        for i = #lines, max + 1, -1 do lines[i] = nil end
-    end
-    for i, r in ipairs(lineRows) do
-        local d = lines[i]
-        if d then
-            r:ClearAllPoints()
-            r:SetPoint("TOPLEFT", detail, "TOPLEFT", 10, -(top + (i - 1) * LINE_H))
-            r:SetPoint("RIGHT", detail, "RIGHT", -10, 0)
-            r.l:SetText(d.l or "")
-            r.r:SetText(d.r or "")
-            r.item = d.item
-            local hasBar = d.bar ~= nil
-            r.barBg:SetShown(hasBar)
-            r.bar:SetShown(hasBar)
-            if hasBar then
-                local c = d.color or ACC
-                r.bar:SetColorTexture(c[1], c[2], c[3], 0.9)
-                r.bar:SetWidth(math.max(1, math.min(1, d.bar) * BAR_W))
-            end
-            r:Show()
-        else
-            r:Hide()
-        end
-    end
-end
+local detailLines = K.Lines(detail, { n = LINES, lineH = LINE_H, barW = BAR_W, height = contentH, grey = GREY, items = true })
+local function RenderLines(lines, top) detailLines:Render(lines, top) end
 
 local function Title(text) return { l = ACC_HEX .. text .. "|r" } end
 
@@ -513,19 +331,7 @@ end
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footLine = Tex(main, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.2)
-footLine:SetHeight(1)
-footLine:SetPoint("BOTTOMLEFT", 1, FOOT_H)
-footLine:SetPoint("BOTTOMRIGHT", -1, FOOT_H)
-
-local footer = Text(main, 11)
-footer:SetPoint("BOTTOMLEFT", PAD, 10)
-footer:SetTextColor(0.75, 0.75, 0.75)
-
-local footRight = Text(main, 10)
-footRight:SetPoint("BOTTOMRIGHT", -PAD, 10)
-footRight:SetTextColor(0.45, 0.45, 0.45)
-footRight:SetText("/oficio ayuda")
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/oficio ayuda" })
 
 -- Avisa de las profesiones cuya ventana aún no se ha abierto con este personaje
 local function UpdateFooter()
@@ -559,12 +365,7 @@ function ns.Refresh()
     if not main:IsShown() or not ns.db then return end
     if state.filter and not ns.db.chars[state.filter] then state.filter = nil end
 
-    if state.filter then
-        local c = ns.db.chars[state.filter]
-        charBtn.text:SetText("|c" .. ClassHex(c.class) .. ShortName(state.filter) .. "|r  |cff888888nivel " .. (c.level or "?") .. "|r")
-    else
-        charBtn.text:SetText(ACC_HEX .. "Todos los personajes|r")
-    end
+    charBtn:SetChar(state.filter, ns.db.chars[state.filter], "ffe8dcc8")
 
     if state.prof then
         local ok = false
@@ -574,18 +375,10 @@ function ns.Refresh()
     profBtn.text:SetText(state.prof or "Todas las profesiones")
     profBtn:SetActive(state.prof ~= nil)
 
-    for _, b in ipairs(sortBtns) do
-        if state.sort == b.key then
-            b.text:SetText(b.label .. (state.asc and " |cffffffff+|r" or " |cffffffff-|r"))
-            b.text:SetTextColor(ACC[1], ACC[2], ACC[3])
-        else
-            b.text:SetText(b.label)
-            b.text:SetTextColor(0.72, 0.62, 0.45)
-        end
-    end
+    sorter:Update()
 
     local all = ns.Index(state.filter, state.prof)
-    listData = {}
+    local listData = {}
     local text = state.text
     for _, e in ipairs(all) do
         if text == "" or Matches(e, text) then listData[#listData + 1] = e end
@@ -614,26 +407,17 @@ function ns.Refresh()
         listEmpty:SetText("Ninguna receta coincide con la búsqueda.")
     end
 
-    UpdateList()
+    list:SetData(listData)
     UpdateDetail()
     UpdateFooter()
 end
 
-local pending = false
 function ns.OnDataChanged()
-    if not main:IsShown() or pending then return end
-    pending = true
-    C_Timer.After(0.3, function() pending = false; ns.Refresh() end)
+    if main:IsShown() then N.Debounce("Oficio.refresh", 0.3, ns.Refresh) end
 end
 
-main:SetScript("OnShow", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839)
-    ns.Refresh()
-end)
-main:SetScript("OnHide", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840)
-    search:ClearFocus()
-end)
+function main:OnOpen() ns.Refresh() end
+function main:OnClose() search:ClearFocus() end
 
 function ns.Toggle()
     main:SetShown(not main:IsShown())

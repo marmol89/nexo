@@ -24,29 +24,10 @@ local CHUNK = 1000          -- subastas que se leen por fotograma en un escaneo 
 ---------------------------------------------------------------------------
 -- Formato
 ---------------------------------------------------------------------------
-local BLN = BreakUpLargeNumbers or tostring
-local function coin(tex, size) return ("|TInterface\\MoneyFrame\\UI-%sIcon:%d:%d:2:0|t"):format(tex, size, size) end
+-- Money(cobre, tamaño, full): el del núcleo. full = todas las monedas; si no, versión compacta
+ns.Money = Nexo.Money
 
--- full = muestra todas las monedas; si no, versión compacta
-function ns.Money(c, size, full)
-    size = size or 12
-    c = floor(abs(c or 0) + 0.5)
-    local g, s, cu = floor(c / 10000), floor(c / 100) % 100, c % 100
-    local out = {}
-    if g > 0 then out[#out + 1] = BLN(g) .. coin("Gold", size) end
-    if s > 0 and (full or g < 1000) then out[#out + 1] = s .. coin("Silver", size) end
-    if (cu > 0 and (full or g == 0)) or #out == 0 then out[#out + 1] = cu .. coin("Copper", size) end
-    return table.concat(out, " ")
-end
-
-function ns.Ago(t)
-    if not t then return "nunca" end
-    local d = time() - t
-    if d < 90 then return "ahora mismo" end
-    if d < 3600 then return "hace " .. floor(d / 60) .. " min" end
-    if d < 86400 then return "hace " .. floor(d / 3600) .. " h" end
-    return "hace " .. Nexo.Plural(floor(d / 86400), "día", "días")
-end
+function ns.Ago(t) return Nexo.Ago(t, "nunca") end
 
 ---------------------------------------------------------------------------
 -- Base de datos
@@ -334,19 +315,14 @@ local function OnItemResults(itemKey)
 end
 
 -- Muchos eventos seguidos = una sola lectura
-local pending = {}
 local function Queue(what, fn, ...)
-    if pending[what] then return end
-    pending[what] = true
-    local a, b = ...
-    C_Timer.After(0.3, function()
-        pending[what] = nil
-        local ok, err = pcall(fn, a, b)
+    Nexo.Debounce("Lonja." .. what, 0.3, function(...)
+        local ok, err = pcall(fn, ...)
         if not ok then
             Trace("ERROR " .. what .. ": " .. tostring(err))
-            geterrorhandler()(err)
+            error(err, 0)   -- Nexo lo pasa al gestor de errores
         end
-    end)
+    end, ...)
 end
 
 ---------------------------------------------------------------------------
@@ -371,13 +347,7 @@ end
 
 -- Unidades de un objeto en bolsas y bancos de la cuenta según Alijo (nil si Alijo no está)
 function ns.Have(id)
-    if not id or not AlijoDB or not AlijoDB.chars then return nil end
-    local total = 0
-    for _, c in pairs(AlijoDB.chars) do
-        total = total + (c.bags and c.bags[id] or 0) + (c.bank and c.bank[id] or 0)
-    end
-    local w = AlijoDB.warband and AlijoDB.warband.items
-    return total + (w and w[id] or 0)
+    if Alijo and Alijo.Have then return Alijo.Have(id, true) end
 end
 
 function ns.HasAlijo() return AlijoDB ~= nil and AlijoDB.chars ~= nil end
@@ -495,11 +465,10 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("GET_ITEM_INFO_RECEIVED")
-Reg("AUCTION_HOUSE_SHOW"); Reg("AUCTION_HOUSE_CLOSED"); Reg("AUCTION_ITEM_LIST_UPDATE")
-Reg("REPLICATE_ITEM_LIST_UPDATE"); Reg("AUCTION_HOUSE_BROWSE_RESULTS_UPDATED"); Reg("AUCTION_HOUSE_BROWSE_RESULTS_ADDED")
-Reg("COMMODITY_SEARCH_RESULTS_UPDATED"); Reg("ITEM_SEARCH_RESULTS_UPDATED")
+Nexo.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "GET_ITEM_INFO_RECEIVED",
+    "AUCTION_HOUSE_SHOW", "AUCTION_HOUSE_CLOSED", "AUCTION_ITEM_LIST_UPDATE",
+    "REPLICATE_ITEM_LIST_UPDATE", "AUCTION_HOUSE_BROWSE_RESULTS_UPDATED", "AUCTION_HOUSE_BROWSE_RESULTS_ADDED",
+    "COMMODITY_SEARCH_RESULTS_UPDATED", "ITEM_SEARCH_RESULTS_UPDATED")
 
 ---------------------------------------------------------------------------
 -- Comandos

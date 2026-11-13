@@ -2,7 +2,14 @@
 --
 -- Los demás addons lo usan a través de la tabla global Nexo:
 --   Nexo.Dur / Num / DayKey / DayLabel ...   formato de tiempos, números y fechas
+--   Nexo.Money(cobre) / Ago(hora)            monedas con iconos y "hace 5 min"
+--   Nexo.QualityRGB(q) / ItemID(enlace)      color por calidad e id de un enlace de objeto
+--   Nexo.Keys(tabla)                         claves ordenadas (listas de personajes)
+--   Nexo.Reg(marco, ...)                     registra eventos; los que no existen se ignoran
+--   Nexo.Debounce(clave, espera, fn, ...)    muchos avisos seguidos = una sola llamada
 --   Nexo.CharKey() / Char() / CharList()     registro de personajes de la cuenta
+--   Nexo.InitChar / EachChar / FindChar      trabajo con la tabla de personajes de cada addon
+--   Nexo.PERIODS / PERIOD_DAYS               periodos de los resúmenes
 --   Nexo.OnTick(fn)                          fn(dt, ahora) cada 5 s de juego
 --   Nexo.OnPlayed(fn)                        fn(total, enEsteNivel) con el /played real
 --   Nexo.Kit(tema)                           piezas de interfaz (ver UI.lua)
@@ -11,7 +18,7 @@ local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 1
+N.version = 3
 
 local floor = math.floor
 local DAY = 86400
@@ -63,6 +70,49 @@ end
 
 function N.Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
 
+-- Dinero en cobre -> monedas con su icono. full = todas las monedas; si no, versión compacta
+local BLN = BreakUpLargeNumbers or tostring
+local function Coin(tex, size) return ("|TInterface\\MoneyFrame\\UI-%sIcon:%d:%d:2:0|t"):format(tex, size, size) end
+
+function N.Money(c, size, full)
+    size = size or 12
+    c = floor(math.abs(c or 0) + 0.5)
+    local g, s, cu = floor(c / 10000), floor(c / 100) % 100, c % 100
+    local out = {}
+    if g > 0 then out[#out + 1] = BLN(g) .. Coin("Gold", size) end
+    if s > 0 and (full or g < 1000) then out[#out + 1] = s .. Coin("Silver", size) end
+    if (cu > 0 and (full or g == 0)) or #out == 0 then out[#out + 1] = cu .. Coin("Copper", size) end
+    return table.concat(out, " ")
+end
+
+-- "ahora mismo", "hace 5 min", "hace 3 h", "hace 2 días"; sin hora devuelve never (o nil)
+function N.Ago(t, never)
+    if not t then return never end
+    local d = time() - t
+    if d < 90 then return "ahora mismo" end
+    if d < 3600 then return "hace " .. floor(d / 60) .. " min" end
+    if d < DAY then return "hace " .. floor(d / 3600) .. " h" end
+    return "hace " .. N.Plural(floor(d / DAY), "día", "días")
+end
+
+function N.QualityRGB(q)
+    local c = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[q]
+    if c then return c.r, c.g, c.b end
+    return 1, 1, 1
+end
+
+function N.ItemID(link) return link and tonumber(link:match("item:(%d+)")) end
+
+-- Claves de una tabla, ordenadas
+function N.Keys(t)
+    local list = {}
+    if t then
+        for k in pairs(t) do list[#list + 1] = k end
+    end
+    table.sort(list)
+    return list
+end
+
 -- "Nombre - Reino" -> "Nombre"
 function N.ShortName(key) return (key:match("^(.-) %- ") or key) end
 
@@ -86,7 +136,7 @@ local db
 function N.CharKey() return UnitName("player") .. " - " .. GetRealmName() end
 
 local function UpdateChar()
-    if not db then return end
+    if not db or not UnitName("player") then return end   -- aún sin datos del personaje: se repite al entrar
     local key = N.CharKey()
     local c = db.chars[key] or {}
     db.chars[key] = c
@@ -110,14 +160,41 @@ end
 -- Datos de un personaje: { name, realm, class, level, lastSeen }
 function N.Char(key) return db and db.chars[key or N.charKey] end
 
-function N.CharList()
-    local list = {}
-    if db then
-        for k in pairs(db.chars) do list[#list + 1] = k end
-    end
-    table.sort(list)
-    return list
+function N.CharList() return N.Keys(db and db.chars) end
+
+-- Lo que sigue trabaja sobre la tabla de personajes de cada addon (su db.chars), no sobre la de Nexo.
+
+-- Entrada del personaje actual en chars, con clase, nombre y nivel al día.
+-- new = tabla con la que se crea si aún no existe. Devuelve la entrada y su clave.
+function N.InitChar(chars, new)
+    local key = N.CharKey()
+    local c = chars[key] or new or {}
+    chars[key] = c
+    local _, class = UnitClass("player")
+    c.class, c.name, c.level = class, UnitName("player"), UnitLevel("player")
+    return c, key
 end
+
+-- fn(datos, clave) para el personaje filter, o para todos si filter es nil
+function N.EachChar(chars, filter, fn)
+    if filter then
+        if chars[filter] then fn(chars[filter], filter) end
+    else
+        for k, c in pairs(chars) do fn(c, k) end
+    end
+end
+
+-- Clave del personaje que se llama who (nombre suelto o "Nombre - Reino"), sin contar except
+function N.FindChar(chars, who, except)
+    who = who:lower()
+    for key, c in pairs(chars) do
+        if key ~= except and ((c.name or ""):lower() == who or key:lower() == who) then return key end
+    end
+end
+
+-- Periodos de los resúmenes: { clave, texto } y los días que abarca cada uno ("all" no tiene límite)
+N.PERIODS = { { "today", "Hoy" }, { "week", "7 días" }, { "month", "30 días" }, { "all", "Siempre" } }
+N.PERIOD_DAYS = { today = 1, week = 7, month = 30 }
 
 ---------------------------------------------------------------------------
 -- Reloj de juego y /played
@@ -148,9 +225,36 @@ local function Tick()
     Fire(tickFns, dt, now)
 end
 
--- /played pedido en silencio, sin ensuciar el chat
+-- Registra eventos en un marco; los que no existen en este cliente se ignoran.
+-- Devuelve true si se registraron todos.
+function N.Reg(frame, ...)
+    local all = true
+    for i = 1, select("#", ...) do
+        if not pcall(frame.RegisterEvent, frame, (select(i, ...))) then all = false end
+    end
+    return all
+end
+
+-- Muchos avisos seguidos con la misma clave = una sola llamada a fn(...) pasada la espera
+local waiting = {}
+function N.Debounce(key, delay, fn, ...)
+    if waiting[key] then return end
+    waiting[key] = true
+    local a, b = ...
+    C_Timer.After(delay, function()
+        waiting[key] = nil
+        local ok, err = pcall(fn, a, b)
+        if not ok then geterrorhandler()(err) end
+    end)
+end
+
+-- /played pedido en silencio, sin ensuciar el chat.
+-- El chat se destapa cuando han llegado todas las respuestas pedidas, o a los 8 s de la
+-- última petición si alguna no llega.
 local hiddenChat
+local playedPending, playedSeq = 0, 0
 local function RestoreChat()
+    playedPending = 0
     if not hiddenChat then return end
     for _, f in ipairs(hiddenChat) do f:RegisterEvent("TIME_PLAYED_MSG") end
     hiddenChat = nil
@@ -167,8 +271,13 @@ function N.RequestPlayed()
                 hiddenChat[#hiddenChat + 1] = f
             end
         end
-        C_Timer.After(8, RestoreChat)
     end
+    playedPending = playedPending + 1
+    playedSeq = playedSeq + 1
+    local seq = playedSeq
+    C_Timer.After(8, function()
+        if seq == playedSeq then RestoreChat() end
+    end)
     RequestTimePlayed()
 end
 
@@ -196,7 +305,13 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "TIME_PLAYED_MSG" then
         local total, level = ...
         if type(total) == "number" then Fire(playedFns, total, level or 0) end
-        C_Timer.After(0.2, RestoreChat)
+        if playedPending > 0 then playedPending = playedPending - 1 end
+        if playedPending == 0 then
+            local seq = playedSeq
+            C_Timer.After(0.2, function()
+                if seq == playedSeq then RestoreChat() end   -- si entretanto se pidió otro, sigue tapado
+            end)
+        end
     elseif event == "PLAYER_LOGOUT" then
         Tick()
     end
@@ -211,8 +326,7 @@ ev:SetScript("OnUpdate", function(self, el)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LOGOUT"); Reg("PLAYER_LEVEL_UP"); Reg("TIME_PLAYED_MSG")
+N.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_LOGOUT", "PLAYER_LEVEL_UP", "TIME_PLAYED_MSG")
 
 ---------------------------------------------------------------------------
 -- Comandos
