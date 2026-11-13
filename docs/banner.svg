@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" width="1200" height="340" role="img" aria-label="Nexo: seis addons para World of Warcraft">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14151c"/>
+      <stop offset="1" stop-color="#0b0c11"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffd100"/>
+      <stop offset="0.25" stop-color="#66c7ff"/>
+      <stop offset="0.5" stop-color="#5cdb9e"/>
+      <stop offset="0.75" stop-color="#b88cff"/>
+      <stop offset="1" stop-color="#e0a84c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0" r="0.7">
+      <stop offset="0" stop-color="#d9d9e6" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#d9d9e6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="340" rx="18" fill="url(#bg)"/>
+  <rect width="1200" height="340" rx="18" fill="url(#glow)"/>
+  <rect x="0.5" y="0.5" width="1199" height="339" rx="18" fill="none" stroke="#2a2c38"/>
+
+  <g font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" text-anchor="middle">
+    <text x="600" y="62" font-size="15" letter-spacing="6" fill="#8b8ea3">ADDONS DE WORLD OF WARCRAFT</text>
+    <text x="600" y="138" font-size="76" font-weight="700" letter-spacing="2" fill="#d9d9e6">NEXO</text>
+    <rect x="450" y="160" width="300" height="3" rx="1.5" fill="url(#line)"/>
+    <text x="600" y="198" font-size="19" fill="#a9acbf">Un núcleo compartido y cinco addons que registran tu cuenta</text>
+
+    <!-- líneas del núcleo a cada addon -->
+    <g stroke="#2f3140" stroke-width="1.5" fill="none">
+      <path d="M600 212 V232 H200 V252"/>
+      <path d="M600 232 H400 V252"/>
+      <path d="M600 232 V252"/>
+      <path d="M600 232 H800 V252"/>
+      <path d="M600 232 H1000 V252"/>
+    </g>
+
+    <g font-size="20" font-weight="600">
+      <g>
+        <rect x="115" y="252" width="170" height="50" rx="10" fill="#ffd100" fill-opacity="0.10" stroke="#ffd100" stroke-opacity="0.7"/>
+        <text x="200" y="284" fill="#ffd100">Tesorero</text>
+      </g>
+      <g>
+        <rect x="315" y="252" width="170" height="50" rx="10" fill="#66c7ff" fill-opacity="0.10" stroke="#66c7ff" stroke-opacity="0.7"/>
+        <text x="400" y="284" fill="#66c7ff">Bitácora</text>
+      </g>
+      <g>
+        <rect x="515" y="252" width="170" height="50" rx="10" fill="#5cdb9e" fill-opacity="0.10" stroke="#5cdb9e" stroke-opacity="0.7"/>
+        <text x="600" y="284" fill="#5cdb9e">Alijo</text>
+      </g>
+      <g>
+        <rect x="715" y="252" width="170" height="50" rx="10" fill="#b88cff" fill-opacity="0.10" stroke="#b88cff" stroke-opacity="0.7"/>
+        <text x="800" y="284" fill="#b88cff">Senda</text>
+      </g>
+      <g>
+        <rect x="915" y="252" width="170" height="50" rx="10" fill="#e0a84c" fill-opacity="0.10" stroke="#e0a84c" stroke-opacity="0.7"/>
+        <text x="1000" y="284" fill="#e0a84c">Oficio</text>
+      </g>
+    </g>
+  </g>
+</svg>
