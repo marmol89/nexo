@@ -253,12 +253,7 @@ end)
 ---------------------------------------------------------------------------
 -- Consultas para la interfaz
 ---------------------------------------------------------------------------
-function ns.CharList()
-    local list = {}
-    for k in pairs(db.chars) do list[#list + 1] = k end
-    table.sort(list)
-    return list
-end
+function ns.CharList() return Nexo.Keys(db.chars) end
 
 -- Ritmo de la sesión y ritmo de los últimos 15 minutos (experiencia por hora)
 function ns.Rates()
@@ -370,11 +365,9 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) return pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_XP_UPDATE"); Reg("PLAYER_LEVEL_UP")
-Reg("UPDATE_EXHAUSTION"); Reg("CHAT_MSG_COMBAT_XP_GAIN"); Reg("CHAT_MSG_SYSTEM")
-Reg("UI_INFO_MESSAGE")
-hasTurnIn = Reg("QUEST_TURNED_IN") and true or false
+Nexo.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_XP_UPDATE", "PLAYER_LEVEL_UP",
+    "UPDATE_EXHAUSTION", "CHAT_MSG_COMBAT_XP_GAIN", "CHAT_MSG_SYSTEM", "UI_INFO_MESSAGE")
+hasTurnIn = Nexo.Reg(ev, "QUEST_TURNED_IN")
 
 ---------------------------------------------------------------------------
 -- Comandos

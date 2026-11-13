@@ -61,17 +61,12 @@ local charBtn = K.CharButton(main, close, {
 })
 
 -- Pestañas de periodo
-local periodBtns = {}
-for i, p in ipairs(ns.PERIODS) do
-    local b = Button(main, 80, 22, p[2], function()
-        state.period = p[1]
-        ns.db.settings.period = p[1]
-        ns.Refresh()
-    end)
-    b.key = p[1]
-    if i == 1 then b:SetPoint("TOPLEFT", PAD, -62) else b:SetPoint("LEFT", periodBtns[i - 1], "RIGHT", 6, 0) end
-    periodBtns[i] = b
-end
+local periodBtns = K.Tabs(main, ns.PERIODS, 80, function(period)
+    state.period = period
+    ns.db.settings.period = period
+    ns.Refresh()
+end)
+periodBtns[1]:SetPoint("TOPLEFT", PAD, -62)
 
 local periodHint = Text(main, 11)
 periodHint:SetPoint("LEFT", periodBtns[#periodBtns], "RIGHT", 12, 0)
@@ -80,19 +75,12 @@ periodHint:SetTextColor(0.6, 0.6, 0.6)
 ---------------------------------------------------------------------------
 -- Tarjetas resumen
 ---------------------------------------------------------------------------
-local cards = {}
-local CARD_W = (W - PAD * 2 - 10 * 3) / 4
-local cardDefs = {
+local cards = K.Cards(main, {
     { "Tiempo total", { 1, 0.82, 0 }, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
     { "En el periodo", ACC, "Interface\\Icons\\INV_Misc_Note_01" },
     { "Media diaria", GREEN, "Interface\\Icons\\INV_Misc_Book_09" },
     { "Sesión actual", { 0.80, 0.45, 1 }, "Interface\\Icons\\Ability_Hunter_EagleEye" },
-}
-for i, def in ipairs(cardDefs) do
-    local c = K.Card(main, CARD_W, def[1], def[2], def[3], 16, true)
-    c:SetPoint("TOPLEFT", PAD + (i - 1) * (CARD_W + 10), -94)
-    cards[i] = c
-end
+}, { x = PAD, y = -94, w = W - PAD * 2, valueSize = 16, tint = true })
 
 ---------------------------------------------------------------------------
 -- Gráfico de los últimos 14 días
@@ -112,47 +100,20 @@ legend:SetText("|TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:102:199:255|t
 
 local PLOT_H = 96
 local PLOT_BOTTOM = 22
-local slotW = (LEFT_W - 20) / CHART_DAYS
-local baseLine = Tex(chart, "ARTWORK", 1, 1, 1, 0.15)
-baseLine:SetHeight(1)
-baseLine:SetPoint("BOTTOMLEFT", 10, PLOT_BOTTOM)
-baseLine:SetPoint("BOTTOMRIGHT", -10, PLOT_BOTTOM)
-
-local gridLabels = {}
-for i, frac in ipairs({ 0.5, 1 }) do
-    local g = Tex(chart, "BACKGROUND", 1, 1, 1, 0.05, 2)
-    g:SetHeight(1)
-    g:SetPoint("BOTTOMLEFT", 10, PLOT_BOTTOM + PLOT_H * frac)
-    g:SetPoint("BOTTOMRIGHT", -10, PLOT_BOTTOM + PLOT_H * frac)
-    local l = Text(chart, 9)
-    l:SetPoint("BOTTOMRIGHT", g, "TOPRIGHT", 0, 1)
-    l:SetTextColor(0.45, 0.45, 0.45)
-    gridLabels[i] = { frac = frac, fs = l }
-end
-
-local slots = {}
-for i = 1, CHART_DAYS do
-    local s = CreateFrame("Frame", nil, chart)
-    s:SetSize(slotW, PLOT_H + PLOT_BOTTOM)
-    s:SetPoint("BOTTOMLEFT", 10 + (i - 1) * slotW, 0)
-    s:EnableMouse(true)
-    s.hl = Tex(s, "BACKGROUND", ACC[1], ACC[2], ACC[3], 0.08, 3)
-    s.hl:SetPoint("TOPLEFT", 1, 0)
-    s.hl:SetPoint("BOTTOMRIGHT", -1, PLOT_BOTTOM)
-    s.hl:Hide()
-    local bw = math.max(4, math.floor(slotW - 10))
-    s.act = Tex(s, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.95)
-    s.act:SetWidth(bw)
-    s.act:SetPoint("BOTTOM", s, "BOTTOM", 0, PLOT_BOTTOM + 1)
-    s.afk = Tex(s, "ARTWORK", AFK[1], AFK[2], AFK[3], 0.85)
-    s.afk:SetWidth(bw)
-    s.afk:SetPoint("BOTTOM", s.act, "TOP", 0, 0)
-    s.label = Text(s, 9)
-    s.label:SetPoint("BOTTOM", 0, 6)
-    s:SetScript("OnEnter", function(self)
-        self.hl:Show()
-        local e = self.data
-        if not e then return end
+local slots, gridLabels = K.Chart(chart, {
+    n = CHART_DAYS, w = LEFT_W, plotH = PLOT_H, plotBottom = PLOT_BOTTOM, today = true,
+    build = function(s, slotW)
+        local bw = math.max(4, math.floor(slotW - 10))
+        s.act = Tex(s, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.95)
+        s.act:SetWidth(bw)
+        s.act:SetPoint("BOTTOM", s, "BOTTOM", 0, PLOT_BOTTOM + 1)
+        s.afk = Tex(s, "ARTWORK", AFK[1], AFK[2], AFK[3], 0.85)
+        s.afk:SetWidth(bw)
+        s.afk:SetPoint("BOTTOM", s.act, "TOP", 0, 0)
+        s.label = Text(s, 9)
+        s.label:SetPoint("BOTTOM", 0, 6)
+    end,
+    tooltip = function(self, e)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(DAY_NAMES[tonumber(date("%w", e.t)) + 1] .. " " .. date("%d/%m/%Y", e.t), ACC[1], ACC[2], ACC[3])
         GameTooltip:AddDoubleLine("Jugado", ns.Dur(e.s), 0.8, 0.8, 0.8, 1, 1, 1)
@@ -164,13 +125,8 @@ for i = 1, CHART_DAYS do
             GameTooltip:AddDoubleLine("Estimado (Tesorero)", "~" .. ns.Dur(e.est), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8)
         end
         GameTooltip:Show()
-    end)
-    s:SetScript("OnLeave", function(self) if not self.isToday then self.hl:Hide() end GameTooltip:Hide() end)
-    slots[i] = s
-end
-slots[CHART_DAYS].isToday = true
-slots[CHART_DAYS].hl:Show()
-slots[CHART_DAYS].hl:SetColorTexture(ACC[1], ACC[2], ACC[3], 0.06)
+    end,
+})
 
 local chartEmpty = Text(chart, 11)
 chartEmpty:SetPoint("CENTER", 0, 4)
@@ -383,49 +339,13 @@ statsLine:SetHeight(1)
 statsLine:SetPoint("TOPLEFT", 2, 0)
 statsLine:SetPoint("TOPRIGHT", -2, 0)
 
-local stats = {}
-local statNames = { "Sesión más larga", "Día más largo", "Racha actual", "Día favorito" }
-for i, name in ipairs(statNames) do
-    local col = (i - 1) % 2
-    local row = math.floor((i - 1) / 2)
-    local f = CreateFrame("Frame", nil, statsBox)
-    f:SetSize(170, 32)
-    f:SetPoint("TOPLEFT", 4 + col * 182, -6 - row * 33)
-    f.label = Text(f, 9)
-    f.label:SetPoint("TOPLEFT", 0, 0)
-    f.label:SetTextColor(0.55, 0.55, 0.55)
-    f.label:SetText(name:upper())
-    f.value = Text(f, 12)
-    f.value:SetPoint("TOPLEFT", 0, -11)
-    f.value:SetWordWrap(false)
-    f.sub = Text(f, 9)
-    f.sub:SetPoint("LEFT", f.value, "RIGHT", 6, 0)
-    f.sub:SetTextColor(0.5, 0.5, 0.5)
-    f.sub:SetWordWrap(false)
-    stats[i] = f
-end
-
-local function SetStat(f, value, sub)
-    f.value:SetText(value)
-    f.sub:SetText(sub or "")
-end
+local stats = K.StatGrid(statsBox, { "Sesión más larga", "Día más largo", "Racha actual", "Día favorito" })
+local function SetStat(f, value, sub) f:Set(value, sub) end
 
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footLine = Tex(main, "ARTWORK", ACC[1], ACC[2], ACC[3], 0.2)
-footLine:SetHeight(1)
-footLine:SetPoint("BOTTOMLEFT", 1, FOOT_H)
-footLine:SetPoint("BOTTOMRIGHT", -1, FOOT_H)
-
-local footer = Text(main, 11)
-footer:SetPoint("BOTTOMLEFT", PAD, 10)
-footer:SetTextColor(0.75, 0.75, 0.75)
-
-local footRight = Text(main, 10)
-footRight:SetPoint("BOTTOMRIGHT", -PAD, 10)
-footRight:SetTextColor(0.45, 0.45, 0.45)
-footRight:SetText("/bita ayuda")
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/bita ayuda" })
 
 local function TodayTotal(filter)
     local series = ns.DailySeries(filter, 1)
@@ -454,14 +374,9 @@ function ns.Refresh()
     if state.filter and not ns.db.chars[state.filter] then state.filter = nil end
 
     -- Botón de personaje
-    if state.filter then
-        local c = ns.db.chars[state.filter]
-        charBtn.text:SetText("|c" .. ClassHex(c.class) .. ShortName(state.filter) .. "|r  |cff888888nivel " .. (c.level or "?") .. "|r")
-    else
-        charBtn.text:SetText("|cff66c7ffTodos los personajes|r")
-    end
+    charBtn:SetChar(state.filter, ns.db.chars[state.filter])
 
-    for _, b in ipairs(periodBtns) do b:SetActive(b.key == state.period) end
+    periodBtns:Select(state.period)
     periodHint:SetText(PERIOD_TEXT[state.period])
 
     -- Tarjetas
@@ -604,21 +519,8 @@ function ns.Refresh()
     UpdateFooter()
 end
 
-main:SetScript("OnShow", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839)
-    ns.Refresh()
-end)
-main:SetScript("OnHide", function()
-    PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840)
-end)
-main.elapsed = 0
-main:SetScript("OnUpdate", function(self, el)
-    self.elapsed = self.elapsed + el
-    if self.elapsed > 10 then
-        self.elapsed = 0
-        ns.Refresh()
-    end
-end)
+function main:OnOpen() ns.Refresh() end
+main:Every(10, function() ns.Refresh() end)
 
 function ns.Toggle()
     main:SetShown(not main:IsShown())

@@ -37,13 +37,7 @@ local function InitDB()
     db.settings = db.settings or {}
     db.settings.period = db.settings.period or "week"
 
-    charKey = N.CharKey()
-    db.chars[charKey] = db.chars[charKey] or { days = {}, sessions = {}, firstSeen = time() }
-    char = db.chars[charKey]
-    local _, class = UnitClass("player")
-    char.class = class
-    char.name = UnitName("player")
-    char.level = UnitLevel("player")
+    char, charKey = N.InitChar(db.chars, { days = {}, sessions = {}, firstSeen = time() })
     -- desde cuándo se mide de verdad este personaje (lo anterior solo puede estimarse)
     if not char.tracked then
         char.tracked = char.fromImport and time() or (char.firstSeen or time())
@@ -240,23 +234,12 @@ end)
 ---------------------------------------------------------------------------
 -- Agregados para la interfaz
 ---------------------------------------------------------------------------
-local PERIOD_DAYS = { today = 1, week = 7, month = 30 }
-ns.PERIODS = { { "today", "Hoy" }, { "week", "7 días" }, { "month", "30 días" }, { "all", "Siempre" } }
+local PERIOD_DAYS = N.PERIOD_DAYS
+ns.PERIODS = N.PERIODS
 
-function ns.CharList()
-    local list = {}
-    for k in pairs(db.chars) do list[#list + 1] = k end
-    table.sort(list)
-    return list
-end
+function ns.CharList() return N.Keys(db.chars) end
 
-local function EachChar(filter, fn)
-    if filter then
-        if db.chars[filter] then fn(db.chars[filter], filter) end
-    else
-        for k, c in pairs(db.chars) do fn(c, k) end
-    end
-end
+local function EachChar(filter, fn) N.EachChar(db.chars, filter, fn) end
 
 -- Conjunto de días válidos del periodo (nil = todos)
 local function ValidDays(period)
@@ -432,8 +415,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LEVEL_UP")
+N.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_LEVEL_UP")
 
 ---------------------------------------------------------------------------
 -- Comandos

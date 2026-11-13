@@ -28,7 +28,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 
 | | Addon | Qué hace | Comando | Versión |
 |:-:|---|---|:-:|:-:|
-| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.0.0` |
+| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.2.0` |
 | 💰 | **Tesorero** | Historial de oro: cuánto ganas, cuánto gastas y en qué (botín, misiones, mercader, reparaciones, subasta...). | `/tesoro` | `1.1.0` |
 | ⏱️ | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` | `1.2.0` |
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
@@ -227,12 +227,19 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 
 | Función | Para qué sirve |
 |---|---|
-| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `CharButton`, `SectionTitle`, `Text` y `Tex`. |
+| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `CharButton`, `Tabs`, `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
 | `Nexo.Register(def)` | Apunta el addon en el menú del botón del minimapa. |
 | `Nexo.OnTick(fn)` | Llama a `fn(dt, ahora)` cada 5 segundos de juego, sin contar el tiempo con el equipo suspendido. |
 | `Nexo.OnPlayed(fn)` | Llama a `fn(total, enEsteNivel)` con el `/played` real, pedido sin ensuciar el chat. |
 | `Nexo.CharKey()`, `Nexo.Char()`, `Nexo.CharList()` | Registro de personajes de la cuenta. |
 | `Nexo.Dur`, `Nexo.Num`, `Nexo.DayKey`, `Nexo.DayLabel` | Formato de duraciones, números y fechas. |
+| `Nexo.Money(cobre)`, `Nexo.Ago(hora)` | Dinero con los iconos de las monedas y textos como «hace 5 min». |
+| `Nexo.QualityRGB(q)`, `Nexo.ItemID(enlace)`, `Nexo.Keys(tabla)` | Color por calidad, id de un enlace de objeto y claves ordenadas de una tabla. |
+| `Nexo.Reg(marco, ...)` | Registra eventos en un marco; los que no existen en el cliente se ignoran. |
+| `Nexo.Debounce(clave, espera, fn, ...)` | Muchos avisos seguidos con la misma clave acaban en una sola llamada. |
+| `Nexo.OnItemTooltip(fn)`, `Nexo.ItemTooltip(marco, id)`, `Nexo.LinkItem(id)` | Añadir líneas al tooltip de los objetos, enseñar el tooltip de uno y enlazarlo en el chat. |
+| `Nexo.InitChar(chars, nuevo)`, `Nexo.EachChar(chars, filtro, fn)`, `Nexo.FindChar(chars, nombre)` | Trabajo con la tabla de personajes de cada addon: alta del personaje actual, recorrido y búsqueda por nombre. |
+| `Nexo.PERIODS`, `Nexo.PERIOD_DAYS` | Periodos de los resúmenes (hoy, 7 días, 30 días, siempre). |
 
 ### Añadir un addon nuevo sobre Nexo
 

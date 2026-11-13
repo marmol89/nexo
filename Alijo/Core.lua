@@ -75,13 +75,7 @@ local function InitDB()
     db.warband = db.warband or { items = {} }
     db.settings = db.settings or {}
 
-    charKey = Nexo.CharKey()
-    db.chars[charKey] = db.chars[charKey] or { bags = {}, bank = {}, equip = {} }
-    char = db.chars[charKey]
-    local _, class = UnitClass("player")
-    char.class = class
-    char.name = UnitName("player")
-    char.level = UnitLevel("player")
+    char, charKey = Nexo.InitChar(db.chars, { bags = {}, bank = {}, equip = {} })
     ns.db, ns.char, ns.charKey = db, char, charKey
 end
 
@@ -132,10 +126,7 @@ end
 ---------------------------------------------------------------------------
 local bankOpen = false
 local dirty = {}
-local scheduled = false
-
 local function RunScans()
-    scheduled = false
     if not char then return end
     local now = time()
     if dirty.bags then
@@ -159,10 +150,7 @@ end
 
 local function Queue(what)
     dirty[what] = true
-    if not scheduled then
-        scheduled = true
-        C_Timer.After(0.4, RunScans)
-    end
+    Nexo.Debounce("Alijo.scan", 0.4, RunScans)
 end
 
 ---------------------------------------------------------------------------
@@ -178,12 +166,7 @@ function ns.ItemInfo(id)
     return name or ("Objeto " .. id), quality or 1, icon or "Interface\\Icons\\INV_Misc_QuestionMark"
 end
 
-function ns.CharList()
-    local list = {}
-    for k in pairs(db.chars) do list[#list + 1] = k end
-    table.sort(list)
-    return list
-end
+function ns.CharList() return Nexo.Keys(db.chars) end
 
 -- Lista de objetos. filter = clave de personaje o nil; loc = all | bags | bank | equip | warband
 function ns.Index(filter, loc)
@@ -262,6 +245,21 @@ function ns.TooltipEnabled()
     return not (IsAddOnLoaded and IsAddOnLoaded("BagBrother"))
 end
 
+-- Para los demás addons
+Alijo = {
+    -- Unidades de un objeto en bolsas y bancos de toda la cuenta (lo equipado no cuenta);
+    -- warband = sumar también el banco de la banda. nil si aún no hay datos.
+    Have = function(id, warband)
+        if not id or not db then return nil end
+        local total = 0
+        for _, c in pairs(db.chars) do
+            total = total + (c.bags and c.bags[id] or 0) + (c.bank and c.bank[id] or 0)
+        end
+        local w = warband and db.warband and db.warband.items
+        return total + (w and w[id] or 0)
+    end,
+}
+
 ---------------------------------------------------------------------------
 -- Eventos
 ---------------------------------------------------------------------------
@@ -298,11 +296,10 @@ ev:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-local function Reg(e) pcall(ev.RegisterEvent, ev, e) end
-Reg("ADDON_LOADED"); Reg("PLAYER_LOGIN"); Reg("PLAYER_LEVEL_UP")
-Reg("BAG_UPDATE"); Reg("BAG_UPDATE_DELAYED"); Reg("PLAYER_EQUIPMENT_CHANGED")
-Reg("BANKFRAME_OPENED"); Reg("BANKFRAME_CLOSED")
-Reg("PLAYERBANKSLOTS_CHANGED"); Reg("PLAYERREAGENTBANKSLOTS_CHANGED")
+Nexo.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_LEVEL_UP",
+    "BAG_UPDATE", "BAG_UPDATE_DELAYED", "PLAYER_EQUIPMENT_CHANGED",
+    "BANKFRAME_OPENED", "BANKFRAME_CLOSED",
+    "PLAYERBANKSLOTS_CHANGED", "PLAYERREAGENTBANKSLOTS_CHANGED")
 
 ---------------------------------------------------------------------------
 -- Comandos
@@ -319,10 +316,7 @@ SlashCmdList.ALIJO = function(msg)
         print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
-        local found
-        for key, c in pairs(db.chars) do
-            if key ~= charKey and ((c.name or ""):lower() == who or key:lower() == who) then found = key end
-        end
+        local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
             print(P .. "inventario de " .. found .. " borrado.")
