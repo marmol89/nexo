@@ -2,9 +2,9 @@
 ## Title: |cffe0a84cOficio|r
 ## Notes: Profesiones de toda la cuenta: nivel de cada una, recetas que conoce cada personaje y enfriamientos de fabricación.
 ## Author: marmol89
-## Version: 0.1.0
+## Version: 0.2.0
 ## Dependencies: Nexo
-## OptionalDeps: Alijo
+## OptionalDeps: Alijo, Lonja
 ## Group: Nexo
 ## IconTexture: Interface\Icons\Trade_BlackSmithing
 ## SavedVariables: OficioDB

@@ -25,37 +25,43 @@
     <text x="600" y="62" font-size="15" letter-spacing="6" fill="#8b8ea3">ADDONS DE WORLD OF WARCRAFT</text>
     <text x="600" y="138" font-size="76" font-weight="700" letter-spacing="2" fill="#d9d9e6">NEXO</text>
     <rect x="450" y="160" width="300" height="3" rx="1.5" fill="url(#line)"/>
-    <text x="600" y="198" font-size="19" fill="#a9acbf">Un núcleo compartido y cinco addons que registran tu cuenta</text>
+    <text x="600" y="198" font-size="19" fill="#a9acbf">Un núcleo compartido y seis addons que registran tu cuenta</text>
 
     <!-- líneas del núcleo a cada addon -->
     <g stroke="#2f3140" stroke-width="1.5" fill="none">
-      <path d="M600 212 V232 H200 V252"/>
-      <path d="M600 232 H400 V252"/>
-      <path d="M600 232 V252"/>
-      <path d="M600 232 H800 V252"/>
-      <path d="M600 232 H1000 V252"/>
+      <path d="M600 212 V232"/>
+      <path d="M600 232 H140 V252"/>
+      <path d="M600 232 H324 V252"/>
+      <path d="M600 232 H508 V252"/>
+      <path d="M600 232 H692 V252"/>
+      <path d="M600 232 H876 V252"/>
+      <path d="M600 232 H1060 V252"/>
     </g>
 
     <g font-size="20" font-weight="600">
       <g>
-        <rect x="115" y="252" width="170" height="50" rx="10" fill="#ffd100" fill-opacity="0.10" stroke="#ffd100" stroke-opacity="0.7"/>
-        <text x="200" y="284" fill="#ffd100">Tesorero</text>
+        <rect x="60" y="252" width="160" height="50" rx="10" fill="#ffd100" fill-opacity="0.10" stroke="#ffd100" stroke-opacity="0.7"/>
+        <text x="140" y="284" fill="#ffd100">Tesorero</text>
       </g>
       <g>
-        <rect x="315" y="252" width="170" height="50" rx="10" fill="#66c7ff" fill-opacity="0.10" stroke="#66c7ff" stroke-opacity="0.7"/>
-        <text x="400" y="284" fill="#66c7ff">Bitácora</text>
+        <rect x="244" y="252" width="160" height="50" rx="10" fill="#66c7ff" fill-opacity="0.10" stroke="#66c7ff" stroke-opacity="0.7"/>
+        <text x="324" y="284" fill="#66c7ff">Bitácora</text>
       </g>
       <g>
-        <rect x="515" y="252" width="170" height="50" rx="10" fill="#5cdb9e" fill-opacity="0.10" stroke="#5cdb9e" stroke-opacity="0.7"/>
-        <text x="600" y="284" fill="#5cdb9e">Alijo</text>
+        <rect x="428" y="252" width="160" height="50" rx="10" fill="#5cdb9e" fill-opacity="0.10" stroke="#5cdb9e" stroke-opacity="0.7"/>
+        <text x="508" y="284" fill="#5cdb9e">Alijo</text>
       </g>
       <g>
-        <rect x="715" y="252" width="170" height="50" rx="10" fill="#b88cff" fill-opacity="0.10" stroke="#b88cff" stroke-opacity="0.7"/>
-        <text x="800" y="284" fill="#b88cff">Senda</text>
+        <rect x="612" y="252" width="160" height="50" rx="10" fill="#b88cff" fill-opacity="0.10" stroke="#b88cff" stroke-opacity="0.7"/>
+        <text x="692" y="284" fill="#b88cff">Senda</text>
       </g>
       <g>
-        <rect x="915" y="252" width="170" height="50" rx="10" fill="#e0a84c" fill-opacity="0.10" stroke="#e0a84c" stroke-opacity="0.7"/>
-        <text x="1000" y="284" fill="#e0a84c">Oficio</text>
+        <rect x="796" y="252" width="160" height="50" rx="10" fill="#e0a84c" fill-opacity="0.10" stroke="#e0a84c" stroke-opacity="0.7"/>
+        <text x="876" y="284" fill="#e0a84c">Oficio</text>
+      </g>
+      <g>
+        <rect x="980" y="252" width="160" height="50" rx="10" fill="#f0786a" fill-opacity="0.10" stroke="#f0786a" stroke-opacity="0.7"/>
+        <text x="1060" y="284" fill="#f0786a">Lonja</text>
       </g>
     </g>
   </g>

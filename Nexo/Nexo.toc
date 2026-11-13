@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: |cffd9d9e6Nexo|r
-## Notes: Núcleo compartido de Tesorero, Bitácora, Alijo y Senda: interfaz común, reloj de juego, registro de personajes y un único botón de minimapa.
+## Notes: Núcleo compartido de Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja: interfaz común, reloj de juego, registro de personajes y un único botón de minimapa.
 ## Author: marmol89
 ## Version: 1.0.0
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01

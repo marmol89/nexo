@@ -411,6 +411,11 @@ function ns.Have(id)
     return total
 end
 
+-- Precio por unidad de un objeto en la subasta según Lonja (nil si Lonja no está o no lo ha visto)
+function ns.Price(id)
+    if id and Lonja and Lonja.Price then return (Lonja.Price(id)) end
+end
+
 local function AnnounceCooldowns()
     if db.settings.announce == false then return end
     local ready = {}

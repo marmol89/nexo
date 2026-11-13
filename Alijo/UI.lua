@@ -374,7 +374,15 @@ function UpdateDetail()
     dIcon:SetTexture(icon)
     dName:SetText(name)
     dName:SetTextColor(QualityRGB(quality))
-    dTotal:SetText("Total en la cuenta: |cffffffff" .. total .. "|r  ·  " .. Plural(#owners, "sitio", "sitios"))
+    -- Con Lonja, lo que vale en la subasta (lo equipado no cuenta: no se puede vender)
+    local price = Lonja and Lonja.Price and Lonja.Price(state.sel)
+    local sellable = 0
+    for _, o in ipairs(owners) do sellable = sellable + o.bags + o.bank end
+    if price and sellable > 0 then
+        dTotal:SetText("Total en la cuenta: |cffffffff" .. total .. "|r  ·  vale " .. Lonja.Money(price * sellable, 11))
+    else
+        dTotal:SetText("Total en la cuenta: |cffffffff" .. total .. "|r  ·  " .. Plural(#owners, "sitio", "sitios"))
+    end
     local barW = detail:GetWidth() - 20
     for i, r in ipairs(ownerRows) do
         local o = owners[i]

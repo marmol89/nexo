@@ -447,6 +447,7 @@ local function RecipeLines(prof, name, makers)
         lines[#lines + 1] = {}
         lines[#lines + 1] = Title("Materiales")
         local alijo = false
+        local cost, priced = 0, 0
         for _, rg in ipairs(reags) do
             local have = ns.Have(rg.id)
             local right
@@ -454,10 +455,37 @@ local function RecipeLines(prof, name, makers)
                 alijo = true
                 right = (have >= rg.n and "|cff66ff66" or "|cffff6655") .. have .. "|r" .. GREY .. " en la cuenta|r"
             end
+            local price = ns.Price(rg.id)
+            if price then
+                cost, priced = cost + price * rg.n, priced + 1
+                right = (right and (right .. GREY .. " · |r") or "") .. Lonja.Money(price * rg.n, 11)
+            end
             lines[#lines + 1] = { l = rg.n .. " x " .. ns.ReagName(rg), r = right, item = rg.id }
         end
         if not alijo then
             lines[#lines + 1] = { l = GREY .. "Con Alijo activado verás cuántos tienes.|r" }
+        end
+
+        -- Con Lonja: lo que cuestan los materiales en la subasta y por cuánto se vende lo fabricado
+        if priced > 0 then
+            lines[#lines + 1] = {}
+            lines[#lines + 1] = Title("En la lonja")
+            local partial = priced < #reags
+            lines[#lines + 1] = {
+                l = "Materiales" .. (partial and (GREY .. " (" .. priced .. " de " .. #reags .. " con precio)|r") or ""),
+                r = Lonja.Money(cost, 11),
+            }
+            local sale = ns.Price(info.id)
+            if sale then
+                lines[#lines + 1] = { l = "Se vende por", r = Lonja.Money(sale, 11), item = info.id }
+                if not partial then
+                    local diff = sale - cost
+                    lines[#lines + 1] = {
+                        l = diff >= 0 and "Ganancia" or "Pérdida",
+                        r = (diff >= 0 and "|cff66ff66" or "|cffff6655") .. Lonja.Money(diff, 11) .. "|r",
+                    }
+                end
+            end
         end
     end
     return lines
