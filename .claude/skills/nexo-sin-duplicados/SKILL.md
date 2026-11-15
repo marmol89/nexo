@@ -42,6 +42,7 @@ un arreglo vale para todos.
 | Líneas en el tooltip de los objetos | `Nexo.OnItemTooltip(fn)` — `fn(tip, id)` devuelve `true` si añadió algo |
 | Tooltip de un objeto, enlazarlo en el chat | `Nexo.ItemTooltip(marco, id)`, `Nexo.LinkItem(id)` |
 | Botón del minimapa | `Nexo.Register(def)` |
+| Marco que se arrastra y recuerda dónde se dejó | `Nexo.Movable(marco, ajustes)` → `marco:RestorePos()` |
 | Que los datos del addon se puedan exportar e importar | `data = "MiAddonDB"` en `Nexo.Register`; el resto lo hace Nexo (`/nexo datos`) |
 | Tabla a texto y vuelta | `Nexo.Serialize(t)`, `Nexo.Deserialize(s)` |
 | Heredar los datos del addon de antes de llamarse `Nexo_<nombre>` | `if Nexo.Antiguo(ADDON) then return end` al principio de cada archivo, y el nombre antiguo en `OptionalDeps`. Solo en los seis addons que existían entonces; uno nuevo no lo necesita |

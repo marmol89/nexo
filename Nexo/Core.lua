@@ -13,6 +13,7 @@
 --   Nexo.OnTick(fn)                          fn(dt, ahora) cada 5 s de juego
 --   Nexo.OnPlayed(fn)                        fn(total, enEsteNivel) con el /played real
 --   Nexo.Kit(tema)                           piezas de interfaz (ver UI.lua)
+--   Nexo.Movable(marco, ajustes)             marco que se arrastra y recuerda dónde se dejó
 --   Nexo.Register(def)                       apunta el addon en el botón del minimapa
 --   Nexo.Export(ids) / ReadExport / Import   datos de los addons como texto, para cambiar de ordenador
 --   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
@@ -21,7 +22,7 @@ local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 5
+N.version = 6
 
 local floor = math.floor
 local DAY = 86400

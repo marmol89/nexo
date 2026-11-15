@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: |cff73ccffVuelo|r
+## Notes: Cuánto tarda cada vuelo de los maestros de vuelo y una cuenta atrás, que se puede mover por la pantalla, mientras vuelas.
+## Author: marmol89
+## Version: 0.1.0
+## Dependencies: Nexo
+## Group: Nexo
+## IconTexture: Interface\Icons\Ability_Mount_Gryphon_01
+## SavedVariables: VueloDB
+## AddonCompartmentFunc: Vuelo_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: Vuelo_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: Vuelo_OnCompartmentLeave
+
+Core.lua
+UI.lua

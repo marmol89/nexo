@@ -26,6 +26,32 @@ end
 
 local Text, Tex = N.Text, N.Tex
 
+-- Hace que un marco se pueda arrastrar con el botón izquierdo y guarda dónde queda en
+-- settings().pos. Le añade frame:RestorePos(), que lo lleva a la posición guardada.
+function N.Movable(frame, settings)
+    frame:EnableMouse(true)
+    frame:SetMovable(true)
+    frame:SetClampedToScreen(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", function(s)
+        s:StopMovingOrSizing()
+        local st = settings and settings()
+        if st then
+            local p, _, rp, x, y = s:GetPoint()
+            st.pos = { p, rp, x, y }
+        end
+    end)
+    function frame:RestorePos()
+        local st = settings and settings()
+        local pos = st and st.pos
+        if pos then
+            self:ClearAllPoints()
+            self:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
+        end
+    end
+end
+
 -- Lleva al principio una lista con FauxScrollFrameTemplate
 function N.ResetScroll(scroll)
     local name = scroll:GetName()
@@ -197,19 +223,7 @@ function N.Kit(t)
         main:SetBackdrop(BD)
         main:SetBackdropColor(t.winBg[1], t.winBg[2], t.winBg[3], 0.96)
         main:SetBackdropBorderColor(t.winBorder[1], t.winBorder[2], t.winBorder[3], 1)
-        main:EnableMouse(true)
-        main:SetMovable(true)
-        main:SetClampedToScreen(true)
-        main:RegisterForDrag("LeftButton")
-        main:SetScript("OnDragStart", main.StartMoving)
-        main:SetScript("OnDragStop", function(s)
-            s:StopMovingOrSizing()
-            local settings = o.settings and o.settings()
-            if settings then
-                local p, _, rp, x, y = s:GetPoint()
-                settings.pos = { p, rp, x, y }
-            end
-        end)
+        N.Movable(main, o.settings)
         main:Hide()
         tinsert(UISpecialFrames, o.name)
 
@@ -233,15 +247,6 @@ function N.Kit(t)
                     fn()
                 end
             end)
-        end
-
-        function main:RestorePos()
-            local settings = o.settings and o.settings()
-            local pos = settings and settings.pos
-            if pos then
-                self:ClearAllPoints()
-                self:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4])
-            end
         end
 
         local header = Tex(main, "BACKGROUND", t.headBg[1], t.headBg[2], t.headBg[3], 1, 1)

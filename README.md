@@ -28,13 +28,14 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 
 | | Addon | Qué hace | Comando | Versión |
 |:-:|---|---|:-:|:-:|
-| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.4.0` |
+| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.5.0` |
 | 💰 | **Tesorero** | Historial de oro: cuánto ganas, cuánto gastas y en qué (botín, misiones, mercader, reparaciones, subasta...). | `/tesoro` | `1.1.0` |
 | ⏱️ | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` | `1.2.0` |
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
 | 📈 | **Senda** | Subida de nivel: experiencia por hora, tiempo para subir, tiempo en cada nivel y origen de la experiencia. | `/senda` | `1.1.0` |
 | ⚒️ | **Oficio** | Profesiones: nivel de cada una, qué recetas conoce cada personaje y enfriamientos de fabricación. | `/oficio` | `0.2.0` |
 | 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta. | `/lonja` | `0.2.0` |
+| 🦅 | **Vuelo** | Vuelos de los maestros de vuelo: cuánto tarda cada destino y una cuenta atrás en pantalla, que se puede mover, mientras vuelas. | `/vuelo` | `0.1.0` |
 
 ```mermaid
 flowchart TD
@@ -45,6 +46,7 @@ flowchart TD
     N --> S["📈 Senda<br><i>experiencia</i>"]
     N --> O["⚒️ Oficio<br><i>profesiones</i>"]
     N --> L["🔨 Lonja<br><i>precios de subasta</i>"]
+    N --> V["🦅 Vuelo<br><i>tiempos de vuelo</i>"]
     T -. "estima el historial" .-> B
     A -. "materiales en la cuenta" .-> O
     A -. "lo que tienes" .-> L
@@ -66,7 +68,7 @@ flowchart TD
 
 ## 📦 Instalación
 
-1. **Copia** las siete carpetas a `World of Warcraft\<versión>\Interface\AddOns`:
+1. **Copia** las ocho carpetas a `World of Warcraft\<versión>\Interface\AddOns`:
 
    ```
    Interface\AddOns\
@@ -76,7 +78,8 @@ flowchart TD
    ├── Nexo_Alijo\
    ├── Nexo_Senda\
    ├── Nexo_Oficio\
-   └── Nexo_Lonja\
+   ├── Nexo_Lonja\
+   └── Nexo_Vuelo\
    ```
 
 2. **Reinicia el juego por completo.**
@@ -188,6 +191,18 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 
 </details>
 
+<details>
+<summary><b>🦅 Vuelo</b> — <code>/vuelo</code></summary>
+
+Vuelo no tiene ventana: `/vuelo` enseña u oculta el contador de muestra para colocarlo arrastrándolo con el ratón.
+
+| Comando | Qué hace |
+|---|---|
+| `/vuelo centro` | Devuelve el contador a su sitio de origen. |
+| `/vuelo chat` | Activa o desactiva los avisos en el chat al despegar y al medir una ruta nueva. |
+
+</details>
+
 ---
 
 ## 💡 Cosas que conviene saber
@@ -197,6 +212,7 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | 👤 | **Cada personaje aparece cuando entras con él.** | Ningún addon puede leer datos de un personaje desconectado. |
 | 🏦 | **El banco solo se registra al abrirlo.** | Alijo necesita que visites el banco una vez con cada personaje. |
 | 📜 | **Las recetas solo se registran al abrir la ventana de la profesión.** | Oficio necesita que abras cada profesión una vez con cada personaje, y otra vez cuando aprendas recetas nuevas. Los niveles se leen solos al entrar. |
+| 🦅 | **Los tiempos de vuelo se aprenden volando.** | El juego no dice cuánto dura un vuelo. Vuelo guarda lo que tarda cada ruta la primera vez que la haces; hasta entonces da un tiempo aproximado (marcado con `~` o «unos») calculado con lo que mide la ruta en el mapa y los vuelos ya medidos en ese continente, o cuenta hacia arriba si aún no tiene con qué calcularlo. |
 | ⏳ | **Los enfriamientos se calculan desde la última vez que abriste la profesión.** | Si fabricas algo con enfriamiento, Oficio lo sabe porque la ventana está abierta en ese momento. |
 | 🔀 | **Los materiales de una receta se cruzan con Alijo.** | Si Alijo está activado, Oficio muestra cuántas unidades de cada material hay en la cuenta (bolsas y banco). |
 | 🔨 | **Los precios son de la última vez que escaneaste.** | Lonja solo puede leer la subasta con su ventana abierta. Guarda el precio de compra más bajo por unidad; las subastas que solo admiten puja no cuentan. Lo que ya no está a la venta conserva su último precio, con la fecha en que se vio. |
@@ -223,6 +239,7 @@ Cada addon guarda lo suyo en `WTF\Account\<cuenta>\SavedVariables`, en un archiv
 | 📈 Senda | `Nexo_Senda.lua` | `SendaDB` |
 | ⚒️ Oficio | `Nexo_Oficio.lua` | `OficioDB` |
 | 🔨 Lonja | `Nexo_Lonja.lua` | `LonjaDB` |
+| 🦅 Vuelo | `Nexo_Vuelo.lua` | `VueloDB` |
 
 > [!TIP]
 > Actualizar los addons no toca esos archivos. Los de antes del cambio de nombre (`Tesorero.lua`, `Bitacora.lua`...) se quedan donde estaban, como copia de ese momento.
@@ -280,6 +297,7 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 | Función | Para qué sirve |
 |---|---|
 | `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `CharButton`, `Tabs`, `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
+| `Nexo.Movable(marco, ajustes)` | Hace que un marco se arrastre con el ratón y guarda dónde queda en `ajustes().pos`; `marco:RestorePos()` lo devuelve ahí. Lo usan las ventanas y el contador de Vuelo. |
 | `Nexo.Register(def)` | Apunta el addon en el menú del botón del minimapa. |
 | `Nexo.OnTick(fn)` | Llama a `fn(dt, ahora)` cada 5 segundos de juego, sin contar el tiempo con el equipo suspendido. |
 | `Nexo.OnPlayed(fn)` | Llama a `fn(total, enEsteNivel)` con el `/played` real, pedido sin ensuciar el chat. |
@@ -314,6 +332,7 @@ La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas
 | 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Probados en el juego por su autor, en un único cliente. |
 | ⚒️ Oficio `0.2.0` | 🟡 Visto funcionar con un solo personaje: registro de niveles y de recetas, detalle de materiales y cruce con Alijo. **Sin probar:** los enfriamientos, el uso con varios personajes y el coste de los materiales según Lonja. |
 | 🔨 Lonja `0.2.0` | 🟡 Visto funcionar con un solo personaje: escaneo completo de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta y lista de compra. **Sin probar en el juego:** el escaneo página a página, el historial de varios días, el precio en el tooltip y el cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
+| 🦅 Vuelo `0.1.0` | 🔴 **Sin probar en el juego.** |
 
 > [!NOTE]
 > No hay pruebas automáticas.
