@@ -3,3 +3,6 @@
 # - versiones anteriores a Nexo: ya están en el primer commit del historial
 _copia_datos_guardados/
 _copia_antes_de_nexo/
+
+# El .zip que genera herramientas/Empaquetar.ps1
+dist/

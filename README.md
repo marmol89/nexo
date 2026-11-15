@@ -18,6 +18,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 [Conviene saber](#-cosas-que-conviene-saber) •
 [Datos](#-datos-guardados) •
 [Estructura](#-estructura) •
+[Publicar](#-publicar-una-versión) •
 [Estado](#-estado)
 
 </div>
@@ -322,6 +323,31 @@ La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas
 ## Dependencies: Nexo
 ## Group: Nexo
 ```
+
+---
+
+## 📤 Publicar una versión
+
+Los ocho addons se publican juntos, en un solo `.zip` con cada carpeta en la raíz.
+
+- **A mano:** doble clic en `Empaquetar.bat`, de la carpeta [`herramientas`](herramientas). Deja `dist\Nexo-<versión>.zip`, con la versión de `Nexo.toc`, listo para subirlo en *Files → Upload file* del proyecto de CurseForge.
+- **Automático:** al subir una etiqueta `v<versión>` igual a la de `Nexo.toc`, el flujo [`publicar.yml`](.github/workflows/publicar.yml) genera el mismo `.zip`, crea la versión en GitHub con él y lo sube a CurseForge.
+
+  ```
+  git tag v1.5.0
+  git push origin v1.5.0
+  ```
+
+Para que el flujo suba a CurseForge hay que configurar el repositorio en *Settings → Secrets and variables → Actions*; sin ello solo crea la versión en GitHub:
+
+| Tipo | Nombre | Valor |
+|---|---|---|
+| Secreto | `CF_API_KEY` | Token de API de CurseForge. |
+| Variable | `CF_PROJECT_ID` | Número de proyecto (*Project ID*). |
+| Variable | `CF_GAME_VERSION` | Versión de juego tal como la llama CurseForge; varias, separadas por comas. |
+| Variable | `CF_RELEASE_TYPE` | `release` (por defecto), `beta` o `alpha`. |
+
+El código se publica con licencia [MIT](LICENSE).
 
 ---
 
