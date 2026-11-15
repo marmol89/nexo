@@ -1,5 +1,6 @@
 -- Tesorero: interfaz
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local W, H = 800, 640
 local PAD = 14

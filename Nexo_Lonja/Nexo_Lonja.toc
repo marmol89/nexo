@@ -4,6 +4,7 @@
 ## Author: marmol89
 ## Version: 0.1.0
 ## Dependencies: Nexo
+## OptionalDeps: Lonja
 ## Group: Nexo
 ## IconTexture: Interface\Icons\INV_Hammer_15
 ## SavedVariables: LonjaDB

@@ -16,11 +16,12 @@
 --   Nexo.Register(def)                       apunta el addon en el botón del minimapa
 --   Nexo.Export(ids) / ReadExport / Import   datos de los addons como texto, para cambiar de ordenador
 --   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
+--   Nexo.Antiguo(addon)                      ¿sigue cargado el addon con el nombre de antes de Nexo_<nombre>?
 local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 4
+N.version = 5
 
 local floor = math.floor
 local DAY = 86400
@@ -490,6 +491,52 @@ function N.Import(pack, ids)
 end
 
 ---------------------------------------------------------------------------
+-- Addons con el nombre antiguo (antes de llamarse Nexo_<nombre>)
+---------------------------------------------------------------------------
+-- El juego guarda los datos en un archivo con el nombre de la carpeta del addon, así que
+-- Nexo_Tesorero no lee lo que guardó Tesorero. Si la carpeta antigua sigue instalada, carga
+-- antes (OptionalDeps en el .toc) y deja sus datos en la variable global. El addon nuevo no
+-- arranca esa vez, para no apuntarlo todo dos veces, pero su .toc declara la misma variable
+-- y el juego la guarda también en su archivo al recargar o salir. Nexo desactiva el antiguo
+-- y, desde la carga siguiente, el nuevo sigue con los datos de siempre.
+local IsLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+local Disable = (C_AddOns and C_AddOns.DisableAddOn) or DisableAddOn
+local SaveAddOns = (C_AddOns and C_AddOns.SaveAddOns) or SaveAddOns
+local oldLoaded = {}
+
+-- ¿Está cargado el addon antiguo de este ("Nexo_Tesorero" -> "Tesorero")? Los addons lo
+-- preguntan al principio de cada archivo: if Nexo.Antiguo(ADDON) then return end
+function N.Antiguo(addon)
+    local old = addon:match("^Nexo_(.+)$")
+    if not old or not IsLoaded or not IsLoaded(old) then return false end
+    if not oldLoaded[old] then
+        oldLoaded[old] = true
+        oldLoaded[#oldLoaded + 1] = old
+    end
+    return true
+end
+
+-- Al entrar: desactiva los antiguos que se hayan cargado y pide recargar para terminar
+local function RetireOld()
+    if #oldLoaded == 0 then return end
+    for _, old in ipairs(oldLoaded) do
+        if Disable then pcall(Disable, old) end
+    end
+    if SaveAddOns then pcall(SaveAddOns) end
+    local names = table.concat(oldLoaded, ", ")
+    print("|cffd9d9e6Nexo:|r los addons ahora se llaman |cffffff00Nexo_<nombre>|r. Tus datos de "
+        .. names .. " se conservan: recarga la interfaz (|cffffff00/reload|r) para terminar el cambio."
+        .. " Después puedes borrar de Interface\AddOns las carpetas antiguas: " .. names .. ".")
+    StaticPopupDialogs.NEXO_RENOMBRADO = {
+        text = "Los addons de Nexo ahora se llaman Nexo_<nombre>.\n\nTus datos se conservan. Recarga la interfaz para terminar el cambio.\n\nDespués puedes borrar de Interface\AddOns las carpetas antiguas:\n" .. names,
+        button1 = "Recargar", button2 = "Luego",
+        OnAccept = function() ReloadUI() end,
+        timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+    }
+    StaticPopup_Show("NEXO_RENOMBRADO")
+end
+
+---------------------------------------------------------------------------
 -- Eventos
 ---------------------------------------------------------------------------
 local ev = CreateFrame("Frame")
@@ -503,6 +550,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "PLAYER_LOGIN" then
         UpdateChar()
         lastTick = time()
+        C_Timer.After(2, RetireOld)
         C_Timer.After(3, function()
             if #playedFns > 0 then N.RequestPlayed() end
         end)

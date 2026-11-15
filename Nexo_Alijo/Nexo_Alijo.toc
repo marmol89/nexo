@@ -4,6 +4,7 @@
 ## Author: marmol89
 ## Version: 1.2.0
 ## Dependencies: Nexo
+## OptionalDeps: Alijo
 ## Group: Nexo
 ## IconTexture: Interface\Icons\INV_Box_01
 ## SavedVariables: AlijoDB

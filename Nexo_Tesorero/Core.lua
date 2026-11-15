@@ -1,5 +1,6 @@
 -- Tesorero: registro de ingresos y gastos de oro
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local floor, abs = math.floor, math.abs
 local DAY = 86400

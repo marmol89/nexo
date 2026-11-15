@@ -6,6 +6,7 @@
 --                    cds   = { [receta] = { prof, ready } } }      ready = hora en que vuelve a estar lista
 --   recipes[profesión][receta] = { id = objeto fabricado, i = icono, r = { { id, n, name }, ... } }
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local P = "|cffe0a84cOficio:|r "
 

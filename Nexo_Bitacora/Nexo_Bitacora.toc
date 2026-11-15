@@ -5,7 +5,7 @@
 ## Version: 1.2.0
 ## Dependencies: Nexo
 ## Group: Nexo
-## OptionalDeps: Tesorero
+## OptionalDeps: Nexo_Tesorero, Bitacora
 ## IconTexture: Interface\Icons\INV_Misc_PocketWatch_01
 ## SavedVariables: BitacoraDB
 ## AddonCompartmentFunc: Bitacora_OnCompartmentClick

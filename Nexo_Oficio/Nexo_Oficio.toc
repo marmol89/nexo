@@ -4,7 +4,7 @@
 ## Author: marmol89
 ## Version: 0.2.0
 ## Dependencies: Nexo
-## OptionalDeps: Alijo, Lonja
+## OptionalDeps: Nexo_Alijo, Nexo_Lonja, Oficio
 ## Group: Nexo
 ## IconTexture: Interface\Icons\Trade_BlackSmithing
 ## SavedVariables: OficioDB

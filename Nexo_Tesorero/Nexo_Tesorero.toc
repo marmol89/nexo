@@ -4,6 +4,7 @@
 ## Author: marmol89
 ## Version: 1.1.0
 ## Dependencies: Nexo
+## OptionalDeps: Tesorero
 ## Group: Nexo
 ## IconTexture: Interface\Icons\INV_Misc_Coin_02
 ## SavedVariables: TesoreroDB

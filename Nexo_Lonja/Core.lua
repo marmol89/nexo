@@ -11,6 +11,7 @@
 --   Lonja.Price(id)   -> precio por unidad, hora en que se vio, unidades a la venta (nil si no hay precio)
 --   Lonja.Money(c)    -> texto con las monedas
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local P = "|cfff0786aLonja:|r "
 local floor, min, max, abs = math.floor, math.min, math.max, math.abs

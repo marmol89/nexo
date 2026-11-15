@@ -5,7 +5,8 @@ description: Evita el código duplicado entre los addons de WoW de este reposito
 
 # Nexo sin duplicados
 
-Este repositorio tiene un núcleo, **Nexo**, y seis addons que dependen de él. Todo lo que
+Este repositorio tiene un núcleo, **Nexo**, y seis addons que dependen de él, en carpetas
+`Nexo_<nombre>` (`Nexo_Tesorero`, `Nexo_Alijo`...). Un addon nuevo se llama igual. Todo lo que
 necesiten dos addons vive en Nexo y los addons lo usan desde ahí.
 
 Por qué importa: cada addon se escribió copiando el anterior, y las copias se fueron
@@ -43,6 +44,7 @@ un arreglo vale para todos.
 | Botón del minimapa | `Nexo.Register(def)` |
 | Que los datos del addon se puedan exportar e importar | `data = "MiAddonDB"` en `Nexo.Register`; el resto lo hace Nexo (`/nexo datos`) |
 | Tabla a texto y vuelta | `Nexo.Serialize(t)`, `Nexo.Deserialize(s)` |
+| Heredar los datos del addon de antes de llamarse `Nexo_<nombre>` | `if Nexo.Antiguo(ADDON) then return end` al principio de cada archivo, y el nombre antiguo en `OptionalDeps`. Solo en los seis addons que existían entonces; uno nuevo no lo necesita |
 | Ventana con cabecera, sonido al abrir y refresco periódico | `K.Window` → `main:OnOpen()`, `main:OnClose()`, `main:Every(seg, fn)` |
 | Selector de personaje y su texto | `K.CharButton` → `charBtn:SetChar(clave, datos)` |
 | Botones excluyentes (periodos, sitios) | `K.Tabs(padre, defs, ancho, alElegir)` → `tabs:Select(clave)` |

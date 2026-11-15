@@ -1,5 +1,6 @@
 -- Alijo: inventario de toda la cuenta
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local GetItemInfo = GetItemInfo or (C_Item and C_Item.GetItemInfo)
 local IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded

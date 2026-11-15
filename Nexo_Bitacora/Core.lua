@@ -1,5 +1,6 @@
 -- Bitácora: registro del tiempo de juego
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 local N = Nexo
 
 local floor = math.floor

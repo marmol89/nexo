@@ -1,5 +1,6 @@
 -- Senda: interfaz
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 
 local W, H = 780, 560
 local PAD = 14

@@ -28,7 +28,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 
 | | Addon | Qué hace | Comando | Versión |
 |:-:|---|---|:-:|:-:|
-| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.3.0` |
+| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.4.0` |
 | 💰 | **Tesorero** | Historial de oro: cuánto ganas, cuánto gastas y en qué (botín, misiones, mercader, reparaciones, subasta...). | `/tesoro` | `1.1.0` |
 | ⏱️ | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` | `1.2.0` |
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
@@ -71,12 +71,12 @@ flowchart TD
    ```
    Interface\AddOns\
    ├── Nexo\
-   ├── Tesorero\
-   ├── Bitacora\
-   ├── Alijo\
-   ├── Senda\
-   ├── Oficio\
-   └── Lonja\
+   ├── Nexo_Tesorero\
+   ├── Nexo_Bitacora\
+   ├── Nexo_Alijo\
+   ├── Nexo_Senda\
+   ├── Nexo_Oficio\
+   └── Nexo_Lonja\
    ```
 
 2. **Reinicia el juego por completo.**
@@ -87,6 +87,17 @@ flowchart TD
 
 > [!IMPORTANT]
 > **Nexo tiene que estar activado**: los otros seis dependen de él y no cargan sin él. No hace falta instalar los seis; cada uno funciona con solo Nexo.
+
+### Actualizar desde una versión anterior a `Nexo_<nombre>`
+
+Hasta Nexo `1.3.0` las carpetas se llamaban `Tesorero`, `Bitacora`, `Alijo`, `Senda`, `Oficio` y `Lonja`. El juego guarda los datos de cada addon con el nombre de su carpeta, así que el cambio de nombre se hace en dos pasos para no perder nada:
+
+1. **Copia las carpetas nuevas sin borrar las antiguas** (sustituye `Nexo`) y entra al juego.
+2. Nexo avisa de que ha encontrado los addons antiguos, los desactiva y pide **recargar la interfaz**. Esa primera vez siguen funcionando los antiguos; al recargar, los `Nexo_<nombre>` arrancan con los datos de siempre.
+3. Ya puedes **borrar las carpetas antiguas** de `Interface\AddOns`.
+
+> [!WARNING]
+> Si borras las carpetas antiguas **antes** de entrar al juego, los addons aparecen vacíos. Los datos no se han perdido: siguen en `WTF\Account\<cuenta>\SavedVariables` con el nombre antiguo. Cierra el juego y haz doble clic en `Recuperar datos antiguos.bat`, de la carpeta [`herramientas`](herramientas).
 
 ---
 
@@ -197,18 +208,18 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 
 Cada addon guarda lo suyo en `WTF\Account\<cuenta>\SavedVariables`, en un archivo por addon:
 
-| Addon | Variable guardada |
-|---|---|
-| 🔗 Nexo | `NexoDB` |
-| 💰 Tesorero | `TesoreroDB` |
-| ⏱️ Bitácora | `BitacoraDB` |
-| 🎒 Alijo | `AlijoDB` |
-| 📈 Senda | `SendaDB` |
-| ⚒️ Oficio | `OficioDB` |
-| 🔨 Lonja | `LonjaDB` |
+| Addon | Archivo | Variable guardada |
+|---|---|---|
+| 🔗 Nexo | `Nexo.lua` | `NexoDB` |
+| 💰 Tesorero | `Nexo_Tesorero.lua` | `TesoreroDB` |
+| ⏱️ Bitácora | `Nexo_Bitacora.lua` | `BitacoraDB` |
+| 🎒 Alijo | `Nexo_Alijo.lua` | `AlijoDB` |
+| 📈 Senda | `Nexo_Senda.lua` | `SendaDB` |
+| ⚒️ Oficio | `Nexo_Oficio.lua` | `OficioDB` |
+| 🔨 Lonja | `Nexo_Lonja.lua` | `LonjaDB` |
 
 > [!TIP]
-> Actualizar los addons no toca esos archivos.
+> Actualizar los addons no toca esos archivos. Los de antes del cambio de nombre (`Tesorero.lua`, `Bitacora.lua`...) se quedan donde estaban, como copia de ese momento.
 
 ### Cambiar de ordenador (exportar e importar)
 
@@ -241,16 +252,17 @@ Con la carpeta [`herramientas`](herramientas), que copia los archivos tal cual y
 | 🚪 | **Importar exige el juego cerrado.** | Al salir, el juego sobrescribe los datos con los que tiene en memoria. Exportar con el juego abierto funciona, pero lleva lo guardado en la última salida o `/reload`. |
 | 📁 | **Si no encuentra el juego, hay que decirle dónde está.** | Busca en el registro y en las rutas habituales. Si no, desde PowerShell: `.\Datos.ps1 exportar -Juego "D:\World of Warcraft"`. |
 | 💾 | **También sirve de copia de seguridad.** | El `.zip` de exportar es una copia completa de los datos en ese momento. |
+| 🏷️ | **Valen los `.zip` y los textos de antes del cambio de nombre.** | Al importar un `.zip` con los archivos antiguos (`Tesorero.lua`...), se guardan con el nombre nuevo. Los textos de `/nexo exportar` no dependen del nombre de la carpeta. |
 
 ---
 
 ## 🏗️ Estructura
 
-Cada addon tiene tres archivos:
+Cada addon tiene tres archivos. La carpeta y el `.toc` se llaman `Nexo_<nombre>` (el núcleo, solo `Nexo`); dentro del juego el addon sigue llamándose por su nombre (Tesorero, `/tesoro`, `TesoreroDB`):
 
 ```
-<Addon>\
-├── <Addon>.toc   → metadatos, dependencias y orden de carga
+Nexo_<nombre>\
+├── Nexo_<nombre>.toc   → metadatos, dependencias y orden de carga
 ├── Core.lua      → datos, eventos del juego y comandos
 └── UI.lua        → ventana y elementos visuales
 ```
@@ -276,10 +288,11 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 | `Nexo.PERIODS`, `Nexo.PERIOD_DAYS` | Periodos de los resúmenes (hoy, 7 días, 30 días, siempre). |
 | `Nexo.Export(ids)`, `Nexo.ReadExport(texto)`, `Nexo.Import(datos, ids)` | Datos de los addons como texto para copiar y pegar. Cada addon entra con solo declarar `data = "MiAddonDB"` en `Nexo.Register`. |
 | `Nexo.Serialize(tabla)`, `Nexo.Deserialize(texto)` | Tabla a texto compacto y vuelta. |
+| `Nexo.Antiguo(addon)` | Dice si sigue cargado el addon con el nombre de antes de `Nexo_<nombre>`. Los addons que existían entonces lo preguntan al principio de cada archivo y no arrancan si es así, para heredar sus datos sin apuntarlo todo dos veces. |
 
 ### Añadir un addon nuevo sobre Nexo
 
-En su `.toc` hacen falta estas dos líneas para que dependa de Nexo y aparezca agrupado debajo de él:
+La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas dos líneas para que dependa de Nexo y aparezca agrupado debajo de él:
 
 ```toc
 ## Dependencies: Nexo

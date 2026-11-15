@@ -1,5 +1,6 @@
 -- Senda: registro de la subida de nivel
 local ADDON, ns = ...
+if Nexo.Antiguo(ADDON) then return end
 local N = Nexo
 
 local max, min, abs = math.max, math.min, math.abs
