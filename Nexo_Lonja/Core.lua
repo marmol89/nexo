@@ -4,8 +4,10 @@
 --   realms[reino - facción] = {
 --       items[id] = { p = precio mínimo por unidad (cobre), n = unidades a la venta, t = cuándo se vio,
 --                     h = { [día] = precio mínimo de ese día }, name, q = calidad, i = icono },
---       lastScan = hora del último escaneo completo, lastCount = objetos distintos que encontró }
---   settings = { tooltip, pos }
+--       lastScan = hora del último escaneo completo, lastCount = objetos distintos que encontró,
+--       buy = lista de compra (ver Compra.lua) }
+--   settings = { tooltip, pos, auto = false si no se quiere escanear al abrir la subasta }
+--   replicateAt = hora en que se pidió la última lista completa (el juego solo la da cada 15 minutos)
 --
 -- Otros addons leen los precios con la tabla global Lonja:
 --   Lonja.Price(id)   -> precio por unidad, hora en que se vio, unidades a la venta (nil si no hay precio)
@@ -21,6 +23,7 @@ local HISTORY_DAYS = 14     -- días de historial que se conservan por objeto
 local FRESH = 3600          -- una página suelta no sube un precio visto hace menos de esto
 local PAGE = 50             -- subastas por página en la API clásica
 local CHUNK = 1000          -- subastas que se leen por fotograma en un escaneo rápido
+local FULL_WAIT = 15 * 60 + 10  -- el juego solo da la lista completa cada 15 minutos
 
 ---------------------------------------------------------------------------
 -- Formato
@@ -155,6 +158,7 @@ local function StopScan(full, why)
             Nexo.Plural(count, "objeto", "objetos") .. " de lo que dio tiempo a leer.")
     end
     Trace(("fin modo=%s completo=%s objetos=%d %s"):format(s.mode, tostring(full), count, why or ""))
+    if full and ns.OnScanDone then ns.OnScanDone() end
     Changed()
 end
 function ns.StopScan() StopScan(false, "parado a mano") end
@@ -234,23 +238,30 @@ local function OnReplicateList()
     ReadChunks(ReplicateGetter, 0, n - 1)
 end
 
--- Devuelve true si el escaneo ha empezado
-function ns.StartScan()
+function ns.AutoScan() return db and db.settings.auto ~= false end
+
+-- Devuelve true si el escaneo ha empezado.
+-- auto = lo ha pedido Lonja al abrirse la subasta: solo arranca si puede ser el escaneo rápido, y sin protestar
+function ns.StartScan(auto)
+    local function say(text) if not auto then print(P .. text) end end
     if scan then
-        print(P .. "ya hay un escaneo en marcha.")
+        say("ya hay un escaneo en marcha.")
         return false
     end
     if not ahOpen then
-        print(P .. "abre la casa de subastas para escanear.")
+        say("abre la casa de subastas para escanear.")
         return false
     end
+    local head = auto and "escaneo automático" or "escaneo"
     if QueryAuctionItems and GetNumAuctionItems and GetAuctionItemInfo then
         local canAll = false
         if CanSendAuctionQuery then canAll = select(2, CanSendAuctionQuery()) end
         if canAll then
             scan = { mode = "getall", obs = {} }
-            print(P .. "escaneo rápido en marcha. El juego puede quedarse parado unos segundos.")
+            print(P .. head .. " rápido en marcha. El juego puede quedarse parado unos segundos.")
             QueryAuctionItems("", nil, nil, 0, nil, nil, true, false, nil)
+        elseif auto then
+            return false
         else
             scan = { mode = "pages", obs = {}, page = 0 }
             print(P .. "el escaneo rápido solo se puede usar cada 15 minutos; escaneando página a página (tarda más). " ..
@@ -258,11 +269,19 @@ function ns.StartScan()
             driver:SetScript("OnUpdate", PagesTick)
         end
     elseif C_AuctionHouse and C_AuctionHouse.ReplicateItems then
+        -- Dentro de los 15 minutos el juego no contesta: el automático espera a la próxima vez
+        local last = max(db.replicateAt or 0, realm.lastScan or 0)
+        if auto and time() - last < FULL_WAIT then
+            print(P .. "precios de " .. ns.Ago(last) .. "; el juego no deja escanear otra vez hasta dentro de " ..
+                Nexo.Dur(max(60, FULL_WAIT - (time() - last))) .. ".")
+            return false
+        end
         scan = { mode = "replicate", obs = {} }
-        print(P .. "escaneo en marcha. Puede tardar un rato en llegar la lista.")
+        db.replicateAt = time()
+        print(P .. head .. " en marcha. Puede tardar un rato en llegar la lista.")
         C_AuctionHouse.ReplicateItems()
     else
-        print(P .. "este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando.")
+        say("este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando.")
         return false
     end
     Trace("inicio modo=" .. scan.mode)
@@ -446,6 +465,12 @@ ev:SetScript("OnEvent", function(self, event, ...)
     elseif event == "AUCTION_HOUSE_SHOW" then
         ahOpen = true
         if ns.OnAuctionShow then ns.OnAuctionShow() end
+        if ns.AutoScan() then
+            -- Un momento después: al abrirse, la subasta todavía no acepta consultas
+            C_Timer.After(1, function()
+                if ahOpen and not scan then ns.StartScan(true) end
+            end)
+        end
         Changed()
     elseif event == "AUCTION_HOUSE_CLOSED" then
         ahOpen = false
@@ -516,14 +541,25 @@ SlashCmdList.LONJA = function(msg)
         ns.StartScan()
     elseif low == "parar" then
         if scan then ns.StopScan() else print(P .. "no hay ningún escaneo en marcha.") end
+    elseif low == "auto" then
+        db.settings.auto = not ns.AutoScan()
+        print(P .. "escaneo automático al abrir la subasta " .. (db.settings.auto and "activado" or "desactivado") .. ".")
+    elseif low == "comprar" or low == "lista" then
+        ns.PrintBuyList()
+    elseif low:find("^comprar%s") then
+        ns.BuyCommand(msg:sub(9):gsub("^%s+", ""))
+    elseif low:find("^quitar%s") then
+        ns.BuyRemoveCommand(msg:sub(8):gsub("^%s+", ""))
     elseif low == "tooltip" then
         db.settings.tooltip = not ns.TooltipEnabled()
         print(P .. "precio en el tooltip de los objetos " .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
     elseif low == "minimapa" then
         print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif low == "reset confirmar" then
+        local buy = realm.buy       -- la lista de compra no son precios: se conserva
         db.realms[realmKey] = nil
         InitDB()
+        realm.buy = buy
         Changed()
         print(P .. "precios de " .. realmKey .. " borrados.")
     elseif low == "reset" then
@@ -536,6 +572,10 @@ SlashCmdList.LONJA = function(msg)
         print("  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados")
         print("  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)")
         print("  |cffffff00/lonja parar|r - parar el escaneo en marcha")
+        print("  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta")
+        print("  |cffffff00/lonja comprar|r - ver la lista de compra")
+        print("  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra")
+        print("  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra")
         print("  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos")
         print("  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa")
         print("  |cffffff00/lonja reset|r - borrar los precios guardados de este reino")

@@ -34,7 +34,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
 | 📈 | **Senda** | Subida de nivel: experiencia por hora, tiempo para subir, tiempo en cada nivel y origen de la experiencia. | `/senda` | `1.1.0` |
 | ⚒️ | **Oficio** | Profesiones: nivel de cada una, qué recetas conoce cada personaje y enfriamientos de fabricación. | `/oficio` | `0.2.0` |
-| 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta. | `/lonja` | `0.1.0` |
+| 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta. | `/lonja` | `0.2.0` |
 
 ```mermaid
 flowchart TD
@@ -178,6 +178,10 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | `/lonja <texto>` | Abre la ventana buscando ese texto en los precios guardados. |
 | `/lonja escanear` | Escanea la casa de subastas, que tiene que estar abierta. También hay un botón en la ventana de Lonja y otro encima de la ventana de la subasta. |
 | `/lonja parar` | Para el escaneo en marcha y guarda lo que dio tiempo a leer. |
+| `/lonja auto` | Activa o desactiva el escaneo automático al abrir la subasta (viene activado). |
+| `/lonja comprar` | Enseña la lista de compra. |
+| `/lonja comprar <enlace> <precio> <cantidad>` | Apunta un objeto en la lista de compra: precio máximo por unidad (en oro, `1.5`, o con monedas, `1g 50s`) y unidades. También se hace desde la ventana, al pie del detalle del objeto. |
+| `/lonja quitar <enlace>` | Quita un objeto de la lista de compra. |
 | `/lonja tooltip` | Activa o desactiva el precio en el tooltip de los objetos. |
 | `/lonja reset` | Borra los precios guardados del reino actual (pide confirmación). |
 | `/lonja diag` | Muestra qué API de subasta tiene el cliente y los últimos escaneos, para diagnosticar fallos. |
@@ -197,6 +201,8 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | 🔀 | **Los materiales de una receta se cruzan con Alijo.** | Si Alijo está activado, Oficio muestra cuántas unidades de cada material hay en la cuenta (bolsas y banco). |
 | 🔨 | **Los precios son de la última vez que escaneaste.** | Lonja solo puede leer la subasta con su ventana abierta. Guarda el precio de compra más bajo por unidad; las subastas que solo admiten puja no cuentan. Lo que ya no está a la venta conserva su último precio, con la fecha en que se vio. |
 | ⚡ | **El escaneo rápido solo se puede usar cada 15 minutos.** | Es un límite del juego. Si no está disponible, Lonja escanea página a página, que tarda más. Las búsquedas que hagas a mano en la subasta también se apuntan. |
+| 🔁 | **Lonja escanea sola al abrir la subasta.** | Solo si han pasado los 15 minutos del escaneo rápido; si no, avisa de cuánto falta y usa los precios que ya tenía. Se apaga con `/lonja auto`. |
+| 🛒 | **La lista de compra pide un clic por compra.** | El juego no deja a ningún addon comprar por su cuenta. Lonja avisa de lo que está a tu precio y prepara la compra (objeto, unidades y coste, sin pasar de tu precio máximo ni de la cantidad que pediste); el botón de encima de la subasta la hace paso a paso: buscar, comprar y, en los materiales, confirmar el precio final. |
 | ⚖️ | **Cada facción tiene sus precios.** | Lonja guarda los precios por reino y facción, y conserva 14 días de historial por objeto. |
 | 💱 | **Los precios se cruzan con Alijo y Oficio.** | Con Lonja activado, Alijo muestra lo que vale cada objeto, Oficio lo que cuestan los materiales de una receta y por cuánto se vende lo fabricado, y Lonja lo que vale todo lo guardado en bolsas y bancos (lo equipado no cuenta). |
 | 🗓️ | **El historial empieza al instalar.** | El juego no guarda el pasado. La única excepción es Bitácora, que puede estimarlo a partir de Tesorero y lo marca como estimado. |
@@ -307,7 +313,7 @@ La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas
 |---|---|
 | 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Probados en el juego por su autor, en un único cliente. |
 | ⚒️ Oficio `0.2.0` | 🟡 Visto funcionar con un solo personaje: registro de niveles y de recetas, detalle de materiales y cruce con Alijo. **Sin probar:** los enfriamientos, el uso con varios personajes y el coste de los materiales según Lonja. |
-| 🔨 Lonja `0.1.0` | 🟡 Visto funcionar con un solo personaje: escaneo completo de la subasta, lista de precios y valor de lo guardado según Alijo. **Sin probar en el juego:** el escaneo página a página, el historial de varios días, el precio en el tooltip y el cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
+| 🔨 Lonja `0.2.0` | 🟡 Visto funcionar con un solo personaje: escaneo completo de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta y lista de compra. **Sin probar en el juego:** el escaneo página a página, el historial de varios días, el precio en el tooltip y el cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
 
 > [!NOTE]
 > No hay pruebas automáticas.

@@ -2,7 +2,7 @@
 ## Title: |cfff0786aLonja|r
 ## Notes: Precios de la casa de subastas: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta.
 ## Author: marmol89
-## Version: 0.1.0
+## Version: 0.2.0
 ## Dependencies: Nexo
 ## OptionalDeps: Lonja
 ## Group: Nexo
@@ -13,4 +13,5 @@
 ## AddonCompartmentFuncOnLeave: Lonja_OnCompartmentLeave
 
 Core.lua
+Compra.lua
 UI.lua
