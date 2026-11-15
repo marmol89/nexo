@@ -41,6 +41,8 @@ un arreglo vale para todos.
 | Líneas en el tooltip de los objetos | `Nexo.OnItemTooltip(fn)` — `fn(tip, id)` devuelve `true` si añadió algo |
 | Tooltip de un objeto, enlazarlo en el chat | `Nexo.ItemTooltip(marco, id)`, `Nexo.LinkItem(id)` |
 | Botón del minimapa | `Nexo.Register(def)` |
+| Que los datos del addon se puedan exportar e importar | `data = "MiAddonDB"` en `Nexo.Register`; el resto lo hace Nexo (`/nexo datos`) |
+| Tabla a texto y vuelta | `Nexo.Serialize(t)`, `Nexo.Deserialize(s)` |
 | Ventana con cabecera, sonido al abrir y refresco periódico | `K.Window` → `main:OnOpen()`, `main:OnClose()`, `main:Every(seg, fn)` |
 | Selector de personaje y su texto | `K.CharButton` → `charBtn:SetChar(clave, datos)` |
 | Botones excluyentes (periodos, sitios) | `K.Tabs(padre, defs, ancho, alElegir)` → `tabs:Select(clave)` |

@@ -582,6 +582,7 @@ N.Register({
     id = "Tesorero", name = "Tesorero", icon = "Interface\\Icons\\INV_Misc_Coin_02", color = ACC, slash = "/tesoro",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "TesoreroDB",
 })
 
 -- Menú de complementos (AddonCompartment)

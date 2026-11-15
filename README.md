@@ -28,7 +28,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 
 | | Addon | Qué hace | Comando | Versión |
 |:-:|---|---|:-:|:-:|
-| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.2.0` |
+| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.3.0` |
 | 💰 | **Tesorero** | Historial de oro: cuánto ganas, cuánto gastas y en qué (botín, misiones, mercader, reparaciones, subasta...). | `/tesoro` | `1.1.0` |
 | ⏱️ | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` | `1.2.0` |
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
@@ -100,7 +100,9 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | Comando | Qué hace |
 |---|---|
 | `/nexo` | Lista los addons conectados. |
+| `/nexo ayuda` | Lista los comandos de Nexo. También vale `/nexo help`. |
 | `/nexo minimapa` | Muestra u oculta el botón del minimapa, que es compartido. Al pulsarlo sale un menú con los addons instalados. |
+| `/nexo datos` | Abre la ventana de exportar e importar los datos, para cambiar de ordenador. También está al final del menú del minimapa. `/nexo exportar` y `/nexo importar` la abren ya en ese modo. |
 
 </details>
 
@@ -206,7 +208,39 @@ Cada addon guarda lo suyo en `WTF\Account\<cuenta>\SavedVariables`, en un archiv
 | 🔨 Lonja | `LonjaDB` |
 
 > [!TIP]
-> Actualizar los addons no toca esos archivos. Para hacer una copia de seguridad, cópialos **con el juego cerrado**, porque al salir los sobrescribe.
+> Actualizar los addons no toca esos archivos.
+
+### Cambiar de ordenador (exportar e importar)
+
+Un addon no puede leer ni escribir archivos, así que hay dos caminos: copiar y pegar un texto dentro del juego, o mover los archivos desde fuera.
+
+#### Desde el juego
+
+1. **En el ordenador viejo**, escribe `/nexo datos` (o elige *Exportar / importar* en el menú del minimapa), marca los addons que quieres llevarte y pulsa **Generar texto**. El texto queda seleccionado: cópialo con `Ctrl+C` y pégalo en un archivo de texto.
+2. Lleva ese archivo al otro ordenador e instala allí los addons.
+3. **En el ordenador nuevo**, escribe `/nexo importar`, pega el texto con `Ctrl+V` y pulsa **Importar y recargar** dos veces (la segunda confirma).
+
+| | Qué pasa | Por qué |
+|:-:|---|---|
+| 🔁 | **Importar sustituye, no mezcla.** | Los datos de los addons marcados se cambian por los del texto y la interfaz se recarga. Los addons sin marcar no se tocan. |
+| 🧩 | **Solo se importa lo que está instalado.** | Los datos de un addon que no está activado en el ordenador nuevo se ignoran. |
+| ✂️ | **Un texto cortado o cambiado se rechaza.** | Lleva una suma de comprobación, así que no se importa nada a medias. |
+| 📏 | **Lonja es casi todo el tamaño.** | Con todo son unos 300 KB de texto comprimido; sin Lonja, unas decenas. Si pegar tanto texto de una vez falla, lleva Lonja aparte o usa el camino de abajo. |
+
+#### Desde fuera del juego
+
+Con la carpeta [`herramientas`](herramientas), que copia los archivos tal cual y sirve también de copia de seguridad:
+
+1. **En el ordenador viejo**, cierra el juego y haz doble clic en `Exportar datos.bat`. Deja en el Escritorio un `nexo-datos-<fecha>.zip` con los datos de los siete addons.
+2. Lleva ese `.zip` al otro ordenador (y la carpeta `herramientas`), e instala allí los addons.
+3. **En el ordenador nuevo**, con el juego cerrado, arrastra el `.zip` encima de `Importar datos.bat`. Si lo ejecutas sin arrastrar nada, usa el `.zip` más reciente del Escritorio o de Descargas.
+
+| | Qué pasa | Por qué |
+|:-:|---|---|
+| 🔁 | **Importar sustituye, no mezcla.** | Lo que hubiera en el ordenador nuevo se cambia por lo del `.zip`. Antes pregunta, y deja al lado del `.zip` una copia de lo que había (`nexo-copia-antes-de-importar-<fecha>.zip`), que se puede volver a importar. |
+| 🚪 | **Importar exige el juego cerrado.** | Al salir, el juego sobrescribe los datos con los que tiene en memoria. Exportar con el juego abierto funciona, pero lleva lo guardado en la última salida o `/reload`. |
+| 📁 | **Si no encuentra el juego, hay que decirle dónde está.** | Busca en el registro y en las rutas habituales. Si no, desde PowerShell: `.\Datos.ps1 exportar -Juego "D:\World of Warcraft"`. |
+| 💾 | **También sirve de copia de seguridad.** | El `.zip` de exportar es una copia completa de los datos en ese momento. |
 
 ---
 
@@ -240,6 +274,8 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 | `Nexo.OnItemTooltip(fn)`, `Nexo.ItemTooltip(marco, id)`, `Nexo.LinkItem(id)` | Añadir líneas al tooltip de los objetos, enseñar el tooltip de uno y enlazarlo en el chat. |
 | `Nexo.InitChar(chars, nuevo)`, `Nexo.EachChar(chars, filtro, fn)`, `Nexo.FindChar(chars, nombre)` | Trabajo con la tabla de personajes de cada addon: alta del personaje actual, recorrido y búsqueda por nombre. |
 | `Nexo.PERIODS`, `Nexo.PERIOD_DAYS` | Periodos de los resúmenes (hoy, 7 días, 30 días, siempre). |
+| `Nexo.Export(ids)`, `Nexo.ReadExport(texto)`, `Nexo.Import(datos, ids)` | Datos de los addons como texto para copiar y pegar. Cada addon entra con solo declarar `data = "MiAddonDB"` en `Nexo.Register`. |
+| `Nexo.Serialize(tabla)`, `Nexo.Deserialize(texto)` | Tabla a texto compacto y vuelta. |
 
 ### Añadir un addon nuevo sobre Nexo
 

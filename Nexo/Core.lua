@@ -14,11 +14,13 @@
 --   Nexo.OnPlayed(fn)                        fn(total, enEsteNivel) con el /played real
 --   Nexo.Kit(tema)                           piezas de interfaz (ver UI.lua)
 --   Nexo.Register(def)                       apunta el addon en el botón del minimapa
+--   Nexo.Export(ids) / ReadExport / Import   datos de los addons como texto, para cambiar de ordenador
+--   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
 local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 3
+N.version = 4
 
 local floor = math.floor
 local DAY = 86400
@@ -282,6 +284,212 @@ function N.RequestPlayed()
 end
 
 ---------------------------------------------------------------------------
+-- Exportar e importar datos (para cambiar de ordenador)
+--
+-- Un addon no puede leer ni escribir archivos: los datos salen como un texto que se copia
+-- y se pega. Cada addon dice cuál es su variable guardada con def.data al registrarse.
+--
+-- El texto es  NEXO1<z|p>:<suma>:<cuerpo>   z = cuerpo comprimido y en base64, p = tal cual
+---------------------------------------------------------------------------
+local ESC = { ["\\"] = "\\\\", ['"'] = "\\q", ["|"] = "\\p", ["\n"] = "\\n", ["\r"] = "\\r" }
+local UNESC = { ["\\"] = "\\", q = '"', p = "|", n = "\n", r = "\r" }
+local PLAIN = { number = true, string = true, boolean = true, table = true }
+
+local function Escape(c) return ESC[c] or ("\\c" .. string.char(c:byte() + 64)) end
+local function Unescape(x)
+    if #x == 2 then return string.char(x:byte(2) - 64) end
+    return UNESC[x] or x
+end
+
+local function Put(buf, v, depth)
+    local tv = type(v)
+    if tv == "number" then
+        if v ~= v or v == math.huge or v == -math.huge then
+            buf[#buf + 1] = "0"
+        elseif v == floor(v) and v > -1e15 and v < 1e15 then
+            buf[#buf + 1] = ("%.0f"):format(v)
+        else
+            buf[#buf + 1] = ("%.17g"):format(v)
+        end
+    elseif tv == "string" then
+        buf[#buf + 1] = '"' .. v:gsub('[%c\\"|]', Escape) .. '"'
+    elseif tv == "boolean" then
+        buf[#buf + 1] = v and "T" or "F"
+    else
+        if depth > 60 then error("datos demasiado anidados") end
+        buf[#buf + 1] = "{"
+        local n, some = 0, false
+        while PLAIN[type(v[n + 1])] do n = n + 1 end
+        for i = 1, n do
+            if some then buf[#buf + 1] = "," end
+            some = true
+            Put(buf, v[i], depth + 1)
+        end
+        for k, x in pairs(v) do
+            local tk = type(k)
+            local inList = tk == "number" and k >= 1 and k <= n and k == floor(k)
+            if not inList and (tk == "number" or tk == "string") and PLAIN[type(x)] then
+                if some then buf[#buf + 1] = "," end
+                some = true
+                if tk == "string" and k:find("^[%a_][%w_]*$") then
+                    buf[#buf + 1] = k
+                else
+                    Put(buf, k, depth + 1)
+                end
+                buf[#buf + 1] = "="
+                Put(buf, x, depth + 1)
+            end
+        end
+        buf[#buf + 1] = "}"
+    end
+end
+
+-- Tabla (solo números, textos, booleanos y tablas) -> texto compacto
+function N.Serialize(t)
+    local buf = {}
+    Put(buf, t, 0)
+    return table.concat(buf)
+end
+
+local function Parse(s, pos)
+    local c = s:byte(pos)
+    if c == 123 then                                    -- {
+        local t, n = {}, 0
+        pos = pos + 1
+        if s:byte(pos) == 125 then return t, pos + 1 end
+        while true do
+            local k, v
+            local _, e, name = s:find("^([%a_][%w_]*)=", pos)
+            if e then
+                k = name
+                v, pos = Parse(s, e + 1)
+            else
+                v, pos = Parse(s, pos)
+                if s:byte(pos) == 61 then               -- =
+                    k = v
+                    if type(k) ~= "number" and type(k) ~= "string" then error("clave no válida") end
+                    v, pos = Parse(s, pos + 1)
+                else
+                    n = n + 1
+                    k = n
+                end
+            end
+            t[k] = v
+            c = s:byte(pos)
+            if c == 125 then return t, pos + 1 end      -- }
+            if c ~= 44 then error("texto cortado") end  -- ,
+            pos = pos + 1
+        end
+    elseif c == 34 then                                 -- "
+        local e = s:find('"', pos + 1, true)
+        if not e then error("texto cortado") end
+        local str = s:sub(pos + 1, e - 1)
+        if str:find("\\", 1, true) then str = str:gsub("\\(c?.)", Unescape) end
+        return str, e + 1
+    elseif c == 84 then
+        return true, pos + 1
+    elseif c == 70 then
+        return false, pos + 1
+    end
+    local a, b = s:find("^[-+%d%.eE]+", pos)
+    local num = a and tonumber(s:sub(a, b))
+    if not num then error("texto cortado") end
+    return num, b + 1
+end
+
+-- Texto de N.Serialize -> tabla (lanza un error si el texto no es válido)
+function N.Deserialize(s)
+    local v, pos = Parse(s, 1)
+    if pos <= #s then error("sobra texto") end
+    return v
+end
+
+local function Checksum(s)
+    local a, b = 1, 0
+    for i = 1, #s do
+        a = (a + s:byte(i)) % 65521
+        b = (b + a) % 65521
+    end
+    return ("%04x%04x"):format(b, a)
+end
+
+local function Codec()
+    local E = C_EncodingUtil
+    if E and E.CompressString and E.DecompressString and E.EncodeBase64 and E.DecodeBase64 then return E end
+end
+
+-- Addons con datos que se pueden exportar: { { id, name, data = nombre de la variable guardada }, ... }
+function N.DataAddons()
+    local list = { { id = "Nexo", name = "Nexo", data = "NexoDB" } }
+    for _, def in ipairs(N.addons or {}) do
+        if def.data then list[#list + 1] = def end
+    end
+    return list
+end
+
+-- Texto para copiar con los datos de los addons de ids ({ id = true }; nil = todos).
+-- Devuelve el texto y si va comprimido.
+function N.Export(ids)
+    local pack = { v = 1, t = time(), from = N.charKey, data = {} }
+    for _, def in ipairs(N.DataAddons()) do
+        local saved = _G[def.data]
+        if type(saved) == "table" and (not ids or ids[def.id]) then pack.data[def.id] = saved end
+    end
+    local body, flag = N.Serialize(pack), "p"
+    local E = Codec()
+    if E then
+        -- solo se usa la compresión del cliente si devuelve lo mismo al deshacerla
+        local ok, z = pcall(function()
+            local out = E.EncodeBase64(E.CompressString(body))
+            if E.DecompressString(E.DecodeBase64(out)) ~= body then error("no coincide") end
+            return out
+        end)
+        if ok and type(z) == "string" then body, flag = z, "z" end
+    end
+    return "NEXO1" .. flag .. ":" .. Checksum(body) .. ":" .. body, flag == "z"
+end
+
+-- Lee un texto de N.Export. Devuelve { t = cuándo, from = personaje, data = { id = tabla } },
+-- o nil y el motivo.
+function N.ReadExport(text)
+    text = text or ""
+    -- sin patrones que recorran todo el texto: puede ser de cientos de KB
+    local first, last = text:find("%S"), #text
+    while last > 0 and text:find("^%s", last) do last = last - 1 end
+    local flag, sum, from = text:match("^NEXO1([zp]):(%x+):()", first or 1)
+    if not flag then return nil, "No es un texto exportado por Nexo." end
+    local body = text:sub(from, last)
+    if Checksum(body) ~= sum then return nil, "El texto está incompleto o cambiado: cópialo entero otra vez." end
+    if flag == "z" then
+        local E = Codec()
+        if not E then return nil, "Este cliente no puede leer texto comprimido." end
+        local ok, plain = pcall(function() return E.DecompressString(E.DecodeBase64(body)) end)
+        if not ok or type(plain) ~= "string" then return nil, "No se ha podido descomprimir el texto." end
+        body = plain
+    end
+    local ok, pack = pcall(N.Deserialize, body)
+    if not ok or type(pack) ~= "table" or type(pack.data) ~= "table" then
+        return nil, "El texto no se puede leer."
+    end
+    return pack
+end
+
+-- Sustituye los datos guardados por los de pack (solo los addons de ids, y solo los instalados).
+-- Devuelve los nombres de los addons cambiados. Después hay que recargar la interfaz: los
+-- addons siguen trabajando con las tablas antiguas hasta entonces.
+function N.Import(pack, ids)
+    local done = {}
+    for _, def in ipairs(N.DataAddons()) do
+        local saved = pack.data[def.id]
+        if type(saved) == "table" and (not ids or ids[def.id]) then
+            _G[def.data] = saved
+            done[#done + 1] = def.name
+        end
+    end
+    return done
+end
+
+---------------------------------------------------------------------------
 -- Eventos
 ---------------------------------------------------------------------------
 local ev = CreateFrame("Frame")
@@ -338,11 +546,21 @@ SlashCmdList.NEXO = function(msg)
     if msg == "minimapa" then
         local hidden = N.ToggleMinimap()
         print(P .. "botón del minimapa " .. (hidden and "oculto" or "visible") .. ".")
+    elseif msg == "datos" or msg == "exportar" or msg == "importar" then
+        N.ToggleData(msg == "importar" and "import" or "export")
+    elseif msg == "ayuda" or msg == "help" then
+        print(P .. "comandos:")
+        print("  |cffffff00/nexo|r - lista de addons conectados")
+        print("  |cffffff00/nexo datos|r - abrir/cerrar la ventana de exportar e importar datos")
+        print("  |cffffff00/nexo exportar|r - abrirla para sacar los datos como texto (cambiar de ordenador)")
+        print("  |cffffff00/nexo importar|r - abrirla para pegar el texto exportado en otro ordenador")
+        print("  |cffffff00/nexo minimapa|r - mostrar/ocultar el botón del minimapa")
+        print("  |cffffff00/nexo ayuda|r - esta lista")
     else
         print(P .. "addons conectados:")
         for _, def in ipairs(N.addons or {}) do
             print("  " .. def.name .. (def.slash and ("  |cffffff00" .. def.slash .. "|r") or ""))
         end
-        print("  |cffffff00/nexo minimapa|r - mostrar/ocultar el botón del minimapa")
+        print("  |cffffff00/nexo ayuda|r - comandos de Nexo")
     end
 end

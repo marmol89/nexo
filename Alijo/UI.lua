@@ -391,6 +391,7 @@ N.Register({
     id = "Alijo", name = "Alijo", icon = "Interface\\Icons\\INV_Box_01", color = ACC, slash = "/alijo",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "AlijoDB",
 })
 
 -- Menú de complementos (AddonCompartment)

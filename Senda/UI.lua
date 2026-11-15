@@ -566,6 +566,7 @@ N.Register({
     id = "Senda", name = "Senda", icon = "Interface\\Icons\\INV_Misc_Map_01", color = ACC, slash = "/senda",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "SendaDB",
 })
 
 -- Menú de complementos (AddonCompartment)

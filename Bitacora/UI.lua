@@ -552,6 +552,7 @@ N.Register({
     id = "Bitacora", name = "Bitácora", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", color = ACC, slash = "/bita",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "BitacoraDB",
 })
 
 -- Menú de complementos (AddonCompartment)

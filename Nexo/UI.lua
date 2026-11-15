@@ -791,7 +791,8 @@ end
 --
 -- def = { id, name, icon, color = {r, g, b}, slash = "/comando",
 --         toggle = function() end,                 -- abrir/cerrar su ventana
---         tooltip = function(owner, anchor) end }  -- resumen al pasar el ratón
+--         tooltip = function(owner, anchor) end,   -- resumen al pasar el ratón
+--         data = "MiAddonDB" }                     -- variable guardada, para exportar e importar
 ---------------------------------------------------------------------------
 local GEAR = "Interface\\Icons\\INV_Misc_Gear_01"
 N.addons = {}
@@ -899,8 +900,14 @@ local function MenuRow(i)
     return r
 end
 
+-- Última fila del menú: la ventana de exportar e importar
+local DATA_ROW = { name = "Exportar / importar", icon = GEAR, color = { 0.85, 0.85, 0.90 },
+    toggle = function() N.ToggleData() end }
+
 local function ShowMenu()
-    for i, def in ipairs(addons) do
+    local n = #addons + 1
+    for i = 1, n do
+        local def = addons[i] or DATA_ROW
         local r = MenuRow(i)
         r.def = def
         r.icon:SetTexture(def.icon)
@@ -909,8 +916,8 @@ local function ShowMenu()
         r.name:SetTextColor(c[1], c[2], c[3])
         r:Show()
     end
-    for i = #addons + 1, #menu.rows do menu.rows[i]:Hide() end
-    menu:SetSize(MENU_W, #addons * ROW_H + 8)
+    for i = n + 1, #menu.rows do menu.rows[i]:Hide() end
+    menu:SetSize(MENU_W, n * ROW_H + 8)
     menu:ClearAllPoints()
     menu:SetPoint("TOPRIGHT", mb, "BOTTOMLEFT", 6, 6)
     menu.away = 0
@@ -968,6 +975,237 @@ mb:SetScript("OnEnter", function(self)
     GameTooltip:Show()
 end)
 mb:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+---------------------------------------------------------------------------
+-- Ventana de exportar e importar (/nexo datos)
+--
+-- Exportar: se eligen los addons, se genera el texto y se copia con Ctrl+C.
+-- Importar: se pega el texto, se comprueba y, al confirmar, sustituye los datos y recarga.
+---------------------------------------------------------------------------
+local DW, DH, DPAD = 560, 300, 14
+local BIG = 400 * 1024   -- a partir de aquí pegar el texto de una vez puede fallar
+local dataWin
+
+local function BuildData()
+    local K = N.Kit({
+        acc = { 0.85, 0.85, 0.90 },
+        panelBg = { 0.08, 0.08, 0.10, 0.92 }, panelBorder = { 0.22, 0.22, 0.27, 1 },
+        btnOn = { 0.24, 0.25, 0.32 }, btnOnText = { 1, 1, 1 },
+        btnOff = { 0.11, 0.11, 0.13 }, btnBorder = { 0.27, 0.27, 0.33 }, btnHover = { 0.60, 0.60, 0.70 },
+        winBg = { 0.05, 0.05, 0.06 }, winBorder = { 0.32, 0.32, 0.38 },
+        headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
+        closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
+    })
+    local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = "Datos",
+        subtitle = "Exportar e importar para cambiar de ordenador",
+        settings = function() return N.db end })
+    main:RestorePos()
+
+    local defs = N.DataAddons()
+    local mode, sel = "export", {}
+    local pack, exported, zipped, err, armed   -- lo leído al importar; lo generado al exportar
+    local box, Refresh
+
+    local function Has(def)
+        if mode == "export" then return type(_G[def.data]) == "table" end
+        return pack ~= nil and type(pack.data[def.id]) == "table"
+    end
+
+    local function AnyPicked()
+        for _, def in ipairs(defs) do
+            if sel[def.id] and Has(def) then return true end
+        end
+        return false
+    end
+
+    local tabs = K.Tabs(main, { { "export", "Exportar" }, { "import", "Importar" } }, 110,
+        function(key) main:SetMode(key) end)
+    tabs[1]:SetPoint("TOPLEFT", DPAD, -62)
+
+    -- Un botón por addon: marcado = entra en la exportación o en la importación
+    local gap = 6
+    local bw = (DW - 2 * DPAD - gap * (#defs - 1)) / #defs
+    local picks = {}
+    for i, def in ipairs(defs) do
+        local b = K.Button(main, bw, 22, def.name, function()
+            if not Has(def) then return end
+            sel[def.id] = not sel[def.id] or nil
+            armed = false
+            if mode == "export" then
+                exported = nil
+                box:SetText("")
+            end
+            Refresh()
+        end, 11)
+        b:SetPoint("TOPLEFT", DPAD + (i - 1) * (bw + gap), -94)
+        picks[i] = b
+    end
+
+    local hint = Text(main, 11)
+    hint:SetPoint("TOPLEFT", DPAD, -128)
+    hint:SetPoint("RIGHT", -DPAD, 0)
+    hint:SetJustifyH("LEFT")
+    hint:SetTextColor(0.70, 0.70, 0.75)
+
+    local boxPanel = K.Panel(main)
+    boxPanel:SetPoint("TOPLEFT", DPAD, -148)
+    boxPanel:SetPoint("RIGHT", -DPAD, 0)
+    boxPanel:SetHeight(26)
+
+    -- De una sola línea: el texto no lleva saltos y así el juego no tiene que pintarlo entero
+    box = CreateFrame("EditBox", "NexoDatosBox", boxPanel)
+    box:SetPoint("TOPLEFT", 8, 0)
+    box:SetPoint("BOTTOMRIGHT", -8, 0)
+    box:SetAutoFocus(false)
+    box:SetFontObject(ChatFontNormal)
+    box:SetMaxLetters(0)
+    if box.SetMaxBytes then box:SetMaxBytes(0) end
+
+    local status = Text(main, 12)
+    status:SetPoint("TOPLEFT", DPAD, -186)
+    status:SetPoint("RIGHT", -DPAD, 0)
+    status:SetJustifyH("LEFT")
+    status:SetJustifyV("TOP")
+    status:SetSpacing(3)
+
+    local action = K.Button(main, 250, 26, "", function()
+        if not AnyPicked() then return end
+        if mode == "export" then
+            local ok, text, z = pcall(N.Export, sel)
+            if ok then
+                exported, zipped, err = text, z, nil
+                box:SetText(text)
+                box:SetCursorPosition(0)
+                box:SetFocus()
+                box:HighlightText()
+            else
+                exported, err = nil, "No se han podido exportar los datos: " .. tostring(text)
+            end
+            Refresh()
+        elseif not armed then
+            armed = true
+            Refresh()
+        else
+            N.Import(pack, sel)
+            local reload = C_UI and C_UI.Reload or ReloadUI
+            reload()
+        end
+    end)
+    action:SetPoint("BOTTOMLEFT", DPAD, DPAD)
+
+    local function ReadPasted(text)
+        if mode ~= "import" then return end
+        pack, err, armed, sel = nil, nil, false, {}
+        if text:find("%S") then
+            pack, err = N.ReadExport(text)
+            if pack then
+                for _, def in ipairs(defs) do
+                    if Has(def) then sel[def.id] = true end
+                end
+            end
+        end
+        Refresh()
+    end
+
+    box:SetScript("OnEscapePressed", function(s) s:ClearFocus() end)
+    box:SetScript("OnEditFocusGained", function(s)
+        if mode == "export" then s:HighlightText() end
+    end)
+    box:SetScript("OnTextChanged", function(s, user)
+        if not user or mode ~= "export" then return end
+        -- el texto exportado no se edita: si se toca, vuelve a como estaba
+        s:SetText(exported or "")
+        s:SetCursorPosition(0)
+        s:HighlightText()
+    end)
+
+    -- Pegar: si el cuadro recibe cientos de KB, el juego lo recoloca letra a letra y se cuelga.
+    -- Al importar el cuadro está limitado a unos pocos bytes (ver SetMode), pero las letras
+    -- pegadas siguen llegando a OnChar: se juntan aquí y se leen en el fotograma siguiente.
+    local pasted, count
+    local function PasteDone(s)
+        s:SetScript("OnUpdate", nil)
+        local text = table.concat(pasted, "", 1, count)
+        pasted, count = nil, nil
+        s:SetText("")
+        s:ClearFocus()
+        ReadPasted(text)
+    end
+    box:SetScript("OnChar", function(s, c)
+        if mode ~= "import" then return end
+        if not pasted then
+            pasted, count = {}, 0
+            s:SetScript("OnUpdate", PasteDone)
+        end
+        count = count + 1
+        pasted[count] = c
+    end)
+
+    function Refresh()
+        tabs:Select(mode)
+        for i, def in ipairs(defs) do
+            local has = Has(def)
+            picks[i]:SetActive(has and sel[def.id] or false)
+            picks[i]:SetAlpha(has and 1 or 0.35)
+        end
+        action:SetAlpha(AnyPicked() and 1 or 0.4)
+
+        local msg = err and ("|cffff6655" .. err .. "|r") or ""
+        if mode == "export" then
+            hint:SetText("Marca los addons que quieres llevarte y genera el texto.")
+            action.text:SetText("Generar texto")
+            if exported then
+                msg = ("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "
+                    .. "archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r.")
+                    :format(N.Num(#exported / 1024), zipped and ", comprimido" or "")
+                if #exported > BIG then
+                    msg = msg .. "\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"
+                end
+            end
+        else
+            hint:SetText("Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal.")
+            action.text:SetText(armed and "Pulsa otra vez para confirmar" or "Importar y recargar")
+            if pack then
+                msg = ("|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "
+                    .. "del texto (no se mezclan) y la interfaz se recarga.")
+                    :format(tostring(pack.from or "?"), type(pack.t) == "number" and date("%d/%m/%Y %H:%M", pack.t) or "?")
+            end
+        end
+        status:SetText(msg)
+    end
+
+    function main:SetMode(key)
+        mode, self.mode = key, key
+        pack, exported, err, armed, sel = nil, nil, nil, false, {}
+        if key == "export" then
+            for _, def in ipairs(defs) do sel[def.id] = true end
+        end
+        box:SetScript("OnUpdate", nil)
+        pasted, count = nil, nil
+        box:SetText("")
+        if box.SetMaxBytes then box:SetMaxBytes(key == "import" and 2500 or 0) end
+        if key == "import" then box:SetFocus() else box:ClearFocus() end
+        Refresh()
+    end
+
+    function main:OnClose()   -- no dejar el texto (puede ser grande) en memoria
+        pack, exported = nil, nil
+        box:SetText("")
+    end
+
+    return main
+end
+
+-- Abre la ventana en mode ("export" o "import"); si ya está abierta así, la cierra
+function N.ToggleData(mode)
+    if not dataWin then dataWin = BuildData() end
+    if dataWin:IsShown() and (not mode or mode == dataWin.mode) then
+        dataWin:Hide()
+        return
+    end
+    dataWin:SetMode(mode or dataWin.mode or "export")
+    dataWin:Show()
+end
 
 ---------------------------------------------------------------------------
 -- Inicio (lo llama Core.lua cuando los datos guardados están cargados)

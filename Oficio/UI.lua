@@ -462,6 +462,7 @@ N.Register({
     id = "Oficio", name = "Oficio", icon = ICON, color = ACC, slash = "/oficio",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "OficioDB",
 })
 
 -- Menú de complementos (AddonCompartment)

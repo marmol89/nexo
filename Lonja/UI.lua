@@ -405,6 +405,7 @@ N.Register({
     id = "Lonja", name = "Lonja", icon = ICON, color = ACC, slash = "/lonja",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
+    data = "LonjaDB",
 })
 
 -- Menú de complementos (AddonCompartment)
