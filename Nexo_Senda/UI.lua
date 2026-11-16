@@ -97,14 +97,7 @@ local main, close = K.Window({
 })
 
 -- Selector de personaje
-local charBtn = K.CharButton(main, close, {
-    list = function() return ns.CharList() end,
-    get = function() return state.filter end,
-    set = function(key)
-        state.filter = key
-        ns.Refresh()
-    end,
-})
+local charBtn = K.CharPicker(main, close, state, ns.CharList, function() ns.Refresh() end)
 
 ---------------------------------------------------------------------------
 -- Barra de progreso del nivel
@@ -329,28 +322,18 @@ for i = 1, LEVEL_ROWS do
 end
 
 function UpdateLevels()
-    local offset = FauxScrollFrame_GetOffset(scroll)
-    FauxScrollFrame_Update(scroll, #lvData, LEVEL_ROWS, ROW_H)
-    for i = 1, LEVEL_ROWS do
-        local r = lvRows[i]
-        local e = lvData[offset + i]
-        r.data = e
-        if e then
-            r.level:SetText((e.current and "|cff4ade80" or "|cffb88cff") .. "Nivel " .. e.lvl .. "|r")
-            r.time:SetText((e.partTime and "|cff8c8c9e" or "") .. ns.Dur(e.sec) .. (e.partTime and "+|r" or ""))
-            r.rate:SetText(e.rate and ns.Num(e.rate) or DASH)
-            if e.current then
-                r.done:SetText("|cff4ade80en curso|r")
-            elseif e.done then
-                r.done:SetText(DateLabel(e.done))
-            else
-                r.done:SetText(DASH)
-            end
-            r:Show()
+    N.FillRows(scroll, lvRows, ROW_H, lvData, function(r, e)
+        r.level:SetText((e.current and "|cff4ade80" or "|cffb88cff") .. "Nivel " .. e.lvl .. "|r")
+        r.time:SetText((e.partTime and "|cff8c8c9e" or "") .. ns.Dur(e.sec) .. (e.partTime and "+|r" or ""))
+        r.rate:SetText(e.rate and ns.Num(e.rate) or DASH)
+        if e.current then
+            r.done:SetText("|cff4ade80en curso|r")
+        elseif e.done then
+            r.done:SetText(DateLabel(e.done))
         else
-            r:Hide()
+            r.done:SetText(DASH)
         end
-    end
+    end)
 end
 scroll:SetScript("OnVerticalScroll", function(self, offset)
     FauxScrollFrame_OnVerticalScroll(self, offset, ROW_H, UpdateLevels)

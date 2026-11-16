@@ -16,13 +16,15 @@
 --   Nexo.Movable(marco, ajustes)             marco que se arrastra y recuerda dónde se dejó
 --   Nexo.Register(def)                       apunta el addon en el botón del minimapa
 --   Nexo.Export(ids) / ReadExport / Import   datos de los addons como texto, para cambiar de ordenador
+--   Nexo.WhenLabel(t)                        "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"
+--   Nexo.Trace(log, msg, max)                línea con la hora al principio de una lista guardada
 --   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
 --   Nexo.Antiguo(addon)                      ¿sigue cargado el addon con el nombre de antes de Nexo_<nombre>?
 local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 6
+N.version = 7
 
 local floor = math.floor
 local DAY = 86400
@@ -72,7 +74,20 @@ function N.DayLabel(t)
     return N.DAY_NAMES[tonumber(date("%w", t)) + 1] .. " " .. date("%d/%m", t)
 end
 
+-- "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"
+function N.WhenLabel(t)
+    local dl = N.DayLabel(t)
+    if dl == "Hoy" or dl == "Ayer" then return dl .. " " .. date("%H:%M", t) end
+    return date("%d/%m %H:%M", t)
+end
+
 function N.Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
+
+-- Añade una línea con la hora al principio de log (lista guardada) y deja como mucho max
+function N.Trace(log, msg, max)
+    table.insert(log, 1, date("%H:%M:%S ") .. msg)
+    for i = #log, max + 1, -1 do log[i] = nil end
+end
 
 -- Dinero en cobre -> monedas con su icono. full = todas las monedas; si no, versión compacta
 local BLN = BreakUpLargeNumbers or tostring
@@ -527,9 +542,9 @@ local function RetireOld()
     local names = table.concat(oldLoaded, ", ")
     print("|cffd9d9e6Nexo:|r los addons ahora se llaman |cffffff00Nexo_<nombre>|r. Tus datos de "
         .. names .. " se conservan: recarga la interfaz (|cffffff00/reload|r) para terminar el cambio."
-        .. " Después puedes borrar de Interface\AddOns las carpetas antiguas: " .. names .. ".")
+        .. " Después puedes borrar de Interface\\AddOns las carpetas antiguas: " .. names .. ".")
     StaticPopupDialogs.NEXO_RENOMBRADO = {
-        text = "Los addons de Nexo ahora se llaman Nexo_<nombre>.\n\nTus datos se conservan. Recarga la interfaz para terminar el cambio.\n\nDespués puedes borrar de Interface\AddOns las carpetas antiguas:\n" .. names,
+        text = "Los addons de Nexo ahora se llaman Nexo_<nombre>.\n\nTus datos se conservan. Recarga la interfaz para terminar el cambio.\n\nDespués puedes borrar de Interface\\AddOns las carpetas antiguas:\n" .. names,
         button1 = "Recargar", button2 = "Luego",
         OnAccept = function() ReloadUI() end,
         timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,

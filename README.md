@@ -297,13 +297,15 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 
 | Función | Para qué sirve |
 |---|---|
-| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `CharButton`, `Tabs`, `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
+| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `CharButton`, `CharPicker(main, cerrar, estado, listaPersonajes, alCambiar, todos)` (selector ligado a `estado.filter`), `Tabs`, `Periods(main, x, y, alElegir)` (pestañas de periodo con su texto de ayuda), `Dashboard(o)` (ventana + selector de personaje + periodos, en una llamada), `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
 | `Nexo.Movable(marco, ajustes)` | Hace que un marco se arrastre con el ratón y guarda dónde queda en `ajustes().pos`; `marco:RestorePos()` lo devuelve ahí. Lo usan las ventanas y el contador de Vuelo. |
 | `Nexo.Register(def)` | Apunta el addon en el menú del botón del minimapa. |
 | `Nexo.OnTick(fn)` | Llama a `fn(dt, ahora)` cada 5 segundos de juego, sin contar el tiempo con el equipo suspendido. |
 | `Nexo.OnPlayed(fn)` | Llama a `fn(total, enEsteNivel)` con el `/played` real, pedido sin ensuciar el chat. |
 | `Nexo.CharKey()`, `Nexo.Char()`, `Nexo.CharList()` | Registro de personajes de la cuenta. |
-| `Nexo.Dur`, `Nexo.Num`, `Nexo.DayKey`, `Nexo.DayLabel` | Formato de duraciones, números y fechas. |
+| `Nexo.Dur`, `Nexo.Num`, `Nexo.DayKey`, `Nexo.DayLabel`, `Nexo.WhenLabel` | Formato de duraciones, números y fechas («Hoy 14:05», «03/11 14:05»). |
+| `Nexo.Trace(lista, texto, máximo)` | Añade una línea con la hora al rastro de diagnóstico guardado de un addon. |
+| `Nexo.FillRows(scroll, filas, altura, datos, rellenar)` | Pinta una lista con barra de desplazamiento: `rellenar(fila, dato)` en las filas visibles y oculta el resto. |
 | `Nexo.Money(cobre)`, `Nexo.Ago(hora)` | Dinero con los iconos de las monedas y textos como «hace 5 min». |
 | `Nexo.QualityRGB(q)`, `Nexo.ItemID(enlace)`, `Nexo.Keys(tabla)` | Color por calidad, id de un enlace de objeto y claves ordenadas de una tabla. |
 | `Nexo.Reg(marco, ...)` | Registra eventos en un marco; los que no existen en el cliente se ignoran. |

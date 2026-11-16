@@ -189,8 +189,7 @@ end
 -- Rastro de los últimos escaneos, guardado en OficioDB.debug para poder diagnosticar fallos
 local function Trace(msg)
     db.debug = db.debug or {}
-    table.insert(db.debug, 1, date("%H:%M:%S ") .. msg)
-    for i = #db.debug, 13, -1 do db.debug[i] = nil end
+    Nexo.Trace(db.debug, msg, 12)
 end
 ns.Trace = Trace
 

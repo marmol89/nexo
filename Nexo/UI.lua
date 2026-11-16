@@ -60,6 +60,23 @@ function N.ResetScroll(scroll)
     FauxScrollFrame_SetOffset(scroll, 0)
 end
 
+-- Pinta las filas de una lista con FauxScrollFrame: rows = filas (todas de alto rowH),
+-- data = lista completa. fill(r, e) rellena una fila con su dato; las que no tienen se ocultan.
+function N.FillRows(scroll, rows, rowH, data, fill)
+    local offset = FauxScrollFrame_GetOffset(scroll)
+    FauxScrollFrame_Update(scroll, #data, #rows, rowH)
+    for i, r in ipairs(rows) do
+        local e = data[offset + i]
+        r.data = e
+        if e then
+            fill(r, e)
+            r:Show()
+        else
+            r:Hide()
+        end
+    end
+end
+
 -- Pone el enlace de un objeto en el cuadro de chat abierto; devuelve true si lo hizo
 function N.LinkItem(id)
     local get = GetItemInfo or (C_Item and C_Item.GetItemInfo)
@@ -339,6 +356,41 @@ function N.Kit(t)
             end
         end
         return b
+    end
+
+    -- Ventana con selector de personaje y pestañas de periodo ya colocados (Tesorero, Bitácora).
+    -- o = K.Window + { state, list, all, pad, onChange(), onPeriod(periodo) }
+    -- Devuelve main, close, charBtn, periodBtns y periodHint.
+    function K.Dashboard(o)
+        local main, close = K.Window(o)
+        local charBtn = K.CharPicker(main, close, o.state, o.list, o.onChange, o.all)
+        local periodBtns, periodHint = K.Periods(main, o.pad, -62, o.onPeriod)
+        return main, close, charBtn, periodBtns, periodHint
+    end
+
+    -- Pestañas de periodo (N.PERIODS) en (x, y) y, a su derecha, un texto de ayuda.
+    -- onPick(periodo). Devuelve las pestañas y el texto.
+    function K.Periods(main, x, y, onPick)
+        local tabs = K.Tabs(main, N.PERIODS, 80, onPick)
+        tabs[1]:SetPoint("TOPLEFT", x, y)
+        local hint = Text(main, 11)
+        hint:SetPoint("LEFT", tabs[#tabs], "RIGHT", 12, 0)
+        hint:SetTextColor(0.6, 0.6, 0.6)
+        return tabs, hint
+    end
+
+    -- Selector de personaje sobre state.filter (nil = todos si all). list() = claves del addon
+    -- (su ns.CharList); onChange() al cambiarlo.
+    function K.CharPicker(main, close, state, list, onChange, all)
+        return K.CharButton(main, close, {
+            list = list,
+            get = function() return state.filter end,
+            set = function(key)
+                state.filter = key
+                onChange()
+            end,
+            all = all,
+        })
     end
 
     -- Fila de botones excluyentes. defs = { { clave, texto }, ... }; onPick(clave) al pulsar uno.

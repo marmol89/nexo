@@ -76,16 +76,7 @@ local main, close = K.Window({
 
 local list
 local function ResetScroll() list:Reset() end
-local charBtn = K.CharButton(main, close, {
-    list = function() return ns.CharList() end,
-    get = function() return state.filter end,
-    set = function(key)
-        state.filter = key
-        ResetScroll()
-        ns.Refresh()
-    end,
-    all = true,
-})
+local charBtn = K.CharPicker(main, close, state, ns.CharList, function() ResetScroll() ns.Refresh() end, true)
 
 ---------------------------------------------------------------------------
 -- Búsqueda y filtro de profesión
