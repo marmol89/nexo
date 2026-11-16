@@ -1,0 +1,94 @@
+# Abre sola una PR "Publicar Nexo <versión>" (rama release/next) cuando hay cambios en los addons
+# desde la última etiqueta. La PR sube el parche de Nexo/Nexo.toc en 1.
+# Para otra versión (por ejemplo 1.6.0), sube a esa rama un commit que cambie Nexo/Nexo.toc.
+# Al fusionar la PR, publicar.yml crea la versión y la sube a CurseForge.
+name: Preparar versión
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preparar-version
+  cancel-in-progress: false
+
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar si hay algo que versionar
+        id: revisar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANTES: ${{ github.event.before }}
+          DESPUES: ${{ github.sha }}
+        run: |
+          # Al fusionar la PR de versión solo cambia Nexo/Nexo.toc: no abrir otra
+          if [ "$(git diff --name-only "$ANTES" "$DESPUES" | tr -d '\r')" = "Nexo/Nexo.toc" ]; then
+            echo "Solo cambia la versión: nada que preparar."
+            echo "listo=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          # Ya hay una PR de versión abierta: no tocarla
+          if [ -n "$(gh pr list --head release/next --state open --json number --jq '.[].number')" ]; then
+            echo "Ya hay una PR de versión abierta."
+            echo "listo=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          # Cambios de los addons desde la última versión publicada
+          ultimo="$(git tag --list 'v*' --sort=-v:refname | head -n1)"
+          if [ -n "$ultimo" ] && git diff --quiet "$ultimo" HEAD -- 'Nexo/' 'Nexo_*/' 'herramientas/'; then
+            echo "Sin cambios en los addons desde $ultimo."
+            echo "listo=no" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+
+          actual="$(sed -n 's/^## *Version: *//p' Nexo/Nexo.toc | tr -d '\r' | head -n1)"
+          IFS=. read -r mayor menor parche <<< "$actual"
+          nueva="$mayor.$menor.$((parche + 1))"
+
+          echo "listo=si" >> "$GITHUB_OUTPUT"
+          echo "actual=$actual" >> "$GITHUB_OUTPUT"
+          echo "nueva=$nueva" >> "$GITHUB_OUTPUT"
+          echo "desde=${ultimo:-(primera versión)}" >> "$GITHUB_OUTPUT"
+
+      - name: Subir el número de versión y abrir la PR
+        if: steps.revisar.outputs.listo == 'si'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUEVA: ${{ steps.revisar.outputs.nueva }}
+          ACTUAL: ${{ steps.revisar.outputs.actual }}
+          DESDE: ${{ steps.revisar.outputs.desde }}
+        run: |
+          git checkout -B release/next
+          sed -i "s/^## *Version: *.*/## Version: $NUEVA/" Nexo/Nexo.toc
+          git diff --quiet && { echo "::error::No se pudo cambiar la versión en Nexo/Nexo.toc"; exit 1; }
+
+          cuerpo="$(mktemp)"
+          {
+            echo "Versión propuesta: **$NUEVA** (ahora $ACTUAL). Cambios desde $DESDE:"
+            echo
+            if [ "$DESDE" = "(primera versión)" ]; then
+              git log --no-merges --pretty='- %s' HEAD
+            else
+              git log --no-merges --pretty='- %s' "$DESDE..HEAD"
+            fi
+            echo
+            echo "Al fusionar esta PR se crea la etiqueta v$NUEVA, la versión en GitHub y se sube a CurseForge."
+            echo "Para otro número, sube a esta rama un commit que cambie \`Nexo/Nexo.toc\`."
+          } > "$cuerpo"
+
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -am "Publicar Nexo $NUEVA"
+          git push --force origin release/next
+
+          gh pr create --base main --head release/next \
+            --title "Publicar Nexo $NUEVA" --body-file "$cuerpo"
