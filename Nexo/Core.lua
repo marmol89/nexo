@@ -25,7 +25,7 @@ local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 7
+N.version = 8
 
 local floor = math.floor
 local DAY = 86400
@@ -93,6 +93,21 @@ N.Dict({
     ["addons conectados:"] = "connected addons:",
     ["botón del minimapa"] = "minimap button",
     ["oculto"] = "hidden", ["visible"] = "visible",
+    ["Ajustes"] = "Settings",
+    ["Idioma y opciones de Nexo"] = "Language and Nexo options",
+    ["Idioma"] = "Language",
+    ["Automático"] = "Automatic",
+    ["Minimapa"] = "Minimap",
+    ["Mostrar botón"] = "Show button",
+    ["Ocultar botón"] = "Hide button",
+    ["Datos"] = "Data",
+    ["Idioma cambiado."] = "Language changed.",
+    ["Recarga la interfaz para aplicarlo."] = "Reload the UI to apply it.",
+    ["abrir/cerrar la ventana de ajustes (idioma y opciones)"] = "open/close the settings window (language and options)",
+    ["Restablecer posición"] = "Reset position",
+    ["Tooltip"] = "Tooltip",
+    ["Sonidos"] = "Sounds",
+    ["Ventanas"] = "Windows",
 })
 local Tr = N.T
 
@@ -685,9 +700,12 @@ SlashCmdList.NEXO = function(msg)
         print(P .. Tr("botón del minimapa") .. " " .. (hidden and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "datos" or msg == "exportar" or msg == "importar" then
         N.ToggleData(msg == "importar" and "import" or "export")
+    elseif msg == "ajustes" or msg == "config" then
+        N.ToggleSettings()
     elseif msg == "ayuda" or msg == "help" then
         print(P .. Tr("comandos:"))
         print("  |cffffff00/nexo|r - " .. Tr("lista de addons conectados"))
+        print("  |cffffff00/nexo ajustes|r - " .. Tr("abrir/cerrar la ventana de ajustes (idioma y opciones)"))
         print("  |cffffff00/nexo datos|r - " .. Tr("abrir/cerrar la ventana de exportar e importar datos"))
         print("  |cffffff00/nexo exportar|r - " .. Tr("abrirla para sacar los datos como texto (cambiar de ordenador)"))
         print("  |cffffff00/nexo importar|r - " .. Tr("abrirla para pegar el texto exportado en otro ordenador"))
