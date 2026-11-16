@@ -1,13 +1,10 @@
 local Tr = Nexo.T
 Nexo.Dict({
-    ["Hoy"] = "Today",
     ["Activo"] = "Active",
     ["Ausente"] = "Away",
     [" sesión pasada estimada"] = " estimated past session",
     [" sesiones pasadas estimadas"] = " estimated past sessions",
     [" a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r"] = " from Tesorero. To remove them: |cffffff00/bita quitar estimadas|r",
-    ["registro de este personaje borrado."] = "log of this character deleted.",
-    ["esto borrará TODO el registro de "] = "this will delete ALL the log of ",
     [". Escribe |cffffff00/bita reset confirmar|r para hacerlo."] = ". Type |cffffff00/bita reset confirmar|r to do it.",
     ["no encuentro datos de Tesorero (¿está instalado y activado?)."] = "I can't find Tesorero data (is it installed and enabled?).",
     ["no hay nada nuevo que importar de Tesorero."] = "there is nothing new to import from Tesorero.",
@@ -17,7 +14,6 @@ Nexo.Dict({
     [" sesión estimada eliminada"] = " estimated session removed",
     [" sesiones estimadas eliminadas"] = " estimated sessions removed",
     [". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."] = " It will not be imported again until you type |cffffff00/bita importar|r.",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["  |cffffff00/bita|r - abrir/cerrar la ventana"] = "  |cffffff00/bita|r - open/close the window",
     ["  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/bita minimapa|r - show/hide the minimap button",
     ["  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero"] = "  |cffffff00/bita importar|r - estimate the earlier history from Tesorero",
@@ -27,9 +23,7 @@ Nexo.Dict({
     ["Tiempo de juego · WoW Forever"] = "Playtime · WoW Forever",
     ["Tiempo total"] = "Total time",
     ["En el periodo"] = "In the period",
-    ["Media diaria"] = "Daily average",
     ["Sesión actual"] = "Current session",
-    ["Últimos 14 días"] = "Last 14 days",
     ["Ausente (AFK)"] = "Away (AFK)",
     ["Estimado (Tesorero)"] = "Estimated (Tesorero)",
     ["Sin tiempo registrado en las últimas 2 semanas"] = "No time recorded in the last 2 weeks",
@@ -41,7 +35,6 @@ Nexo.Dict({
     ["nivel %d > %d"] = "level %d > %d",
     ["Sesión en curso"] = "Session in progress",
     ["Sesión estimada"] = "Estimated session",
-    ["Sesión"] = "Session",
     ["Duración"] = "Duration",
     ["Zona principal"] = "Main zone",
     ["Calculada con los movimientos de oro de Tesorero."] = "Calculated from the gold movements of Tesorero.",
@@ -56,9 +49,6 @@ Nexo.Dict({
     ["Desde las "] = "From ",
     ["Hoy con este personaje: |cffffffff"] = "Today with this character: |cffffffff",
     [" ausente|r"] = " away|r",
-    ["desde las 00:00 de hoy"] = "since 00:00 today",
-    ["últimos 7 días"] = "last 7 days",
-    ["últimos 30 días"] = "last 30 days",
     ["desde que instalaste Bitácora"] = "since you installed Bitacora",
     [" en este nivel"] = " at this level",
     ["Tiempo /played"] = "Time /played",
@@ -66,7 +56,6 @@ Nexo.Dict({
     ["Sin tiempo ausente"] = "No time away",
     ["día jugado"] = "day played",
     ["días jugados"] = "days played",
-    ["Nada todavía"] = "Nothing yet",
     ["Sin días jugados"] = "No days played",
     ["dónde pasas el tiempo"] = "where you spend your time",
     ["Otras zonas"] = "Other zones",
@@ -81,7 +70,6 @@ Nexo.Dict({
     ["Total del personaje"] = "Character total",
     ["Hoy en toda la cuenta"] = "Today across the account",
     ["Total de la cuenta"] = "Account total",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
 })
 -- Bitácora: registro del tiempo de juego
 local ADDON, ns = ...
@@ -537,7 +525,7 @@ SlashCmdList.BITACORA = function(msg)
         print(P .. n .. (n == 1 and Tr(" sesión estimada eliminada") or Tr(" sesiones estimadas eliminadas")) .. Tr(". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."))
         if ns.Refresh then ns.Refresh() end
     elseif msg == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print(Tr("  |cffffff00/bita|r - abrir/cerrar la ventana"))

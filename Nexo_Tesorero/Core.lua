@@ -1,6 +1,5 @@
 local Tr = Nexo.T
 Nexo.Dict({
-    ["Hoy"] = "Today",
     ["Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí."] = "No movements yet.\nEarn or spend some gold and it will appear here.",
     ["Ganado"] = "Earned",
     ["Botín"] = "Loot",
@@ -13,13 +12,11 @@ Nexo.Dict({
     ["historial de este personaje borrado."] = "history of this character deleted.",
     ["esto borrará TODO el historial de "] = "this will delete ALL the history of ",
     [". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."] = ". Type |cffffff00/tesoro reset confirmar|r to do it.",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["  |cffffff00/tesoro|r - abrir/cerrar la ventana"] = "  |cffffff00/tesoro|r - open/close the window",
     ["  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/tesoro minimapa|r - show/hide the minimap button",
     ["  |cffffff00/tesoro reset|r - borrar el historial de este personaje"] = "  |cffffff00/tesoro reset|r - delete this character's history",
     ["Historial de oro · WoW Forever"] = "Gold history · WoW Forever",
     ["Oro actual"] = "Current gold",
-    ["Últimos 14 días"] = "Last 14 days",
     ["Sin movimientos en las últimas 2 semanas"] = "No movements in the last 2 weeks",
     ["Por categoría"] = "By category",
     ["clic = filtrar movimientos"] = "click = filter movements",
@@ -27,22 +24,17 @@ Nexo.Dict({
     ["Clic para ver solo estos movimientos"] = "Click to see only these movements",
     ["Aún no hay movimientos en este periodo"] = "No movements in this period yet",
     ["Mejor día"] = "Best day",
-    ["Media diaria"] = "Daily average",
     ["Mayor ingreso"] = "Biggest income",
     ["Mayor gasto"] = "Biggest expense",
     ["|cffffd100Sesión|r  ·  "] = "|cffffd100Session|r  ·  ",
     ["  ·  |cff888888sin movimientos todavía|r"] = "  ·  |cff888888no movements yet|r",
     ["Neto "] = "Net ",
     [" /hora"] = " /hour",
-    ["desde las 00:00 de hoy"] = "since 00:00 today",
-    ["últimos 7 días"] = "last 7 days",
-    ["últimos 30 días"] = "last 30 days",
     ["desde que instalaste Tesorero"] = "since you installed Tesorero",
     ["Récord: "] = "Record: ",
     [" personaje"] = " character",
     [" personajes"] = " characters",
     ["Sobre todo: "] = "Mostly: ",
-    ["Nada todavía"] = "Nothing yet",
     ["Ahorras el %d%%"] = "You save %d%%",
     ["|cffff8a8aGastas más de lo que ganas|r"] = "|cffff8a8aYou spend more than you earn|r",
     ["Sin movimientos"] = "No movements",
@@ -55,7 +47,6 @@ Nexo.Dict({
     ["  Gastado"] = "  Spent",
     ["Total histórico"] = "Lifetime total",
     ["Oro de la cuenta"] = "Account gold",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
     ["Ganado"] = "Earned",
     ["Gastado"] = "Spent",
     ["Botín "] = "Loot ",
@@ -372,7 +363,7 @@ SlashCmdList.TESORERO = function(msg)
     elseif msg == "reset" then
         print(P .. Tr("esto borrará TODO el historial de ") .. charKey .. Tr(". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."))
     elseif msg == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print(Tr("  |cffffff00/tesoro|r - abrir/cerrar la ventana"))

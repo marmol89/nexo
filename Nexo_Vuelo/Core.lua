@@ -6,7 +6,6 @@ Nexo.Dict({
     [" medido: |cffffff00"] = " measured: |cffffff00",
     ["contador devuelto a su sitio."] = "counter returned to its place.",
     ["avisos en el chat "] = "chat alerts ",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["ruta medida"] = "route measured",
     ["rutas medidas"] = "routes measured",
     [". Comandos:"] = ". Commands:",
@@ -286,7 +285,7 @@ SlashCmdList.VUELO = function(msg)
         db.settings.chat = not db.settings.chat
         print(P .. Tr("avisos en el chat ") .. (db.settings.chat and "activados" or "desactivados") .. ".")
     elseif msg == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. N.Plural(ns.RouteCount(), Tr("ruta medida"), Tr("rutas medidas")) .. Tr(". Comandos:"))
         print(Tr("  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"))

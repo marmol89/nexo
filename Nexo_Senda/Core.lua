@@ -1,22 +1,15 @@
 local Tr = Nexo.T
 Nexo.Dict({
     ["Nivel"] = "Level",
-    ["Todo"] = "All",
-    ["Hoy"] = "Today",
-    ["nivel "] = "level ",
     [" alcanzado. El nivel "] = " reached. Level ",
     [" te llevó "] = " took you ",
     ["aviso al subir de nivel "] = "level-up alert ",
-    ["registro de este personaje borrado."] = "log of this character deleted.",
-    ["esto borrará TODO el registro de "] = "this will delete ALL the log of ",
     [". Escribe |cffffff00/senda reset confirmar|r para hacerlo."] = ". Type |cffffff00/senda reset confirmar|r to do it.",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["  |cffffff00/senda|r - abrir/cerrar la ventana"] = "  |cffffff00/senda|r - open/close the window",
     ["  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel"] = "  |cffffff00/senda avisos|r - turn the chat summary on level-up on/off",
     ["  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/senda minimapa|r - show/hide the minimap button",
     ["  |cffffff00/senda reset|r - borrar el registro de este personaje"] = "  |cffffff00/senda reset|r - delete this character's log",
     ["Exploración"] = "Exploration",
-    ["Sesión"] = "Session",
     ["Nivel "] = "Level ",
     ["  |cff4ade80(en curso)|r"] = "  |cff4ade80(in progress)|r",
     ["Tiempo en el nivel"] = "Time in level",
@@ -61,7 +54,6 @@ Nexo.Dict({
     [" muertes en la sesión"] = " deaths in the session",
     [" misión"] = " quest",
     [" misiones"] = " quests",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
 })
 -- Senda: registro de la subida de nivel
 local ADDON, ns = ...
@@ -453,9 +445,9 @@ SlashCmdList.SENDA = function(msg)
         print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe |cffffff00/senda reset confirmar|r para hacerlo."))
     elseif msg == "avisos" then
         db.settings.announce = (db.settings.announce == false)
-        print(P .. Tr("aviso al subir de nivel ") .. (db.settings.announce and "activado" or "desactivado") .. ".")
+        print(P .. Tr("aviso al subir de nivel ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
     elseif msg == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
         print(Tr("  |cffffff00/senda|r - abrir/cerrar la ventana"))

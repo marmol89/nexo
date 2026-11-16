@@ -262,7 +262,7 @@ local function UpdateFooter()
     local c = ns.db.chars[key]
     if not c then footer:SetText("") return end
     local parts = { "|c" .. ClassHex(c.class) .. (c.name or ShortName(key)) .. "|r" }
-    parts[#parts + 1] = Tr("bolsas vistas ") .. (Ago(c.tBags) or "nunca")
+    parts[#parts + 1] = Tr("bolsas vistas ") .. (Ago(c.tBags) or Tr("nunca"))
     if c.tBank then
         parts[#parts + 1] = Tr("banco visto ") .. Ago(c.tBank)
     else

@@ -2,13 +2,8 @@ local Tr = Nexo.T
 Nexo.Dict({
     ["Banco"] = "Bank",
     ["Equipado"] = "Equipped",
-    ["no encuentro a otro personaje llamado \""] = "I cannot find another character named \"",
-    ["Objeto "] = "Item ",
-    ["Banco de la banda"] = "Warband bank",
     ["recuento en el tooltip de los objetos "] = "count in the item tooltip ",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["inventario de "] = "inventory of ",
-    [" borrado."] = " deleted.",
     ["  |cffffff00/alijo|r - abrir/cerrar la ventana"] = "  |cffffff00/alijo|r - open/close the window",
     ["  |cffffff00/alijo <texto>|r - abrir buscando ese texto"] = "  |cffffff00/alijo <texto>|r - open searching for that text",
     ["  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos"] = "  |cffffff00/alijo tooltip|r - turn the item tooltip count on/off",
@@ -19,8 +14,6 @@ Nexo.Dict({
     ["Banco "] = "Bank ",
     ["Equipado "] = "Equipped ",
     ["Inventario de la cuenta · WoW Forever"] = "Account inventory · WoW Forever",
-    ["Buscar objeto..."] = "Search item...",
-    ["Todo"] = "All",
     ["Bolsas"] = "Bags",
     ["Dónde"] = "Where",
     ["Quién lo tiene"] = "Who has it",
@@ -33,22 +26,16 @@ Nexo.Dict({
     ["bolsas vistas "] = "bags seen ",
     ["banco visto "] = "bank seen ",
     ["|cffffb347banco sin registrar: ábrelo con este personaje|r"] = "|cffffb347bank not recorded: open it with this character|r",
-    [" de "] = " of ",
-    ["objeto distinto"] = "distinct item",
-    ["objetos distintos"] = "distinct items",
     ["objeto"] = "item",
     ["objetos"] = "items",
     ["sitio"] = "place",
     ["sitios"] = "places",
     ["Aquí no hay nada registrado todavía."] = "Nothing recorded here yet.",
-    ["Ningún objeto coincide con la búsqueda."] = "No item matches the search.",
     ["Personajes registrados"] = "Registered characters",
     ["Objetos distintos"] = "Distinct items",
     ["Banco de "] = "Bank of ",
     ["este personaje"] = "this character",
-    ["visto "] = "seen ",
     ["sin registrar"] = "not recorded",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
 })
 -- Alijo: inventario de toda la cuenta
 local ADDON, ns = ...
@@ -364,9 +351,9 @@ SlashCmdList.ALIJO = function(msg)
     local P = "|cff5cdb9eAlijo:|r "
     if low == "tooltip" then
         db.settings.tooltip = not ns.TooltipEnabled()
-        print(P .. Tr("recuento en el tooltip de los objetos ") .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
+        print(P .. Tr("recuento en el tooltip de los objetos ") .. (db.settings.tooltip and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
         local found = Nexo.FindChar(db.chars, who, charKey)

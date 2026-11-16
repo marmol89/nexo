@@ -5,13 +5,10 @@ Nexo.Dict({
     ["\"Escanear subasta\" para empezar.|r"] = "\"Scan auction\" to start.|r",
     ["objeto de tu lista está"] = "item on your list is",
     ["objetos de tu lista están"] = "items on your list are",
-    ["  ·  |cffffb347recetas sin registrar: "] = "  ·  |cffffb347recipes not recorded: ",
     ["Escaneando página "] = " Scanning page ",
     ["Leyendo subastas: %d%%"] = "Reading auctions: %d%%",
     ["Esperando la lista de subastas..."] = "Waiting for the auction list...",
     ["escaneo completo: "] = "full scan: ",
-    ["objeto distinto"] = "distinct item",
-    ["objetos distintos"] = "distinct items",
     [" con precio."] = " with price.",
     ["escaneo interrumpido"] = "scan interrupted",
     [": guardados "] = ": saved ",
@@ -33,11 +30,7 @@ Nexo.Dict({
     ["; el juego no deja escanear otra vez hasta dentro de "] = "; the game does not let you scan again until within ",
     [" en marcha. Puede tardar un rato en llegar la lista."] = " in progress. It may take a while for the list to arrive.",
     ["este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando."] = "this client does not allow scanning the whole auction. Prices are recorded as you search.",
-    ["Objeto "] = "Item ",
-    ["Banco de la banda"] = "Warband bank",
     ["se cerró la subasta"] = "the auction was closed",
-    ["  ... y "] = "  ... and ",
-    [" más."] = " more.",
     ["sí"] = "yes",
     ["diagnóstico:"] = "diagnostics:",
     ["  reino: "] = "  realm: ",
@@ -53,7 +46,6 @@ Nexo.Dict({
     ["no hay ningún escaneo en marcha."] = "no scan is running.",
     ["escaneo automático al abrir la subasta "] = "automatic scan when opening the auction ",
     ["precio en el tooltip de los objetos "] = "price in the item tooltip ",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     [" borrados."] = " deleted.",
     ["esto borrará todos los precios guardados de "] = "this will delete all the saved prices of ",
     [". Escribe |cffffff00/lonja reset confirmar|r para hacerlo."] = ". Type |cffffff00/lonja reset confirmar|r to do it.",
@@ -111,7 +103,6 @@ Nexo.Dict({
     ["Escanear la casa de subastas"] = "Scan the auction house",
     ["Guarda el precio de compra más bajo de cada objeto."] = "Saves the lowest buyout price of each item.",
     ["Tiene que estar abierta la ventana de la subasta."] = "The auction window must be open.",
-    ["Buscar objeto..."] = "Search item...",
     ["Lista de compra: precio máximo por unidad y cantidad"] = "Shopping list: max price per unit and quantity",
     ["Oro: 1.5"] = "Gold: 1.5",
     ["Lonja:|r pon el precio máximo por unidad (en oro: 1.5, o 1g 50s) y cuántas unidades quieres."] = "Lonja:|r set the max price per unit (in gold: 1.5, or 1g 50s) and how many units you want.",
@@ -137,7 +128,6 @@ Nexo.Dict({
     ["Comprar hasta"] = "Buy up to",
     ["Quedan por comprar"] = "Left to buy",
     ["Ahora está a tu precio|r"] = "Now it is at your price|r",
-    ["visto "] = "seen ",
     ["Parar escaneo"] = "Stop scan",
     ["Lonja: parar"] = "Lonja: stop",
     ["Lonja: escanear"] = "Lonja: scan",
@@ -155,9 +145,7 @@ Nexo.Dict({
     ["Lista de compra ("] = "Shopping list (",
     ["La lista de compra está vacía. Elige un objeto y ponle precio máximo y cantidad."] = "The shopping list is empty. Choose an item and set a max price and quantity.",
     ["Nada de lo que tienes guardado tiene precio en la lonja."] = "None of what you have saved has a price at the auction house.",
-    ["Ningún objeto coincide con la búsqueda."] = "No item matches the search.",
     ["Último escaneo"] = "Last scan",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
 })
 -- Lonja: precios de la casa de subastas
 --
@@ -192,7 +180,7 @@ local FULL_WAIT = 15 * 60 + 10  -- el juego solo da la lista completa cada 15 mi
 -- Money(cobre, tamaño, full): el del núcleo. full = todas las monedas; si no, versión compacta
 ns.Money = Nexo.Money
 
-function ns.Ago(t) return Nexo.Ago(t, "nunca") end
+function ns.Ago(t) return Nexo.Ago(t, Tr("nunca")) end
 
 ---------------------------------------------------------------------------
 -- Base de datos
@@ -412,7 +400,7 @@ function ns.StartScan(auto)
         say(Tr("abre la casa de subastas para escanear."))
         return false
     end
-    local head = auto and Tr("escaneo automático") or "escaneo"
+    local head = auto and Tr("escaneo automático") or Tr("escaneo")
     if QueryAuctionItems and GetNumAuctionItems and GetAuctionItemInfo then
         local canAll = false
         if CanSendAuctionQuery then canAll = select(2, CanSendAuctionQuery()) end
@@ -677,7 +665,7 @@ local function PrintSearch(text)
 end
 
 local function PrintDiag()
-    local function has(v) return v and Tr("sí") or "no" end
+    local function has(v) return v and Tr("sí") or Tr("no") end
     print(P .. Tr("diagnóstico:"))
     print(Tr("  reino: ") .. realmKey .. Tr(" · objetos con precio: ") .. ns.Count() .. Tr(" · último escaneo: ") .. ns.Ago(realm.lastScan))
     print(Tr("  subasta abierta: ") .. has(ahOpen) .. Tr(" · API clásica (QueryAuctionItems): ") .. has(QueryAuctionItems) ..
@@ -703,7 +691,7 @@ SlashCmdList.LONJA = function(msg)
         if scan then ns.StopScan() else print(P .. Tr("no hay ningún escaneo en marcha.")) end
     elseif low == "auto" then
         db.settings.auto = not ns.AutoScan()
-        print(P .. Tr("escaneo automático al abrir la subasta ") .. (db.settings.auto and "activado" or "desactivado") .. ".")
+        print(P .. Tr("escaneo automático al abrir la subasta ") .. (db.settings.auto and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "comprar" or low == "lista" then
         ns.PrintBuyList()
     elseif low:find("^comprar%s") then
@@ -712,9 +700,9 @@ SlashCmdList.LONJA = function(msg)
         ns.BuyRemoveCommand(msg:sub(8):gsub("^%s+", ""))
     elseif low == "tooltip" then
         db.settings.tooltip = not ns.TooltipEnabled()
-        print(P .. Tr("precio en el tooltip de los objetos ") .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
+        print(P .. Tr("precio en el tooltip de los objetos ") .. (db.settings.tooltip and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif low == "reset confirmar" then
         local buy = realm.buy       -- la lista de compra no son precios: se conserva
         db.realms[realmKey] = nil

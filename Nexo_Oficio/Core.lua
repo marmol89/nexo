@@ -1,25 +1,18 @@
 local Tr = Nexo.T
 Nexo.Dict({
     ["nadie sabe fabricar nada que contenga \""] = "nobody knows how to craft anything containing \"",
-    ["no encuentro a otro personaje llamado \""] = "I cannot find another character named \"",
-    ["  ·  |cffffb347recetas sin registrar: "] = "  ·  |cffffb347recipes not recorded: ",
     ["sin API C_TradeSkillUI"] = "no C_TradeSkillUI API",
     ["omitido: enlazada"] = "skipped: linked",
     ["omitido: hermandad"] = "skipped: guild",
     ["omitido: PNJ"] = "skipped: NPC",
     ["guardadas "] = "saved ",
     [" recetas de "] = " recipes of ",
-    ["Objeto "] = "Item ",
     ["enfriamientos listos: "] = "cooldowns ready: ",
     ["evento "] = "event ",
     ["todavía no hay profesiones registradas en este personaje."] = "no professions recorded for this character yet.",
     ["profesiones de "] = "professions of ",
-    ["  ... y "] = "  ... and ",
-    [" más."] = " more.",
     ["aviso de enfriamientos al entrar "] = "cooldown alert on entering ",
-    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
     ["registro de "] = "log of ",
-    [" borrado."] = " deleted.",
     ["esto borrará las profesiones y recetas guardadas de "] = "this will delete the professions and recipes saved for ",
     [". Escribe |cffffff00/oficio reset confirmar|r para hacerlo."] = ". Type |cffffff00/oficio reset confirmar|r to do it.",
     [" borradas."] = " deleted.",
@@ -33,13 +26,11 @@ Nexo.Dict({
     ["  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta"] = "  |cffffff00/oficio diag|r - show what was read from the open profession",
     ["Profesiones de la cuenta · WoW Forever"] = "Professions of the account · WoW Forever",
     ["Buscar receta o material..."] = "Search recipe or material...",
-    ["nivel "] = "level ",
     ["Sin profesiones registradas.|r"] = "No professions recorded.|r",
     ["Quién lo fabrica"] = "Who crafts it",
     [" en la cuenta|r"] = " in the account|r",
     ["Con Alijo activado verás cuántos tienes.|r"] = "With Alijo enabled you will see how many you have.|r",
     ["En la lonja"] = "In Lonja",
-    [" de "] = " of ",
     [" con precio)|r"] = " with price)|r",
     ["Se vende por"] = "Sold for",
     ["Pérdida"] = "Loss",
@@ -51,7 +42,6 @@ Nexo.Dict({
     ["Aún no hay recetas. Abre la ventana de cada profesión una vez para registrarlas."] = "No recipes yet. Open each profession's window once to record them.",
     ["Ninguna receta coincide con la búsqueda."] = "No recipe matches the search.",
     ["Sin profesiones registradas"] = "No professions recorded",
-    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
     ["Profesión"] = "Profession",
     ["Quién"] = "Who",
 })
@@ -539,9 +529,9 @@ SlashCmdList.OFICIO = function(msg)
     local low = msg:lower()
     if low == "avisos" then
         db.settings.announce = (db.settings.announce == false)
-        print(P .. Tr("aviso de enfriamientos al entrar ") .. (db.settings.announce and "activado" or "desactivado") .. ".")
+        print(P .. Tr("aviso de enfriamientos al entrar ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "minimapa" then
-        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif low == "reset confirmar" then
         db.chars[charKey] = nil
         InitDB()
