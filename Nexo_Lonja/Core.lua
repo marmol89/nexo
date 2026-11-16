@@ -1,3 +1,152 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["no hay ningún precio guardado que contenga \""] = "there is no saved price containing \"",
+    ["Aún no hay precios. Abre la casa de subastas y pulsa \"Escanear subasta\"."] = "No prices yet. Open the auction house and press \"Scan auction\".",
+    ["\"Escanear subasta\" para empezar.|r"] = "\"Scan auction\" to start.|r",
+    ["objeto de tu lista está"] = "item on your list is",
+    ["objetos de tu lista están"] = "items on your list are",
+    ["Escaneando página "] = " Scanning page ",
+    ["Leyendo subastas: %d%%"] = "Reading auctions: %d%%",
+    ["Esperando la lista de subastas..."] = "Waiting for the auction list...",
+    ["escaneo completo: "] = "full scan: ",
+    [" con precio."] = " with price.",
+    ["escaneo interrumpido"] = "scan interrupted",
+    [": guardados "] = ": saved ",
+    [" de lo que dio tiempo a leer."] = " of what there was time to read.",
+    ["parado a mano"] = "stopped manually",
+    ["ERROR leyendo: "] = "ERROR reading: ",
+    ["error al leer"] = "read error",
+    ["el servidor no responde"] = "the server does not respond",
+    ["lista rápida: "] = "quick list: ",
+    [" subastas"] = " auctions",
+    ["réplica: "] = "replica: ",
+    ["ya hay un escaneo en marcha."] = "a scan is already running.",
+    ["abre la casa de subastas para escanear."] = "open the auction house to scan.",
+    ["escaneo automático"] = "automatic scan",
+    [" rápido en marcha. El juego puede quedarse parado unos segundos."] = " quick in progress. The game may freeze for a few seconds.",
+    ["el escaneo rápido solo se puede usar cada 15 minutos; escaneando página a página (tarda más). "] = "the quick scan can only be used every 15 minutes; scanning page by page (takes longer). ",
+    ["No cierres la subasta ni busques nada mientras tanto."] = "Do not close the auction or search for anything meanwhile.",
+    ["precios de "] = "prices of ",
+    ["; el juego no deja escanear otra vez hasta dentro de "] = "; the game does not let you scan again until within ",
+    [" en marcha. Puede tardar un rato en llegar la lista."] = " in progress. It may take a while for the list to arrive.",
+    ["este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando."] = "this client does not allow scanning the whole auction. Prices are recorded as you search.",
+    ["se cerró la subasta"] = "the auction was closed",
+    ["sí"] = "yes",
+    ["diagnóstico:"] = "diagnostics:",
+    ["  reino: "] = "  realm: ",
+    [" · objetos con precio: "] = " · items with price: ",
+    [" · último escaneo: "] = " · last scan: ",
+    ["  subasta abierta: "] = "  auction open: ",
+    [" · API clásica (QueryAuctionItems): "] = " · classic API (QueryAuctionItems): ",
+    [" · API moderna (C_AuctionHouse): "] = " · modern API (C_AuctionHouse): ",
+    ["  puede consultar: "] = "  can query: ",
+    [" · escaneo rápido disponible: "] = " · quick scan available: ",
+    ["  réplica (ReplicateItems): "] = "  replica (ReplicateItems): ",
+    [" · resultados de búsqueda (GetBrowseResults): "] = " · search results (GetBrowseResults): ",
+    ["no hay ningún escaneo en marcha."] = "no scan is running.",
+    ["escaneo automático al abrir la subasta "] = "automatic scan when opening the auction ",
+    ["precio en el tooltip de los objetos "] = "price in the item tooltip ",
+    [" borrados."] = " deleted.",
+    ["esto borrará todos los precios guardados de "] = "this will delete all the saved prices of ",
+    [". Escribe |cffffff00/lonja reset confirmar|r para hacerlo."] = ". Type |cffffff00/lonja reset confirmar|r to do it.",
+    ["  |cffffff00/lonja|r - abrir/cerrar la ventana"] = "  |cffffff00/lonja|r - open/close the window",
+    ["  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados"] = "  |cffffff00/lonja <texto>|r - open searching that text in the saved prices",
+    ["  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)"] = "  |cffffff00/lonja escanear|r - scan the auction house (it must be open)",
+    ["  |cffffff00/lonja parar|r - parar el escaneo en marcha"] = "  |cffffff00/lonja parar|r - stop the scan in progress",
+    ["  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta"] = "  |cffffff00/lonja auto|r - turn the automatic scan on opening the auction on/off",
+    ["  |cffffff00/lonja comprar|r - ver la lista de compra"] = "  |cffffff00/lonja comprar|r - see the shopping list",
+    ["  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra"] = "  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - add an item to the shopping list",
+    ["  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra"] = "  |cffffff00/lonja quitar <enlace>|r - remove it from the shopping list",
+    ["  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos"] = "  |cffffff00/lonja tooltip|r - turn the price in the item tooltip on/off",
+    ["  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/lonja minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/lonja reset|r - borrar los precios guardados de este reino"] = "  |cffffff00/lonja reset|r - delete the saved prices of this realm",
+    ["  |cffffff00/lonja diag|r - mostrar qué API de subasta tiene el cliente y los últimos escaneos"] = "  |cffffff00/lonja diag|r - show which auction API the client has and the last scans",
+    [" objeto de tu lista está"] = " item on your list is",
+    [" objetos de tu lista están"] = " items on your list are",
+    [" a tu precio o por debajo:"] = " at your price or below:",
+    ["  %s: %s (máximo %s) · quedan %d"] = "  %s: %s (max %s) · %d left",
+    ["  Pulsa el botón |cffffff00Lonja: comprar|r de encima de la subasta: cada compra pide un clic tuyo."] = "  Press the |cffffff00Lonja: buy|r button above the auction: each purchase needs one click from you.",
+    ["comprado %d × %s por %s."] = "bought %d × %s for %s.",
+    [": ya tienes todo lo que querías; sale de la lista de compra."] = ": you already have everything you wanted; it leaves the shopping list.",
+    ["no se pudo comprar "] = "could not buy ",
+    ["ya no hay nada a tu precio"] = "nothing is at your price anymore",
+    ["no te llega el dinero"] = "you don't have enough money",
+    [" ha cambiado de precio mientras tanto; vuelve a pulsar para buscarlo otra vez."] = " changed price in the meantime; press again to search for it again.",
+    ["Lista de compra: escaneando..."] = "Shopping list: scanning...",
+    ["Buscando "] = "Searching ",
+    ["Pidiendo precio de "] = "Requesting price of ",
+    ["Comprando "] = "Buying ",
+    ["Confirmar "] = "Confirm ",
+    ["Comprar "] = "Buy ",
+    ["Lista de compra: nada a tu precio"] = "Shopping list: nothing at your price",
+    ["Buscar "] = "Search ",
+    [" a tu precio)"] = " at your price)",
+    ["este cliente no deja comprar desde un addon."] = "this client does not allow buying from an addon.",
+    ["abre la casa de subastas para comprar."] = "open the auction house to buy.",
+    ["espera a que termine el escaneo."] = "wait for the scan to finish.",
+    ["la subasta pide esperar un momento; vuelve a pulsar."] = "the auction asks to wait a moment; press again.",
+    ["nada de tu lista de compra está a tu precio."] = "nothing on your shopping list is at your price.",
+    ["la lista de compra está vacía. Elige un objeto en la ventana de Lonja y ponle precio y cantidad,"] = "the shopping list is empty. Choose an item in the Lonja window and set a price and quantity,",
+    ["  o escribe |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r."] = "  or type |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r.",
+    ["lista de compra:"] = "shopping list:",
+    ["  %s: %d a %s como mucho · %s"] = "  %s: %d at %s at most · %s",
+    ["ahora a "] = "now at ",
+    [" |cff66ff66(a tu precio)|r"] = " |cff66ff66(at your price)|r",
+    ["sin precio visto"] = "no price seen",
+    ["uso: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r"] = "usage: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r",
+    ["  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo: /lonja comprar [Paño de lino] 0.02 40"] = "  The price is in gold (|cffffff001.5|r) or in coins (|cffffff001g 50s|r). Example: /lonja comprar [Paño de lino] 0.02 40",
+    ["%s: comprar %d a %s como mucho."] = "%s: buy %d at %s at most.",
+    ["ese objeto no está en la lista de compra."] = "that item is not on the shopping list.",
+    [" quitado de la lista de compra."] = " removed from the shopping list.",
+    ["Precios de la casa de subastas · WoW Forever"] = "Auction house prices · WoW Forever",
+    ["Escanear subasta"] = "Scan auction",
+    ["Escanear la casa de subastas"] = "Scan the auction house",
+    ["Guarda el precio de compra más bajo de cada objeto."] = "Saves the lowest buyout price of each item.",
+    ["Tiene que estar abierta la ventana de la subasta."] = "The auction window must be open.",
+    ["Lista de compra: precio máximo por unidad y cantidad"] = "Shopping list: max price per unit and quantity",
+    ["Oro: 1.5"] = "Gold: 1.5",
+    ["Lonja:|r pon el precio máximo por unidad (en oro: 1.5, o 1g 50s) y cuántas unidades quieres."] = "Lonja:|r set the max price per unit (in gold: 1.5, or 1g 50s) and how many units you want.",
+    ["Precios guardados"] = "Saved prices",
+    ["Objetos con precio"] = "Items with price",
+    ["Último escaneo completo"] = "Last full scan",
+    ["Escanear al abrir la subasta"] = "Scan when opening the auction",
+    ["sí|r"] = "yes|r",
+    ["Lista de compra"] = "Shopping list",
+    ["Objetos apuntados"] = "Items listed",
+    ["A tu precio ahora"] = "At your price now",
+    ["Abre la casa de subastas y pulsa|r"] = "Open the auction house and press|r",
+    ["Valor de lo guardado"] = "Value of what's saved",
+    ["Con Alijo activado verás lo que vale|r"] = "With Alijo enabled you will see what it is worth|r",
+    ["lo que tienes en bolsas y bancos.|r"] = "what you have in bags and banks.|r",
+    ["Toda la cuenta"] = "Whole account",
+    ["Nada de lo que tienes tiene precio.|r"] = "None of what you have has a price.|r",
+    ["Mínimo por unidad"] = "Minimum per unit",
+    ["sin ver|r"] = "not seen|r",
+    ["Unidades a la venta"] = "Units for sale",
+    ["Tienes en la cuenta"] = "You have in the account",
+    ["Valor de lo tuyo"] = "Value of yours",
+    ["Comprar hasta"] = "Buy up to",
+    ["Quedan por comprar"] = "Left to buy",
+    ["Ahora está a tu precio|r"] = "Now it is at your price|r",
+    ["Parar escaneo"] = "Stop scan",
+    ["Lonja: parar"] = "Lonja: stop",
+    ["Lonja: escanear"] = "Lonja: scan",
+    ["  ·  |cff66ff66subasta abierta|r: las búsquedas que hagas también se apuntan"] = "  ·  |cff66ff66auction open|r: the searches you make are also recorded",
+    ["  ·  último escaneo "] = "  ·  last scan ",
+    ["  ·  Mayús+clic: enlazar en el chat"] = "  ·  Shift+click: link in chat",
+    ["Lista de compra de Lonja"] = "Lonja shopping list",
+    ["Cada clic da un paso: buscar el objeto, comprarlo y,"] = "Each click takes a step: search the item, buy it and,",
+    ["si es un material, confirmar el precio final."] = "if it is a material, confirm the final price.",
+    ["El juego no deja comprar a un addon sin un clic tuyo."] = "The game does not let an addon buy without a click from you.",
+    ["Resaltado: el siguiente clic gasta dinero."] = "Highlighted: the next click spends money.",
+    ["Máximo"] = "Max",
+    ["Solo lo que tengo"] = "Only what I have",
+    ["Todos los objetos"] = "All items",
+    ["Lista de compra ("] = "Shopping list (",
+    ["La lista de compra está vacía. Elige un objeto y ponle precio máximo y cantidad."] = "The shopping list is empty. Choose an item and set a max price and quantity.",
+    ["Nada de lo que tienes guardado tiene precio en la lonja."] = "None of what you have saved has a price at the auction house.",
+    ["Último escaneo"] = "Last scan",
+})
 -- Lonja: precios de la casa de subastas
 --
 -- Datos guardados (LonjaDB):
@@ -31,7 +180,7 @@ local FULL_WAIT = 15 * 60 + 10  -- el juego solo da la lista completa cada 15 mi
 -- Money(cobre, tamaño, full): el del núcleo. full = todas las monedas; si no, versión compacta
 ns.Money = Nexo.Money
 
-function ns.Ago(t) return Nexo.Ago(t, "nunca") end
+function ns.Ago(t) return Nexo.Ago(t, Tr("nunca")) end
 
 ---------------------------------------------------------------------------
 -- Base de datos
@@ -135,12 +284,12 @@ function ns.ScanStatus()
     if not scan then return nil end
     if scan.mode == "pages" then
         local pages = scan.total and max(1, math.ceil(scan.total / PAGE))
-        return "Escaneando página " .. (scan.page + 1) .. (pages and (" de " .. pages) or "") .. "..."
+        return Tr("Escaneando página ") .. (scan.page + 1) .. (pages and (" de " .. pages) or "") .. "..."
     end
     if scan.reading and scan.total and scan.total > 0 then
-        return ("Leyendo subastas: %d%%"):format(floor((scan.read or 0) / scan.total * 100))
+        return (Tr("Leyendo subastas: %d%%")):format(floor((scan.read or 0) / scan.total * 100))
     end
-    return "Esperando la lista de subastas..."
+    return Tr("Esperando la lista de subastas...")
 end
 
 local function StopScan(full, why)
@@ -151,16 +300,16 @@ local function StopScan(full, why)
     local count = Apply(s.obs, full)
     if full then
         realm.lastScan, realm.lastCount = time(), count
-        print(P .. "escaneo completo: " .. Nexo.Plural(count, "objeto distinto", "objetos distintos") .. " con precio.")
+        print(P .. Tr("escaneo completo: ") .. Nexo.Plural(count, Tr("objeto distinto"), Tr("objetos distintos")) .. Tr(" con precio."))
     else
-        print(P .. "escaneo interrumpido" .. (why and (" (" .. why .. ")") or "") .. ": guardados " ..
-            Nexo.Plural(count, "objeto", "objetos") .. " de lo que dio tiempo a leer.")
+        print(P .. Tr("escaneo interrumpido") .. (why and (" (" .. why .. ")") or "") .. Tr(": guardados ") ..
+            Nexo.Plural(count, "objeto", "objetos") .. Tr(" de lo que dio tiempo a leer."))
     end
     Trace(("fin modo=%s completo=%s objetos=%d %s"):format(s.mode, tostring(full), count, why or ""))
     if full and ns.OnScanDone then ns.OnScanDone() end
     Changed()
 end
-function ns.StopScan() StopScan(false, "parado a mano") end
+function ns.StopScan() StopScan(false, Tr("parado a mano")) end
 
 -- Lee de first a last repartido en varios fotogramas, para no congelar el juego
 local function ReadChunks(getter, first, last)
@@ -174,8 +323,8 @@ local function ReadChunks(getter, first, last)
             for k = i, stop do ReadOne(getter, k, s.obs) end
         end)
         if not ok then
-            Trace("ERROR leyendo: " .. tostring(err))
-            return StopScan(false, "error al leer")
+            Trace(Tr("ERROR leyendo: ") .. tostring(err))
+            return StopScan(false, Tr("error al leer"))
         end
         s.read = stop - first + 1
         i = stop + 1
@@ -192,7 +341,7 @@ local function PagesTick()
     if s.waiting then
         if GetTime() - s.sent > 15 then
             s.retries = (s.retries or 0) + 1
-            if s.retries > 3 then return StopScan(false, "el servidor no responde") end
+            if s.retries > 3 then return StopScan(false, Tr("el servidor no responde")) end
             s.waiting = false
         end
         return
@@ -207,7 +356,7 @@ local function OnLegacyList()
     batch, total = batch or 0, total or 0
     if scan and scan.mode == "getall" then
         if scan.reading then return end
-        Trace("lista rápida: " .. batch .. " subastas")
+        Trace(Tr("lista rápida: ") .. batch .. Tr(" subastas"))
         if batch == 0 then return StopScan(true) end
         return ReadChunks(LegacyGetter, 1, batch)
     elseif scan and scan.mode == "pages" then
@@ -232,7 +381,7 @@ end
 local function OnReplicateList()
     if not scan or scan.mode ~= "replicate" or scan.reading then return end
     local n = C_AuctionHouse.GetNumReplicateItems() or 0
-    Trace("réplica: " .. n .. " subastas")
+    Trace(Tr("réplica: ") .. n .. Tr(" subastas"))
     if n == 0 then return StopScan(true) end
     ReadChunks(ReplicateGetter, 0, n - 1)
 end
@@ -244,43 +393,43 @@ function ns.AutoScan() return db and db.settings.auto ~= false end
 function ns.StartScan(auto)
     local function say(text) if not auto then print(P .. text) end end
     if scan then
-        say("ya hay un escaneo en marcha.")
+        say(Tr("ya hay un escaneo en marcha."))
         return false
     end
     if not ahOpen then
-        say("abre la casa de subastas para escanear.")
+        say(Tr("abre la casa de subastas para escanear."))
         return false
     end
-    local head = auto and "escaneo automático" or "escaneo"
+    local head = auto and Tr("escaneo automático") or Tr("escaneo")
     if QueryAuctionItems and GetNumAuctionItems and GetAuctionItemInfo then
         local canAll = false
         if CanSendAuctionQuery then canAll = select(2, CanSendAuctionQuery()) end
         if canAll then
             scan = { mode = "getall", obs = {} }
-            print(P .. head .. " rápido en marcha. El juego puede quedarse parado unos segundos.")
+            print(P .. head .. Tr(" rápido en marcha. El juego puede quedarse parado unos segundos."))
             QueryAuctionItems("", nil, nil, 0, nil, nil, true, false, nil)
         elseif auto then
             return false
         else
             scan = { mode = "pages", obs = {}, page = 0 }
-            print(P .. "el escaneo rápido solo se puede usar cada 15 minutos; escaneando página a página (tarda más). " ..
-                "No cierres la subasta ni busques nada mientras tanto.")
+            print(P .. Tr("el escaneo rápido solo se puede usar cada 15 minutos; escaneando página a página (tarda más). ") ..
+                Tr("No cierres la subasta ni busques nada mientras tanto."))
             driver:SetScript("OnUpdate", PagesTick)
         end
     elseif C_AuctionHouse and C_AuctionHouse.ReplicateItems then
         -- Dentro de los 15 minutos el juego no contesta: el automático espera a la próxima vez
         local last = max(db.replicateAt or 0, realm.lastScan or 0)
         if auto and time() - last < FULL_WAIT then
-            print(P .. "precios de " .. ns.Ago(last) .. "; el juego no deja escanear otra vez hasta dentro de " ..
+            print(P .. Tr("precios de ") .. ns.Ago(last) .. Tr("; el juego no deja escanear otra vez hasta dentro de ") ..
                 Nexo.Dur(max(60, FULL_WAIT - (time() - last))) .. ".")
             return false
         end
         scan = { mode = "replicate", obs = {} }
         db.replicateAt = time()
-        print(P .. head .. " en marcha. Puede tardar un rato en llegar la lista.")
+        print(P .. head .. Tr(" en marcha. Puede tardar un rato en llegar la lista."))
         C_AuctionHouse.ReplicateItems()
     else
-        say("este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando.")
+        say(Tr("este cliente no permite escanear la subasta entera. Los precios se apuntan según vayas buscando."))
         return false
     end
     Trace("inicio modo=" .. scan.mode)
@@ -361,7 +510,7 @@ function ns.ItemInfo(id)
         name, quality, icon = name or n, quality or q, icon or tex
         if it and n then it.name, it.q, it.i = name, quality, icon end
     end
-    return name or ("Objeto " .. id), quality or 1, icon or "Interface\\Icons\\INV_Misc_QuestionMark"
+    return name or (Tr("Objeto ") .. id), quality or 1, icon or "Interface\\Icons\\INV_Misc_QuestionMark"
 end
 
 -- Unidades de un objeto en bolsas y bancos de la cuenta según Alijo (nil si Alijo no está)
@@ -429,7 +578,7 @@ function ns.AccountValue()
     end
     local w = AlijoDB.warband and sum(AlijoDB.warband.items) or 0
     if w > 0 then
-        list[#list + 1] = { key = "@banda", name = "Banco de la banda", value = w }
+        list[#list + 1] = { key = "@banda", name = Tr("Banco de la banda"), value = w }
         total = total + w
     end
     table.sort(list, function(a, b) return a.value > b.value end)
@@ -473,7 +622,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
         Changed()
     elseif event == "AUCTION_HOUSE_CLOSED" then
         ahOpen = false
-        if scan then StopScan(false, "se cerró la subasta") end
+        if scan then StopScan(false, Tr("se cerró la subasta")) end
         Changed()
     elseif event == "AUCTION_ITEM_LIST_UPDATE" then
         if GetNumAuctionItems then Queue("legacy", OnLegacyList) end
@@ -509,25 +658,25 @@ local function PrintSearch(text)
         end
     end
     if n == 0 then
-        print(P .. "no hay ningún precio guardado que contenga \"" .. text .. "\".")
+        print(P .. Tr("no hay ningún precio guardado que contenga \"") .. text .. "\".")
     elseif n > 15 then
-        print("  ... y " .. (n - 15) .. " más.")
+        print(Tr("  ... y ") .. (n - 15) .. Tr(" más."))
     end
 end
 
 local function PrintDiag()
-    local function has(v) return v and "sí" or "no" end
-    print(P .. "diagnóstico:")
-    print("  reino: " .. realmKey .. " · objetos con precio: " .. ns.Count() .. " · último escaneo: " .. ns.Ago(realm.lastScan))
-    print("  subasta abierta: " .. has(ahOpen) .. " · API clásica (QueryAuctionItems): " .. has(QueryAuctionItems) ..
-        " · API moderna (C_AuctionHouse): " .. has(C_AuctionHouse))
+    local function has(v) return v and Tr("sí") or Tr("no") end
+    print(P .. Tr("diagnóstico:"))
+    print(Tr("  reino: ") .. realmKey .. Tr(" · objetos con precio: ") .. ns.Count() .. Tr(" · último escaneo: ") .. ns.Ago(realm.lastScan))
+    print(Tr("  subasta abierta: ") .. has(ahOpen) .. Tr(" · API clásica (QueryAuctionItems): ") .. has(QueryAuctionItems) ..
+        Tr(" · API moderna (C_AuctionHouse): ") .. has(C_AuctionHouse))
     if CanSendAuctionQuery then
         local can, canAll = CanSendAuctionQuery()
-        print("  puede consultar: " .. has(can) .. " · escaneo rápido disponible: " .. has(canAll))
+        print(Tr("  puede consultar: ") .. has(can) .. Tr(" · escaneo rápido disponible: ") .. has(canAll))
     end
     if C_AuctionHouse then
-        print("  réplica (ReplicateItems): " .. has(C_AuctionHouse.ReplicateItems) ..
-            " · resultados de búsqueda (GetBrowseResults): " .. has(C_AuctionHouse.GetBrowseResults))
+        print(Tr("  réplica (ReplicateItems): ") .. has(C_AuctionHouse.ReplicateItems) ..
+            Tr(" · resultados de búsqueda (GetBrowseResults): ") .. has(C_AuctionHouse.GetBrowseResults))
     end
     for _, line in ipairs(db.debug or {}) do print("  " .. line) end
 end
@@ -539,10 +688,10 @@ SlashCmdList.LONJA = function(msg)
     if low == "escanear" then
         ns.StartScan()
     elseif low == "parar" then
-        if scan then ns.StopScan() else print(P .. "no hay ningún escaneo en marcha.") end
+        if scan then ns.StopScan() else print(P .. Tr("no hay ningún escaneo en marcha.")) end
     elseif low == "auto" then
         db.settings.auto = not ns.AutoScan()
-        print(P .. "escaneo automático al abrir la subasta " .. (db.settings.auto and "activado" or "desactivado") .. ".")
+        print(P .. Tr("escaneo automático al abrir la subasta ") .. (db.settings.auto and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "comprar" or low == "lista" then
         ns.PrintBuyList()
     elseif low:find("^comprar%s") then
@@ -551,34 +700,34 @@ SlashCmdList.LONJA = function(msg)
         ns.BuyRemoveCommand(msg:sub(8):gsub("^%s+", ""))
     elseif low == "tooltip" then
         db.settings.tooltip = not ns.TooltipEnabled()
-        print(P .. "precio en el tooltip de los objetos " .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
+        print(P .. Tr("precio en el tooltip de los objetos ") .. (db.settings.tooltip and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif low == "reset confirmar" then
         local buy = realm.buy       -- la lista de compra no son precios: se conserva
         db.realms[realmKey] = nil
         InitDB()
         realm.buy = buy
         Changed()
-        print(P .. "precios de " .. realmKey .. " borrados.")
+        print(P .. Tr("precios de ") .. realmKey .. Tr(" borrados."))
     elseif low == "reset" then
-        print(P .. "esto borrará todos los precios guardados de " .. realmKey .. ". Escribe |cffffff00/lonja reset confirmar|r para hacerlo.")
+        print(P .. Tr("esto borrará todos los precios guardados de ") .. realmKey .. Tr(". Escribe |cffffff00/lonja reset confirmar|r para hacerlo."))
     elseif low == "diag" then
         PrintDiag()
     elseif low == "ayuda" or low == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/lonja|r - abrir/cerrar la ventana")
-        print("  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados")
-        print("  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)")
-        print("  |cffffff00/lonja parar|r - parar el escaneo en marcha")
-        print("  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta")
-        print("  |cffffff00/lonja comprar|r - ver la lista de compra")
-        print("  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra")
-        print("  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra")
-        print("  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos")
-        print("  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/lonja reset|r - borrar los precios guardados de este reino")
-        print("  |cffffff00/lonja diag|r - mostrar qué API de subasta tiene el cliente y los últimos escaneos")
+        print(Tr("  |cffffff00/lonja|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados"))
+        print(Tr("  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)"))
+        print(Tr("  |cffffff00/lonja parar|r - parar el escaneo en marcha"))
+        print(Tr("  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta"))
+        print(Tr("  |cffffff00/lonja comprar|r - ver la lista de compra"))
+        print(Tr("  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra"))
+        print(Tr("  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra"))
+        print(Tr("  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos"))
+        print(Tr("  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/lonja reset|r - borrar los precios guardados de este reino"))
+        print(Tr("  |cffffff00/lonja diag|r - mostrar qué API de subasta tiene el cliente y los últimos escaneos"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) else PrintSearch(msg) end
     else

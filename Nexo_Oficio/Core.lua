@@ -1,3 +1,50 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["nadie sabe fabricar nada que contenga \""] = "nobody knows how to craft anything containing \"",
+    ["sin API C_TradeSkillUI"] = "no C_TradeSkillUI API",
+    ["omitido: enlazada"] = "skipped: linked",
+    ["omitido: hermandad"] = "skipped: guild",
+    ["omitido: PNJ"] = "skipped: NPC",
+    ["guardadas "] = "saved ",
+    [" recetas de "] = " recipes of ",
+    ["enfriamientos listos: "] = "cooldowns ready: ",
+    ["evento "] = "event ",
+    ["todavía no hay profesiones registradas en este personaje."] = "no professions recorded for this character yet.",
+    ["profesiones de "] = "professions of ",
+    ["aviso de enfriamientos al entrar "] = "cooldown alert on entering ",
+    ["registro de "] = "log of ",
+    ["esto borrará las profesiones y recetas guardadas de "] = "this will delete the professions and recipes saved for ",
+    [". Escribe |cffffff00/oficio reset confirmar|r para hacerlo."] = ". Type |cffffff00/oficio reset confirmar|r to do it.",
+    [" borradas."] = " deleted.",
+    ["últimos escaneos (con la ventana de la profesión abierta):"] = "last scans (with the profession window open):",
+    ["  |cffffff00/oficio|r - abrir/cerrar la ventana"] = "  |cffffff00/oficio|r - open/close the window",
+    ["  |cffffff00/oficio <texto>|r - quién sabe fabricar algo con ese nombre"] = "  |cffffff00/oficio <texto>|r - who can craft something with that name",
+    ["  |cffffff00/oficio avisos|r - activar/desactivar el aviso de enfriamientos al entrar"] = "  |cffffff00/oficio avisos|r - turn the cooldown alert on entering on/off",
+    ["  |cffffff00/oficio minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/oficio minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/oficio olvidar <personaje>|r - borrar lo guardado de otro personaje"] = "  |cffffff00/oficio olvidar <personaje>|r - delete the saved data of another character",
+    ["  |cffffff00/oficio reset|r - borrar lo guardado de este personaje"] = "  |cffffff00/oficio reset|r - delete the saved data of this character",
+    ["  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta"] = "  |cffffff00/oficio diag|r - show what was read from the open profession",
+    ["Profesiones de la cuenta · WoW Forever"] = "Professions of the account · WoW Forever",
+    ["Buscar receta o material..."] = "Search recipe or material...",
+    ["Sin profesiones registradas.|r"] = "No professions recorded.|r",
+    ["Quién lo fabrica"] = "Who crafts it",
+    [" en la cuenta|r"] = " in the account|r",
+    ["Con Alijo activado verás cuántos tienes.|r"] = "With Alijo enabled you will see how many you have.|r",
+    ["En la lonja"] = "In Lonja",
+    [" con precio)|r"] = " with price)|r",
+    ["Se vende por"] = "Sold for",
+    ["Pérdida"] = "Loss",
+    ["Profesiones de la cuenta"] = "Professions of the account",
+    ["recetas sin registrar: "] = "recipes not recorded: ",
+    [" (abre su ventana)|r"] = " (open its window)|r",
+    ["  ·  Mayús+clic en la lista: enlazar en el chat"] = "  ·  Shift+click in the list: link in chat",
+    ["Todas las profesiones"] = "All professions",
+    ["Aún no hay recetas. Abre la ventana de cada profesión una vez para registrarlas."] = "No recipes yet. Open each profession's window once to record them.",
+    ["Ninguna receta coincide con la búsqueda."] = "No recipe matches the search.",
+    ["Sin profesiones registradas"] = "No professions recorded",
+    ["Profesión"] = "Profession",
+    ["Quién"] = "Who",
+})
 -- Oficio: profesiones de toda la cuenta (niveles, recetas y enfriamientos)
 --
 -- Datos guardados (OficioDB):
@@ -203,11 +250,11 @@ end
 
 local function ScanModernUnsafe()
     local T = C_TradeSkillUI
-    if not char or not T or not T.GetAllRecipeIDs or not T.GetRecipeInfo then return Trace("sin API C_TradeSkillUI") end
+    if not char or not T or not T.GetAllRecipeIDs or not T.GetRecipeInfo then return Trace(Tr("sin API C_TradeSkillUI")) end
     -- Solo tus propias profesiones: ni las enlazadas por otro jugador, ni las de hermandad, ni las de un PNJ
-    if T.IsTradeSkillLinked and T.IsTradeSkillLinked() then return Trace("omitido: enlazada") end
-    if T.IsTradeSkillGuild and T.IsTradeSkillGuild() then return Trace("omitido: hermandad") end
-    if T.IsNPCCrafting and T.IsNPCCrafting() then return Trace("omitido: PNJ") end
+    if T.IsTradeSkillLinked and T.IsTradeSkillLinked() then return Trace(Tr("omitido: enlazada")) end
+    if T.IsTradeSkillGuild and T.IsTradeSkillGuild() then return Trace(Tr("omitido: hermandad")) end
+    if T.IsNPCCrafting and T.IsNPCCrafting() then return Trace(Tr("omitido: PNJ")) end
 
     local base = T.GetBaseProfessionInfo and T.GetBaseProfessionInfo() or {}
     local child = T.GetChildProfessionInfo and T.GetChildProfessionInfo() or {}
@@ -255,7 +302,7 @@ local function ScanModernUnsafe()
                 sch and sch.outputItemID, info.icon or (sch and sch.icon), reags, cd)
         end
     end
-    Trace("guardadas " .. learned .. " recetas de " .. prof)
+    Trace(Tr("guardadas ") .. learned .. Tr(" recetas de ") .. prof)
     Changed()
     return learned > 0
 end
@@ -379,7 +426,7 @@ function ns.ReagName(rg)
     if not rg.name and rg.id and GetItemInfo then
         rg.name = GetItemInfo(rg.id)      -- nil hasta que el cliente tenga el objeto en caché
     end
-    return rg.name or ("Objeto " .. (rg.id or "?"))
+    return rg.name or (Tr("Objeto ") .. (rg.id or "?"))
 end
 
 -- Cuántas unidades de un objeto hay en la cuenta según Alijo (nil si Alijo no está)
@@ -400,7 +447,7 @@ local function AnnounceCooldowns()
             ready[#ready + 1] = "|c" .. Nexo.ClassHex(cd.class) .. cd.name .. "|r (" .. cd.recipe .. ")"
         end
     end
-    if #ready > 0 then print(P .. "enfriamientos listos: " .. table.concat(ready, ", ") .. ".") end
+    if #ready > 0 then print(P .. Tr("enfriamientos listos: ") .. table.concat(ready, ", ") .. ".") end
 end
 
 ---------------------------------------------------------------------------
@@ -422,7 +469,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
         char.level = ...
     elseif event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_UPDATE" or event == "TRADE_SKILL_LIST_UPDATE"
         or event == "TRADE_SKILL_DATA_SOURCE_CHANGED" or event == "NEW_RECIPE_LEARNED" then
-        Trace("evento " .. event)
+        Trace(Tr("evento ") .. event)
         Queue("trade", ScanTrade)
         if event == "TRADE_SKILL_SHOW" then C_Timer.After(2, ScanTrade) end   -- por si la lista tarda en llegar
     elseif event == "CRAFT_SHOW" or event == "CRAFT_UPDATE" then
@@ -444,10 +491,10 @@ Nexo.Reg(ev, "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_LEVEL_UP",
 local function PrintSummary()
     local profs = ns.Profs()
     if #profs == 0 then
-        print(P .. "todavía no hay profesiones registradas en este personaje.")
+        print(P .. Tr("todavía no hay profesiones registradas en este personaje."))
         return
     end
-    print(P .. "profesiones de " .. (char.name or charKey) .. ":")
+    print(P .. Tr("profesiones de ") .. (char.name or charKey) .. ":")
     for _, p in ipairs(profs) do
         print(("  %s  |cffffffff%d/%d|r  ·  %s"):format(p.name, p.rank, p.max, Nexo.Plural(p.recipes, "receta", "recetas")))
     end
@@ -470,9 +517,9 @@ local function PrintSearch(text)
         end
     end
     if n == 0 then
-        print(P .. "nadie sabe fabricar nada que contenga \"" .. text .. "\".")
+        print(P .. Tr("nadie sabe fabricar nada que contenga \"") .. text .. "\".")
     elseif n > 15 then
-        print("  ... y " .. (n - 15) .. " más.")
+        print(Tr("  ... y ") .. (n - 15) .. Tr(" más."))
     end
 end
 
@@ -482,39 +529,39 @@ SlashCmdList.OFICIO = function(msg)
     local low = msg:lower()
     if low == "avisos" then
         db.settings.announce = (db.settings.announce == false)
-        print(P .. "aviso de enfriamientos al entrar " .. (db.settings.announce and "activado" or "desactivado") .. ".")
+        print(P .. Tr("aviso de enfriamientos al entrar ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
     elseif low == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif low == "reset confirmar" then
         db.chars[charKey] = nil
         InitDB()
         ScanSkills()
-        print(P .. "registro de " .. charKey .. " borrado.")
+        print(P .. Tr("registro de ") .. charKey .. Tr(" borrado."))
     elseif low == "reset" then
-        print(P .. "esto borrará las profesiones y recetas guardadas de " .. charKey .. ". Escribe |cffffff00/oficio reset confirmar|r para hacerlo.")
+        print(P .. Tr("esto borrará las profesiones y recetas guardadas de ") .. charKey .. Tr(". Escribe |cffffff00/oficio reset confirmar|r para hacerlo."))
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
         local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
-            print(P .. "profesiones de " .. found .. " borradas.")
+            print(P .. Tr("profesiones de ") .. found .. Tr(" borradas."))
             Changed()
         else
-            print(P .. "no encuentro a otro personaje llamado \"" .. who .. "\".")
+            print(P .. Tr("no encuentro a otro personaje llamado \"") .. who .. "\".")
         end
     elseif low == "diag" then
         ScanTrade()
-        print(P .. "últimos escaneos (con la ventana de la profesión abierta):")
+        print(P .. Tr("últimos escaneos (con la ventana de la profesión abierta):"))
         for _, line in ipairs(db.debug or {}) do print("  " .. line) end
     elseif low == "ayuda" or low == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/oficio|r - abrir/cerrar la ventana")
-        print("  |cffffff00/oficio <texto>|r - quién sabe fabricar algo con ese nombre")
-        print("  |cffffff00/oficio avisos|r - activar/desactivar el aviso de enfriamientos al entrar")
-        print("  |cffffff00/oficio minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/oficio olvidar <personaje>|r - borrar lo guardado de otro personaje")
-        print("  |cffffff00/oficio reset|r - borrar lo guardado de este personaje")
-        print("  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta")
+        print(Tr("  |cffffff00/oficio|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/oficio <texto>|r - quién sabe fabricar algo con ese nombre"))
+        print(Tr("  |cffffff00/oficio avisos|r - activar/desactivar el aviso de enfriamientos al entrar"))
+        print(Tr("  |cffffff00/oficio minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/oficio olvidar <personaje>|r - borrar lo guardado de otro personaje"))
+        print(Tr("  |cffffff00/oficio reset|r - borrar lo guardado de este personaje"))
+        print(Tr("  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) else PrintSearch(msg) end
     else

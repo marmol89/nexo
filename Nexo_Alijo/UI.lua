@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Alijo: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -42,9 +43,9 @@ local QualityRGB, Ago = N.QualityRGB, N.Ago
 -- "Bolsas 10 · Banco 2 · Equipado 1"
 local function LocText(o)
     local parts = {}
-    if o.bags > 0 then parts[#parts + 1] = "Bolsas " .. o.bags end
-    if o.bank > 0 then parts[#parts + 1] = (o.key == ns.WARBAND_KEY and "Banda " or "Banco ") .. o.bank end
-    if o.equip > 0 then parts[#parts + 1] = "Equipado " .. o.equip end
+    if o.bags > 0 then parts[#parts + 1] = Tr("Bolsas ") .. o.bags end
+    if o.bank > 0 then parts[#parts + 1] = (o.key == ns.WARBAND_KEY and Tr("Banda ") or Tr("Banco ")) .. o.bank end
+    if o.equip > 0 then parts[#parts + 1] = Tr("Equipado ") .. o.equip end
     return table.concat(parts, " · ")
 end
 
@@ -53,7 +54,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "AlijoMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Box_01",
-    title = "Alijo", subtitle = "Inventario de la cuenta · WoW Forever",
+    title = "Alijo", subtitle = Tr("Inventario de la cuenta · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -66,7 +67,7 @@ local charBtn = K.CharPicker(main, close, state, ns.CharList, function() ResetSc
 -- Barra de búsqueda y pestañas de sitio
 ---------------------------------------------------------------------------
 local search = K.Search(main, {
-    name = "AlijoSearchBox", x = PAD, y = -62, hint = "Buscar objeto...",
+    name = "AlijoSearchBox", x = PAD, y = -62, hint = Tr("Buscar objeto..."),
     bg = { 0.07, 0.09, 0.08 }, border = { 0.20, 0.30, 0.25 }, hintColor = { 0.45, 0.5, 0.47 },
     onChange = function(text)
         state.text = text
@@ -75,7 +76,7 @@ local search = K.Search(main, {
     end,
 })
 
-local LOCS = { { "all", "Todo" }, { "bags", "Bolsas" }, { "bank", "Banco" }, { "equip", "Equipado" } }
+local LOCS = { { "all", Tr("Todo") }, { "bags", Tr("Bolsas") }, { "bank", Tr("Banco") }, { "equip", Tr("Equipado") } }
 if ns.hasWarband then LOCS[#LOCS + 1] = { "warband", "Banda" } end
 local locBtns = K.Tabs(main, LOCS, 72, function(loc)
     state.loc = loc
@@ -150,7 +151,7 @@ sorter:Add("name", "Objeto", 36, 200, "LEFT")
 sorter:Add("count", "Cantidad", 232, 74, "RIGHT")
 local whereHeader = Text(listPanel, 11, "GameFontNormal")
 whereHeader:SetPoint("TOPLEFT", 310, -7)
-whereHeader:SetText("Dónde")
+whereHeader:SetText(Tr("Dónde"))
 whereHeader:SetTextColor(ACC[1], ACC[2], ACC[3])
 
 
@@ -161,7 +162,7 @@ local detail = Panel(main)
 detail:SetPoint("TOPLEFT", listPanel, "TOPRIGHT", 10, 0)
 detail:SetPoint("TOPRIGHT", main, "TOPRIGHT", -PAD, TOP_Y)
 detail:SetHeight(contentH)
-SectionTitle(detail, "Quién lo tiene")
+SectionTitle(detail, Tr("Quién lo tiene"))
 
 local dIcon, dName = K.DetailHead(detail)
 local dTotal = Text(detail, 11)
@@ -199,12 +200,12 @@ local dEmpty = Text(detail, 12)
 dEmpty:SetPoint("CENTER", 0, 0)
 dEmpty:SetWidth(210)
 dEmpty:SetTextColor(0.5, 0.5, 0.5)
-dEmpty:SetText("Elige un objeto de la lista para ver quién lo tiene y dónde.")
+dEmpty:SetText(Tr("Elige un objeto de la lista para ver quién lo tiene y dónde."))
 
 local dHint = Text(detail, 10)
 dHint:SetPoint("BOTTOMLEFT", 10, 8)
 dHint:SetTextColor(0.45, 0.45, 0.45)
-dHint:SetText("Mayús+clic en la lista: enlazar en el chat")
+dHint:SetText(Tr("Mayús+clic en la lista: enlazar en el chat"))
 
 function UpdateDetail()
     local owners, total
@@ -228,9 +229,9 @@ function UpdateDetail()
     local sellable = 0
     for _, o in ipairs(owners) do sellable = sellable + o.bags + o.bank end
     if price and sellable > 0 then
-        dTotal:SetText("Total en la cuenta: |cffffffff" .. total .. "|r  ·  vale " .. Lonja.Money(price * sellable, 11))
+        dTotal:SetText(Tr("Total en la cuenta: |cffffffff") .. total .. Tr("|r  ·  vale ") .. Lonja.Money(price * sellable, 11))
     else
-        dTotal:SetText("Total en la cuenta: |cffffffff" .. total .. "|r  ·  " .. Plural(#owners, "sitio", "sitios"))
+        dTotal:SetText(Tr("Total en la cuenta: |cffffffff") .. total .. "|r  ·  " .. Plural(#owners, Tr("sitio"), Tr("sitios")))
     end
     local barW = detail:GetWidth() - 20
     for i, r in ipairs(ownerRows) do
@@ -248,7 +249,7 @@ function UpdateDetail()
             r:Hide()
         end
     end
-    if #owners > OWNER_ROWS then dMore:SetText("y " .. (#owners - OWNER_ROWS) .. " más") end
+    if #owners > OWNER_ROWS then dMore:SetText(Tr("y ") .. (#owners - OWNER_ROWS) .. Tr(" más")) end
 end
 
 ---------------------------------------------------------------------------
@@ -261,11 +262,11 @@ local function UpdateFooter()
     local c = ns.db.chars[key]
     if not c then footer:SetText("") return end
     local parts = { "|c" .. ClassHex(c.class) .. (c.name or ShortName(key)) .. "|r" }
-    parts[#parts + 1] = "bolsas vistas " .. (Ago(c.tBags) or "nunca")
+    parts[#parts + 1] = Tr("bolsas vistas ") .. (Ago(c.tBags) or Tr("nunca"))
     if c.tBank then
-        parts[#parts + 1] = "banco visto " .. Ago(c.tBank)
+        parts[#parts + 1] = Tr("banco visto ") .. Ago(c.tBank)
     else
-        parts[#parts + 1] = "|cffffb347banco sin registrar: ábrelo con este personaje|r"
+        parts[#parts + 1] = Tr("|cffffb347banco sin registrar: ábrelo con este personaje|r")
     end
     footer:SetText(table.concat(parts, "  ·  "))
 end
@@ -307,14 +308,14 @@ function ns.Refresh()
     end
 
     if text ~= "" then
-        countText:SetText(#listData .. " de " .. Plural(#all, "objeto", "objetos"))
+        countText:SetText(#listData .. Tr(" de ") .. Plural(#all, Tr("objeto"), Tr("objetos")))
     else
-        countText:SetText(Plural(#all, "objeto distinto", "objetos distintos"))
+        countText:SetText(Plural(#all, Tr("objeto distinto"), Tr("objetos distintos")))
     end
     if #all == 0 then
-        listEmpty:SetText("Aquí no hay nada registrado todavía.")
+        listEmpty:SetText(Tr("Aquí no hay nada registrado todavía."))
     else
-        listEmpty:SetText("Ningún objeto coincide con la búsqueda.")
+        listEmpty:SetText(Tr("Ningún objeto coincide con la búsqueda."))
     end
 
     list:SetData(listData)
@@ -366,15 +367,15 @@ local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
     GameTooltip:AddLine("Alijo", ACC[1], ACC[2], ACC[3])
     local chars = ns.CharList()
-    GameTooltip:AddDoubleLine("Personajes registrados", #chars, 0.8, 0.8, 0.8, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Objetos distintos", #ns.Index(nil, "all"), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Personajes registrados"), #chars, 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Objetos distintos"), #ns.Index(nil, "all"), 0.8, 0.8, 0.8, 1, 1, 1)
     local c = ns.char
     if c then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddDoubleLine("Banco de " .. (c.name or "este personaje"), c.tBank and ("visto " .. Ago(c.tBank)) or "sin registrar", 0.8, 0.8, 0.8, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Banco de ") .. (c.name or Tr("este personaje")), c.tBank and (Tr("visto ") .. Ago(c.tBank)) or Tr("sin registrar"), 0.8, 0.8, 0.8, 1, 1, 1)
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 

@@ -1,3 +1,76 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["Activo"] = "Active",
+    ["Ausente"] = "Away",
+    [" sesión pasada estimada"] = " estimated past session",
+    [" sesiones pasadas estimadas"] = " estimated past sessions",
+    [" a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r"] = " from Tesorero. To remove them: |cffffff00/bita quitar estimadas|r",
+    [". Escribe |cffffff00/bita reset confirmar|r para hacerlo."] = ". Type |cffffff00/bita reset confirmar|r to do it.",
+    ["no encuentro datos de Tesorero (¿está instalado y activado?)."] = "I can't find Tesorero data (is it installed and enabled?).",
+    ["no hay nada nuevo que importar de Tesorero."] = "there is nothing new to import from Tesorero.",
+    [" sesión estimada añadida"] = " estimated session added",
+    [" sesiones estimadas añadidas"] = " estimated sessions added",
+    [" a partir de Tesorero."] = " from Tesorero.",
+    [" sesión estimada eliminada"] = " estimated session removed",
+    [" sesiones estimadas eliminadas"] = " estimated sessions removed",
+    [". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."] = " It will not be imported again until you type |cffffff00/bita importar|r.",
+    ["  |cffffff00/bita|r - abrir/cerrar la ventana"] = "  |cffffff00/bita|r - open/close the window",
+    ["  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/bita minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero"] = "  |cffffff00/bita importar|r - estimate the earlier history from Tesorero",
+    ["  |cffffff00/bita quitar estimadas|r - borrar lo estimado y dejar solo lo medido"] = "  |cffffff00/bita quitar estimadas|r - delete the estimated and keep only the measured",
+    ["  |cffffff00/bita reset|r - borrar el registro de este personaje"] = "  |cffffff00/bita reset|r - delete this character's log",
+    ["Bitácora"] = "Logbook",
+    ["Tiempo de juego · WoW Forever"] = "Playtime · WoW Forever",
+    ["Tiempo total"] = "Total time",
+    ["En el periodo"] = "In the period",
+    ["Sesión actual"] = "Current session",
+    ["Ausente (AFK)"] = "Away (AFK)",
+    ["Estimado (Tesorero)"] = "Estimated (Tesorero)",
+    ["Sin tiempo registrado en las últimas 2 semanas"] = "No time recorded in the last 2 weeks",
+    ["Por zona"] = "By zone",
+    ["Jugado en el periodo"] = "Played in the period",
+    ["Clic para ver solo este personaje"] = "Click to see only this character",
+    ["Tiempo en la zona"] = "Time in the zone",
+    ["Aún no hay tiempo registrado en este periodo"] = "No time recorded in this period yet",
+    ["nivel %d > %d"] = "level %d > %d",
+    ["Sesión en curso"] = "Session in progress",
+    ["Sesión estimada"] = "Estimated session",
+    ["Duración"] = "Duration",
+    ["Zona principal"] = "Main zone",
+    ["Calculada con los movimientos de oro de Tesorero."] = "Calculated from the gold movements of Tesorero.",
+    ["La duración real pudo ser mayor."] = "The real duration may have been longer.",
+    ["Sin sesiones en este periodo."] = "No sessions in this period.",
+    ["Sesión más larga"] = "Longest session",
+    ["Día más largo"] = "Longest day",
+    ["Racha actual"] = "Current streak",
+    ["Día favorito"] = "Favorite day",
+    ["|cff66c7ffSesión|r  ·  "] = "|cff66c7ffSession|r  ·  ",
+    ["desde las "] = "since ",
+    ["Desde las "] = "From ",
+    ["Hoy con este personaje: |cffffffff"] = "Today with this character: |cffffffff",
+    [" ausente|r"] = " away|r",
+    ["desde que instalaste Bitácora"] = "since you installed Bitacora",
+    [" en este nivel"] = " at this level",
+    ["Tiempo /played"] = "Time /played",
+    ["%d%% ausente (AFK)"] = "%d%% away (AFK)",
+    ["Sin tiempo ausente"] = "No time away",
+    ["día jugado"] = "day played",
+    ["días jugados"] = "days played",
+    ["Sin días jugados"] = "No days played",
+    ["dónde pasas el tiempo"] = "where you spend your time",
+    ["Otras zonas"] = "Other zones",
+    ["Por personaje"] = "By character",
+    ["clic = ver ese personaje"] = "click = see that character",
+    ["500+ sesiones"] = "500+ sessions",
+    ["sesión"] = "session",
+    ["día"] = "day",
+    ["días"] = "days",
+    ["récord: "] = "record: ",
+    ["Últimos 7 días"] = "Last 7 days",
+    ["Total del personaje"] = "Character total",
+    ["Hoy en toda la cuenta"] = "Today across the account",
+    ["Total de la cuenta"] = "Account total",
+})
 -- Bitácora: registro del tiempo de juego
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -404,7 +477,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
         if db.settings.import ~= false then
             local n = ns.ImportTesorero()
             if n and n > 0 then
-                print("|cff66c7ffBitácora:|r " .. n .. (n == 1 and " sesión pasada estimada" or " sesiones pasadas estimadas") .. " a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r")
+                print("|cff66c7ffBitácora:|r " .. n .. (n == 1 and Tr(" sesión pasada estimada") or Tr(" sesiones pasadas estimadas")) .. Tr(" a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r"))
             end
         end
         StartSession()
@@ -431,35 +504,35 @@ SlashCmdList.BITACORA = function(msg)
         session = nil
         StartSession()
         N.RequestPlayed()
-        print(P .. "registro de este personaje borrado.")
+        print(P .. Tr("registro de este personaje borrado."))
         if ns.Refresh then ns.Refresh() end
     elseif msg == "reset" then
-        print(P .. "esto borrará TODO el registro de " .. charKey .. ". Escribe |cffffff00/bita reset confirmar|r para hacerlo.")
+        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe |cffffff00/bita reset confirmar|r para hacerlo."))
     elseif msg == "importar" then
         db.settings.import = true
         local n = ns.ImportTesorero()
         if not n then
-            print(P .. "no encuentro datos de Tesorero (¿está instalado y activado?).")
+            print(P .. Tr("no encuentro datos de Tesorero (¿está instalado y activado?)."))
         elseif n == 0 then
-            print(P .. "no hay nada nuevo que importar de Tesorero.")
+            print(P .. Tr("no hay nada nuevo que importar de Tesorero."))
         else
-            print(P .. n .. (n == 1 and " sesión estimada añadida" or " sesiones estimadas añadidas") .. " a partir de Tesorero.")
+            print(P .. n .. (n == 1 and Tr(" sesión estimada añadida") or Tr(" sesiones estimadas añadidas")) .. Tr(" a partir de Tesorero."))
         end
         if ns.Refresh then ns.Refresh() end
     elseif msg == "quitar estimadas" then
         db.settings.import = false
         local n = ns.RemoveEstimated()
-        print(P .. n .. (n == 1 and " sesión estimada eliminada" or " sesiones estimadas eliminadas") .. ". No se volverá a importar hasta que escribas |cffffff00/bita importar|r.")
+        print(P .. n .. (n == 1 and Tr(" sesión estimada eliminada") or Tr(" sesiones estimadas eliminadas")) .. Tr(". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."))
         if ns.Refresh then ns.Refresh() end
     elseif msg == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/bita|r - abrir/cerrar la ventana")
-        print("  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero")
-        print("  |cffffff00/bita quitar estimadas|r - borrar lo estimado y dejar solo lo medido")
-        print("  |cffffff00/bita reset|r - borrar el registro de este personaje")
+        print(Tr("  |cffffff00/bita|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero"))
+        print(Tr("  |cffffff00/bita quitar estimadas|r - borrar lo estimado y dejar solo lo medido"))
+        print(Tr("  |cffffff00/bita reset|r - borrar el registro de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end
