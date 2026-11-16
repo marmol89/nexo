@@ -62,8 +62,7 @@ end
 -- Rastro de lo último que ha pasado, guardado en LonjaDB.debug para poder diagnosticar fallos
 local function Trace(msg)
     db.debug = db.debug or {}
-    table.insert(db.debug, 1, date("%H:%M:%S ") .. msg)
-    for i = #db.debug, 16, -1 do db.debug[i] = nil end
+    Nexo.Trace(db.debug, msg, 15)
 end
 
 ---------------------------------------------------------------------------

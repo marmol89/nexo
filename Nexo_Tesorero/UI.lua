@@ -38,34 +38,13 @@ local ClassHex, ShortName, DayLabel, DayKeyToTime = N.ClassHex, N.ShortName, N.D
 ---------------------------------------------------------------------------
 -- Ventana principal
 ---------------------------------------------------------------------------
-local main, close = K.Window({
+local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     name = "TesoreroMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_Coin_02",
     title = "Tesorero", subtitle = "Historial de oro · WoW Forever",
     settings = function() return ns.db and ns.db.settings end,
+    state = state, list = ns.CharList, all = true, pad = PAD,
+    onChange = function() ns.Refresh() end,
 })
-
--- Selector de personaje
-local charBtn = K.CharButton(main, close, {
-    list = function() return ns.CharList() end,
-    get = function() return state.filter end,
-    set = function(key)
-        state.filter = key
-        ns.Refresh()
-    end,
-    all = true,
-})
-
--- Pestañas de periodo
-local periodBtns = K.Tabs(main, ns.PERIODS, 80, function(period)
-    state.period = period
-    ns.db.settings.period = period
-    ns.Refresh()
-end)
-periodBtns[1]:SetPoint("TOPLEFT", PAD, -62)
-
-local periodHint = Text(main, 11)
-periodHint:SetPoint("LEFT", periodBtns[#periodBtns], "RIGHT", 12, 0)
-periodHint:SetTextColor(0.6, 0.6, 0.6)
 
 ---------------------------------------------------------------------------
 -- Tarjetas resumen
@@ -335,35 +314,20 @@ histEmpty:SetTextColor(0.5, 0.5, 0.5)
 histEmpty:SetText("Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí.")
 
 function UpdateHistory()
-    local offset = FauxScrollFrame_GetOffset(scroll)
-    FauxScrollFrame_Update(scroll, #histData, HIST_ROWS, ROW_H)
-    for i = 1, HIST_ROWS do
-        local r = histRows[i]
-        local e = histData[offset + i]
-        r.data = e
-        if e then
-            local cat = ns.CATS[e.cat] or ns.CATS.other
-            r.icon:SetTexture(cat.icon)
-            r.swatch:SetColorTexture(cat.color[1], cat.color[2], cat.color[3], 0.9)
-            local dl = DayLabel(e.t)
-            if dl == "Hoy" or dl == "Ayer" then
-                r.when:SetText(dl .. " " .. date("%H:%M", e.t))
-            else
-                r.when:SetText(date("%d/%m %H:%M", e.t))
-            end
-            local label = cat.name
-            if not state.filter then
-                label = label .. " |c" .. ClassHex(e.class) .. "· " .. e.char .. "|r"
-            elseif e.zone and e.zone ~= "" then
-                label = label .. " |cff777777· " .. e.zone .. "|r"
-            end
-            r.what:SetText(label)
-            r.amount:SetText(ns.Signed(e.d, 11, true))
-            r:Show()
-        else
-            r:Hide()
+    N.FillRows(scroll, histRows, ROW_H, histData, function(r, e)
+        local cat = ns.CATS[e.cat] or ns.CATS.other
+        r.icon:SetTexture(cat.icon)
+        r.swatch:SetColorTexture(cat.color[1], cat.color[2], cat.color[3], 0.9)
+        r.when:SetText(N.WhenLabel(e.t))
+        local label = cat.name
+        if not state.filter then
+            label = label .. " |c" .. ClassHex(e.class) .. "· " .. e.char .. "|r"
+        elseif e.zone and e.zone ~= "" then
+            label = label .. " |cff777777· " .. e.zone .. "|r"
         end
-    end
+        r.what:SetText(label)
+        r.amount:SetText(ns.Signed(e.d, 11, true))
+    end)
     histEmpty:SetShown(#histData == 0)
 end
 scroll:SetScript("OnVerticalScroll", function(self, offset)

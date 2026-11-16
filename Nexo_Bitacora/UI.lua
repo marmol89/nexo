@@ -44,34 +44,13 @@ local ClassHex, ClassRGB, ShortName, DayLabel, Plural = N.ClassHex, N.ClassRGB, 
 ---------------------------------------------------------------------------
 -- Ventana principal
 ---------------------------------------------------------------------------
-local main, close = K.Window({
+local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     name = "BitacoraMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
     title = "Bitácora", subtitle = "Tiempo de juego · WoW Forever",
     settings = function() return ns.db and ns.db.settings end,
+    state = state, list = ns.CharList, all = true, pad = PAD,
+    onChange = function() ns.Refresh() end,
 })
-
--- Selector de personaje
-local charBtn = K.CharButton(main, close, {
-    list = function() return ns.CharList() end,
-    get = function() return state.filter end,
-    set = function(key)
-        state.filter = key
-        ns.Refresh()
-    end,
-    all = true,
-})
-
--- Pestañas de periodo
-local periodBtns = K.Tabs(main, ns.PERIODS, 80, function(period)
-    state.period = period
-    ns.db.settings.period = period
-    ns.Refresh()
-end)
-periodBtns[1]:SetPoint("TOPLEFT", PAD, -62)
-
-local periodHint = Text(main, 11)
-periodHint:SetPoint("LEFT", periodBtns[#periodBtns], "RIGHT", 12, 0)
-periodHint:SetTextColor(0.6, 0.6, 0.6)
 
 ---------------------------------------------------------------------------
 -- Tarjetas resumen
@@ -289,41 +268,26 @@ sessEmpty:SetTextColor(0.5, 0.5, 0.5)
 sessEmpty:SetText("Sin sesiones en este periodo.")
 
 function UpdateSessions()
-    local offset = FauxScrollFrame_GetOffset(scroll)
-    FauxScrollFrame_Update(scroll, #sessData, SESS_ROWS, ROW_H)
-    for i = 1, SESS_ROWS do
-        local r = sessRows[i]
-        local e = sessData[offset + i]
-        r.data = e
-        if e then
-            local cr, cg, cb = ClassRGB(e.class)
-            if e.live then cr, cg, cb = GREEN[1], GREEN[2], GREEN[3] end
-            r.swatch:SetColorTexture(cr, cg, cb, 0.9)
-            local dl = DayLabel(e.s)
-            if dl == "Hoy" or dl == "Ayer" then
-                r.when:SetText(dl .. " " .. date("%H:%M", e.s))
-            else
-                r.when:SetText(date("%d/%m %H:%M", e.s))
-            end
-            local label = (e.z and e.z ~= "") and e.z or "Sesión"
-            if not state.filter then
-                label = "|c" .. ClassHex(e.class) .. e.char .. "|r |cff777777· " .. label .. "|r"
-            end
-            local lt = LevelText(e)
-            if lt then label = label .. " |cffffd100· " .. lt .. "|r" end
-            r.what:SetText(label)
-            if e.live then
-                r.amount:SetText("|cff4ade80" .. ns.Dur(e.d) .. "|r")
-            elseif e.est then
-                r.amount:SetText("|cff8c8c9e~" .. ns.Dur(e.d) .. "|r")
-            else
-                r.amount:SetText(ns.Dur(e.d))
-            end
-            r:Show()
-        else
-            r:Hide()
+    N.FillRows(scroll, sessRows, ROW_H, sessData, function(r, e)
+        local cr, cg, cb = ClassRGB(e.class)
+        if e.live then cr, cg, cb = GREEN[1], GREEN[2], GREEN[3] end
+        r.swatch:SetColorTexture(cr, cg, cb, 0.9)
+        r.when:SetText(N.WhenLabel(e.s))
+        local label = (e.z and e.z ~= "") and e.z or "Sesión"
+        if not state.filter then
+            label = "|c" .. ClassHex(e.class) .. e.char .. "|r |cff777777· " .. label .. "|r"
         end
-    end
+        local lt = LevelText(e)
+        if lt then label = label .. " |cffffd100· " .. lt .. "|r" end
+        r.what:SetText(label)
+        if e.live then
+            r.amount:SetText("|cff4ade80" .. ns.Dur(e.d) .. "|r")
+        elseif e.est then
+            r.amount:SetText("|cff8c8c9e~" .. ns.Dur(e.d) .. "|r")
+        else
+            r.amount:SetText(ns.Dur(e.d))
+        end
+    end)
     sessEmpty:SetShown(#sessData == 0)
 end
 scroll:SetScript("OnVerticalScroll", function(self, offset)
