@@ -1,3 +1,34 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["y "] = "and ",
+    ["Clic izquierdo: siguiente"] = "Left-click: next",
+    ["Clic derecho: anterior"] = "Right-click: previous",
+    ["|r  |cff888888nivel "] = "|r  |cff888888level ",
+    ["Todos los personajes|r"] = "All characters|r",
+    [" líneas más|r"] = " more lines|r",
+    ["No se han podido exportar los datos: "] = "Could not export the data: ",
+    ["Marca los addons que quieres llevarte y genera el texto."] = "Tick the addons you want to take and generate the text.",
+    ["Generar texto"] = "Generate text",
+    ["|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "] = "|cff66dd88Text ready|r: %s KB%s. It is selected: press |cffffff00Ctrl+C|r and paste it into a ",
+    ["archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."] = "text file. On the other computer, paste it into |cffffff00/nexo importar|r.",
+    ["\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"] = "\n|cffffcc55It is a lot of text to paste at once. If it fails, take Lonja out first.|r",
+    ["|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "] = "|cff66dd88Text read.|r Exported by %s on %s.\nThe data of the ticked addons is |cffffcc55replaced|r by the ",
+    ["del texto (no se mezclan) y la interfaz se recarga."] = "of the text (they are not merged) and the UI reloads.",
+})
+Nexo.Dict({
+    ["Pulsa otra vez para confirmar"] = "Press again to confirm",
+    ["Importar y recargar"] = "Import and reload",
+    ["Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal."] = "Click the box and paste the exported text with Ctrl+V. The box stays empty: that is normal.",
+})
+Nexo.Dict({
+    ["Exportar / importar"] = "Export / import",
+    ["Exportar e importar para cambiar de ordenador"] = "Export and import to change computer",
+    ["|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to choose · |cffffff00Drag|r to move",
+    ["Datos"] = "Data",
+    ["Exportar"] = "Export",
+    ["Importar"] = "Import",
+    [", comprimido"] = ", compressed",
+})
 -- Nexo: piezas de interfaz comunes y botón único del minimapa
 local ADDON = ...
 local N = Nexo
@@ -5,6 +36,12 @@ local N = Nexo
 local BD = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 }
 local TEMPLATE = BackdropTemplateMixin and "BackdropTemplate" or nil
 N.BD, N.TEMPLATE = BD, TEMPLATE
+
+-- Ajuste de Ajustes (/nexo ajustes): activado salvo que se haya desactivado (false)
+function N.Ajuste(clave)
+    local a = N.db and N.db.ajustes
+    return not (a and a[clave] == false)
+end
 
 ---------------------------------------------------------------------------
 -- Piezas sin tema
@@ -246,11 +283,11 @@ function N.Kit(t)
 
         -- Sonido al abrir y cerrar. El addon puede definir main:OnOpen() y main:OnClose().
         main:SetScript("OnShow", function(s)
-            PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839)
+            if N.Ajuste("sonidos") then PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839) end
             if s.OnOpen then s:OnOpen() end
         end)
         main:SetScript("OnHide", function(s)
-            PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840)
+            if N.Ajuste("sonidos") then PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840) end
             if s.OnClose then s:OnClose() end
         end)
 
@@ -339,8 +376,8 @@ function N.Kit(t)
         b:HookScript("OnEnter", function(s)
             GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
             GameTooltip:AddLine("Personaje")
-            GameTooltip:AddLine("Clic izquierdo: siguiente", 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("Clic derecho: anterior", 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("Clic izquierdo: siguiente"), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("Clic derecho: anterior"), 0.8, 0.8, 0.8)
             GameTooltip:Show()
         end)
         b:HookScript("OnLeave", function() GameTooltip:Hide() end)
@@ -350,9 +387,9 @@ function N.Kit(t)
         function b:SetChar(key, c, fallback)
             if key then
                 self.text:SetText("|c" .. N.ClassHex(c and c.class, fallback) .. N.ShortName(key)
-                    .. "|r  |cff888888nivel " .. ((c and c.level) or "?") .. "|r")
+                    .. Tr("|r  |cff888888nivel ") .. ((c and c.level) or "?") .. "|r")
             else
-                self.text:SetText(accHex .. "Todos los personajes|r")
+                self.text:SetText(accHex .. Tr("Todos los personajes|r"))
             end
         end
         return b
@@ -817,7 +854,7 @@ function N.Kit(t)
         function l:Render(lines, top)
             local fit = math.max(1, math.min(o.n, math.floor((o.height - top - 8) / o.lineH)))
             if #lines > fit then
-                lines[fit] = { l = (o.grey or "|cff888888") .. "y " .. (#lines - fit + 1) .. " líneas más|r" }
+                lines[fit] = { l = (o.grey or "|cff888888") .. Tr("y ") .. (#lines - fit + 1) ..Tr(" líneas más|r") }
                 for i = #lines, fit + 1, -1 do lines[i] = nil end
             end
             for i, r in ipairs(rows) do
@@ -913,6 +950,14 @@ function N.ToggleMinimap()
     return N.db.minimap.hide
 end
 
+-- Vuelve a poner el botón en su sitio inicial y lo muestra
+function N.ResetMinimap()
+    N.db.minimap.angle = 200
+    N.db.minimap.hide = false
+    PlaceMinimap()
+    UpdateMinimapButton()
+end
+
 -- Menú con los addons registrados
 local ROW_H, MENU_W = 24, 160
 local menu = CreateFrame("Frame", "NexoMenu", UIParent, TEMPLATE)
@@ -963,14 +1008,17 @@ local function MenuRow(i)
     return r
 end
 
--- Última fila del menú: la ventana de exportar e importar
-local DATA_ROW = { name = "Exportar / importar", icon = GEAR, color = { 0.85, 0.85, 0.90 },
+-- Últimas filas del menú: ajustes y la ventana de exportar e importar
+local DATA_ROW = { name = Tr("Exportar / importar"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
     toggle = function() N.ToggleData() end }
+local SETTINGS_ROW = { name = Tr("Ajustes"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
+    toggle = function() N.ToggleSettings() end }
+local EXTRA_ROWS = { SETTINGS_ROW, DATA_ROW }
 
 local function ShowMenu()
-    local n = #addons + 1
+    local n = #addons + #EXTRA_ROWS
     for i = 1, n do
-        local def = addons[i] or DATA_ROW
+        local def = addons[i] or EXTRA_ROWS[i - #addons]
         local r = MenuRow(i)
         r.def = def
         r.icon:SetTexture(def.icon)
@@ -1022,7 +1070,7 @@ mb:SetScript("OnClick", function()
 end)
 
 mb:SetScript("OnEnter", function(self)
-    if menu:IsShown() then return end
+    if menu:IsShown() or not N.Ajuste("tooltips") then return end
     if #addons == 1 and addons[1].tooltip then
         addons[1].tooltip(self, "ANCHOR_LEFT")
         return
@@ -1034,7 +1082,7 @@ mb:SetScript("OnEnter", function(self)
         GameTooltip:AddLine("|T" .. def.icon .. ":14:14:0:0:64:64:5:59:5:59|t " .. def.name, c[1], c[2], c[3])
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end)
 mb:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1049,18 +1097,21 @@ local DW, DH, DPAD = 560, 300, 14
 local BIG = 400 * 1024   -- a partir de aquí pegar el texto de una vez puede fallar
 local dataWin
 
+-- Colores de las ventanas de Datos y Ajustes
+local PALETTE = {
+    acc = { 0.85, 0.85, 0.90 },
+    panelBg = { 0.08, 0.08, 0.10, 0.92 }, panelBorder = { 0.22, 0.22, 0.27, 1 },
+    btnOn = { 0.24, 0.25, 0.32 }, btnOnText = { 1, 1, 1 },
+    btnOff = { 0.11, 0.11, 0.13 }, btnBorder = { 0.27, 0.27, 0.33 }, btnHover = { 0.60, 0.60, 0.70 },
+    winBg = { 0.05, 0.05, 0.06 }, winBorder = { 0.32, 0.32, 0.38 },
+    headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
+    closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
+}
+
 local function BuildData()
-    local K = N.Kit({
-        acc = { 0.85, 0.85, 0.90 },
-        panelBg = { 0.08, 0.08, 0.10, 0.92 }, panelBorder = { 0.22, 0.22, 0.27, 1 },
-        btnOn = { 0.24, 0.25, 0.32 }, btnOnText = { 1, 1, 1 },
-        btnOff = { 0.11, 0.11, 0.13 }, btnBorder = { 0.27, 0.27, 0.33 }, btnHover = { 0.60, 0.60, 0.70 },
-        winBg = { 0.05, 0.05, 0.06 }, winBorder = { 0.32, 0.32, 0.38 },
-        headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
-        closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
-    })
-    local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = "Datos",
-        subtitle = "Exportar e importar para cambiar de ordenador",
+    local K = N.Kit(PALETTE)
+    local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = Tr("Datos"),
+        subtitle = Tr("Exportar e importar para cambiar de ordenador"),
         settings = function() return N.db end })
     main:RestorePos()
 
@@ -1081,7 +1132,7 @@ local function BuildData()
         return false
     end
 
-    local tabs = K.Tabs(main, { { "export", "Exportar" }, { "import", "Importar" } }, 110,
+    local tabs = K.Tabs(main, { { "export", Tr("Exportar") }, { "import", Tr("Importar") } }, 110,
         function(key) main:SetMode(key) end)
     tabs[1]:SetPoint("TOPLEFT", DPAD, -62)
 
@@ -1142,7 +1193,7 @@ local function BuildData()
                 box:SetFocus()
                 box:HighlightText()
             else
-                exported, err = nil, "No se han podido exportar los datos: " .. tostring(text)
+                exported, err = nil, Tr("No se han podido exportar los datos: ") .. tostring(text)
             end
             Refresh()
         elseif not armed then
@@ -1215,22 +1266,22 @@ local function BuildData()
 
         local msg = err and ("|cffff6655" .. err .. "|r") or ""
         if mode == "export" then
-            hint:SetText("Marca los addons que quieres llevarte y genera el texto.")
-            action.text:SetText("Generar texto")
+            hint:SetText(Tr("Marca los addons que quieres llevarte y genera el texto."))
+            action.text:SetText(Tr("Generar texto"))
             if exported then
-                msg = ("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "
-                    .. "archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r.")
-                    :format(N.Num(#exported / 1024), zipped and ", comprimido" or "")
+                msg = (Tr("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un ")
+                    .. Tr("archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."))
+                    :format(N.Num(#exported / 1024), zipped and Tr(", comprimido") or "")
                 if #exported > BIG then
-                    msg = msg .. "\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"
+                    msg = msg .. Tr("\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r")
                 end
             end
         else
-            hint:SetText("Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal.")
-            action.text:SetText(armed and "Pulsa otra vez para confirmar" or "Importar y recargar")
+            hint:SetText(Tr("Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal."))
+            action.text:SetText(armed and Tr("Pulsa otra vez para confirmar") or Tr("Importar y recargar"))
             if pack then
-                msg = ("|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "
-                    .. "del texto (no se mezclan) y la interfaz se recarga.")
+                msg = (Tr("|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los ")
+                    .. Tr("del texto (no se mezclan) y la interfaz se recarga."))
                     :format(tostring(pack.from or "?"), type(pack.t) == "number" and date("%d/%m/%Y %H:%M", pack.t) or "?")
             end
         end
@@ -1268,6 +1319,96 @@ function N.ToggleData(mode)
     end
     dataWin:SetMode(mode or dataWin.mode or "export")
     dataWin:Show()
+end
+
+---------------------------------------------------------------------------
+-- Ajustes (/nexo ajustes): idioma y opciones de Nexo.
+-- El idioma se guarda en N.db.lang ("auto", "es" o "en"); se aplica al recargar la interfaz.
+local AW, AH, APAD = 420, 350, 14
+local settingsWin
+
+local function BuildSettings()
+    local K = N.Kit(PALETTE)
+    local main = K.Window({ name = "NexoAjustes", w = AW, h = AH, icon = GEAR, title = Tr("Ajustes"),
+        subtitle = Tr("Idioma y opciones de Nexo"),
+        settings = function() N.db.ajustes = N.db.ajustes or {}; return N.db.ajustes end })
+    main:RestorePos()
+
+    local tabs, mapBtn, tipBtn, soundBtn
+    local function Refresh()
+        tabs:Select(N.db.lang or "auto")
+        mapBtn.text:SetText(N.db.minimap.hide and Tr("Mostrar botón") or Tr("Ocultar botón"))
+        tipBtn.text:SetText(Tr("Tooltip") .. ": " .. (N.Ajuste("tooltips") and Tr("activado") or Tr("desactivado")))
+        soundBtn.text:SetText(Tr("Sonidos") .. ": " .. (N.Ajuste("sonidos") and Tr("activado") or Tr("desactivado")))
+    end
+
+    -- Activa o desactiva un ajuste de sí/no y refresca los textos
+    local function Toggle(clave)
+        N.db.ajustes = N.db.ajustes or {}
+        N.db.ajustes[clave] = not N.Ajuste(clave)
+        Refresh()
+    end
+
+    -- Guarda el idioma; pide recargar solo si es distinto del que está en uso
+    local function SetLang(key)
+        N.db.lang = key
+        if key ~= N.langPref then
+            StaticPopupDialogs.NEXO_IDIOMA = {
+                text = Tr("Idioma cambiado.") .. "\n\n" .. Tr("Recarga la interfaz para aplicarlo."),
+                button1 = Tr("Recargar"), button2 = Tr("Luego"),
+                OnAccept = function() ReloadUI() end,
+                timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+            }
+            StaticPopup_Show("NEXO_IDIOMA")
+        end
+        Refresh()
+    end
+
+    local function Label(y, text)
+        local fs = Text(main, 12)
+        fs:SetPoint("TOPLEFT", APAD, y)
+        fs:SetText(text)
+        fs:SetTextColor(K.acc[1], K.acc[2], K.acc[3])
+    end
+
+    Label(-64, Tr("Idioma"))
+    tabs = K.Tabs(main, { { "auto", Tr("Automático") }, { "es", "Español" }, { "en", "English" } }, 120, SetLang)
+    tabs[1]:SetPoint("TOPLEFT", APAD, -86)
+    local hint = Text(main, 11)
+    hint:SetPoint("TOPLEFT", APAD, -118)
+    hint:SetTextColor(0.62, 0.62, 0.70)
+    hint:SetText(Tr("Recarga la interfaz para aplicarlo."))
+
+    local half = (AW - 2 * APAD - 6) / 2
+    Label(-150, Tr("Minimapa"))
+    mapBtn = K.Button(main, half, 24, "", function() N.ToggleMinimap(); Refresh() end, 12)
+    mapBtn:SetPoint("TOPLEFT", APAD, -170)
+    local resetBtn = K.Button(main, half, 24, Tr("Restablecer posición"), function() N.ResetMinimap(); Refresh() end, 12)
+    resetBtn:SetPoint("TOPLEFT", APAD + half + 6, -170)
+    tipBtn = K.Button(main, AW - 2 * APAD, 24, "", function() Toggle("tooltips") end, 12)
+    tipBtn:SetPoint("TOPLEFT", APAD, -200)
+
+    Label(-236, Tr("Ventanas"))
+    soundBtn = K.Button(main, AW - 2 * APAD, 24, "", function() Toggle("sonidos") end, 12)
+    soundBtn:SetPoint("TOPLEFT", APAD, -256)
+
+    Label(-292, Tr("Datos"))
+    local dataBtn = K.Button(main, AW - 2 * APAD, 24, Tr("Exportar / importar"), function() N.ToggleData() end, 12)
+    dataBtn:SetPoint("TOPLEFT", APAD, -312)
+
+    function main:OnOpen() Refresh() end
+    Refresh()
+    return main
+end
+
+-- Abre o cierra la ventana de ajustes
+function N.ToggleSettings()
+    if not settingsWin then settingsWin = BuildSettings() end
+    if settingsWin:IsShown() then
+        settingsWin:Hide()
+    else
+        settingsWin:Show()
+    end
 end
 
 ---------------------------------------------------------------------------

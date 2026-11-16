@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Bitácora: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -46,7 +47,7 @@ local ClassHex, ClassRGB, ShortName, DayLabel, Plural = N.ClassHex, N.ClassRGB, 
 ---------------------------------------------------------------------------
 local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     name = "BitacoraMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_PocketWatch_01",
-    title = "Bitácora", subtitle = "Tiempo de juego · WoW Forever",
+    title = Tr("Bitácora"), subtitle = Tr("Tiempo de juego · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
     state = state, list = ns.CharList, all = true, pad = PAD,
     onChange = function() ns.Refresh() end,
@@ -56,10 +57,10 @@ local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
 -- Tarjetas resumen
 ---------------------------------------------------------------------------
 local cards = K.Cards(main, {
-    { "Tiempo total", { 1, 0.82, 0 }, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
-    { "En el periodo", ACC, "Interface\\Icons\\INV_Misc_Note_01" },
-    { "Media diaria", GREEN, "Interface\\Icons\\INV_Misc_Book_09" },
-    { "Sesión actual", { 0.80, 0.45, 1 }, "Interface\\Icons\\Ability_Hunter_EagleEye" },
+    { Tr("Tiempo total"), { 1, 0.82, 0 }, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
+    { Tr("En el periodo"), ACC, "Interface\\Icons\\INV_Misc_Note_01" },
+    { Tr("Media diaria"), GREEN, "Interface\\Icons\\INV_Misc_Book_09" },
+    { Tr("Sesión actual"), { 0.80, 0.45, 1 }, "Interface\\Icons\\Ability_Hunter_EagleEye" },
 }, { x = PAD, y = -94, w = W - PAD * 2, valueSize = 16, tint = true })
 
 ---------------------------------------------------------------------------
@@ -73,10 +74,10 @@ local CHART_H = 160
 local chart = Panel(main)
 chart:SetPoint("TOPLEFT", PAD, TOP_Y)
 chart:SetSize(LEFT_W, CHART_H)
-SectionTitle(chart, "Últimos 14 días")
+SectionTitle(chart, Tr("Últimos 14 días"))
 local legend = Text(chart, 10)
 legend:SetPoint("TOPRIGHT", -10, -10)
-legend:SetText("|TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:102:199:255|t Activo   |TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:140:140:158|t Ausente")
+legend:SetText("|TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:102:199:255|t " .. Tr("Activo") .. "   |TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:140:140:158|t " .. Tr("Ausente"))
 
 local PLOT_H = 96
 local PLOT_BOTTOM = 22
@@ -99,10 +100,10 @@ local slots, gridLabels = K.Chart(chart, {
         GameTooltip:AddDoubleLine("Jugado", ns.Dur(e.s), 0.8, 0.8, 0.8, 1, 1, 1)
         if e.a > 0 then
             GameTooltip:AddDoubleLine("Activo", ns.Dur(e.s - e.a), ACC[1], ACC[2], ACC[3], 1, 1, 1)
-            GameTooltip:AddDoubleLine("Ausente (AFK)", ns.Dur(e.a), AFK[1], AFK[2], AFK[3], 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Ausente (AFK)"), ns.Dur(e.a), AFK[1], AFK[2], AFK[3], 1, 1, 1)
         end
         if e.est > 0 then
-            GameTooltip:AddDoubleLine("Estimado (Tesorero)", "~" .. ns.Dur(e.est), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8)
+            GameTooltip:AddDoubleLine(Tr("Estimado (Tesorero)"), "~" .. ns.Dur(e.est), 0.6, 0.6, 0.6, 0.8, 0.8, 0.8)
         end
         GameTooltip:Show()
     end,
@@ -111,7 +112,7 @@ local slots, gridLabels = K.Chart(chart, {
 local chartEmpty = Text(chart, 11)
 chartEmpty:SetPoint("CENTER", 0, 4)
 chartEmpty:SetTextColor(0.5, 0.5, 0.5)
-chartEmpty:SetText("Sin tiempo registrado en las últimas 2 semanas")
+chartEmpty:SetText(Tr("Sin tiempo registrado en las últimas 2 semanas"))
 
 ---------------------------------------------------------------------------
 -- Ranking: por personaje (vista "Todos") o por zona (un personaje)
@@ -119,7 +120,7 @@ chartEmpty:SetText("Sin tiempo registrado en las últimas 2 semanas")
 local rank = Panel(main)
 rank:SetPoint("TOPLEFT", chart, "BOTTOMLEFT", 0, -8)
 rank:SetSize(LEFT_W, contentH - CHART_H - 8)
-local rankTitle = SectionTitle(rank, "Por zona")
+local rankTitle = SectionTitle(rank, Tr("Por zona"))
 local rankHint = Text(rank, 9)
 rankHint:SetPoint("TOPRIGHT", -10, -11)
 rankHint:SetTextColor(0.45, 0.45, 0.45)
@@ -162,12 +163,12 @@ for i = 1, RANK_ROWS do
         if e.key then
             GameTooltip:AddLine("|c" .. ClassHex(e.class) .. e.name .. "|r")
             GameTooltip:AddDoubleLine("Nivel", tostring(e.level or "?"), 0.7, 0.7, 0.7, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Jugado en el periodo", ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Jugado en el periodo"), ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Clic para ver solo este personaje", 0.6, 0.6, 0.6)
+            GameTooltip:AddLine(Tr("Clic para ver solo este personaje"), 0.6, 0.6, 0.6)
         else
             GameTooltip:AddLine(e.name, 1, 1, 1)
-            GameTooltip:AddDoubleLine("Tiempo en la zona", ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Tiempo en la zona"), ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
         end
         GameTooltip:Show()
     end)
@@ -183,7 +184,7 @@ end
 local rankEmpty = Text(rank, 12)
 rankEmpty:SetPoint("CENTER", 0, -10)
 rankEmpty:SetTextColor(0.5, 0.5, 0.5)
-rankEmpty:SetText("Aún no hay tiempo registrado en este periodo")
+rankEmpty:SetText(Tr("Aún no hay tiempo registrado en este periodo"))
 
 ---------------------------------------------------------------------------
 -- Sesiones
@@ -207,7 +208,7 @@ local sessRows = {}
 local UpdateSessions
 
 local function LevelText(e)
-    if e.l0 and e.l1 and e.l1 > e.l0 then return ("nivel %d > %d"):format(e.l0, e.l1) end
+    if e.l0 and e.l1 and e.l1 > e.l0 then return (Tr("nivel %d > %d")):format(e.l0, e.l1) end
 end
 
 for i = 1, SESS_ROWS do
@@ -242,19 +243,19 @@ for i = 1, SESS_ROWS do
         local e = self.data
         if not e then return end
         GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-        GameTooltip:AddLine(e.live and "Sesión en curso" or (e.est and "Sesión estimada" or "Sesión"), ACC[1], ACC[2], ACC[3])
+        GameTooltip:AddLine(e.live and Tr("Sesión en curso") or (e.est and Tr("Sesión estimada") or Tr("Sesión")), ACC[1], ACC[2], ACC[3])
         GameTooltip:AddDoubleLine("Personaje", "|c" .. ClassHex(e.class) .. e.char .. "|r", 0.7, 0.7, 0.7)
         GameTooltip:AddDoubleLine("Inicio", date("%d/%m/%Y %H:%M", e.s), 0.7, 0.7, 0.7, 1, 1, 1)
         if not e.live then GameTooltip:AddDoubleLine("Fin", date("%d/%m/%Y %H:%M", e.s + e.d), 0.7, 0.7, 0.7, 1, 1, 1) end
-        GameTooltip:AddDoubleLine("Duración", ns.Dur(e.d), 0.7, 0.7, 0.7, 1, 1, 1)
-        if e.a > 0 then GameTooltip:AddDoubleLine("Ausente (AFK)", ns.Dur(e.a), 0.7, 0.7, 0.7, 1, 1, 1) end
-        if e.z and e.z ~= "" then GameTooltip:AddDoubleLine("Zona principal", e.z, 0.7, 0.7, 0.7, 1, 1, 1) end
+        GameTooltip:AddDoubleLine(Tr("Duración"), ns.Dur(e.d), 0.7, 0.7, 0.7, 1, 1, 1)
+        if e.a > 0 then GameTooltip:AddDoubleLine(Tr("Ausente (AFK)"), ns.Dur(e.a), 0.7, 0.7, 0.7, 1, 1, 1) end
+        if e.z and e.z ~= "" then GameTooltip:AddDoubleLine(Tr("Zona principal"), e.z, 0.7, 0.7, 0.7, 1, 1, 1) end
         local lt = LevelText(e)
         if lt then GameTooltip:AddDoubleLine("Subida", lt, 0.7, 0.7, 0.7, 1, 0.82, 0) end
         if e.est then
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Calculada con los movimientos de oro de Tesorero.", 0.6, 0.6, 0.6)
-            GameTooltip:AddLine("La duración real pudo ser mayor.", 0.6, 0.6, 0.6)
+            GameTooltip:AddLine(Tr("Calculada con los movimientos de oro de Tesorero."), 0.6, 0.6, 0.6)
+            GameTooltip:AddLine(Tr("La duración real pudo ser mayor."), 0.6, 0.6, 0.6)
         end
         GameTooltip:Show()
     end)
@@ -265,7 +266,7 @@ end
 local sessEmpty = Text(sess, 12)
 sessEmpty:SetPoint("CENTER", 0, STATS_H / 2)
 sessEmpty:SetTextColor(0.5, 0.5, 0.5)
-sessEmpty:SetText("Sin sesiones en este periodo.")
+sessEmpty:SetText(Tr("Sin sesiones en este periodo."))
 
 function UpdateSessions()
     N.FillRows(scroll, sessRows, ROW_H, sessData, function(r, e)
@@ -273,7 +274,7 @@ function UpdateSessions()
         if e.live then cr, cg, cb = GREEN[1], GREEN[2], GREEN[3] end
         r.swatch:SetColorTexture(cr, cg, cb, 0.9)
         r.when:SetText(N.WhenLabel(e.s))
-        local label = (e.z and e.z ~= "") and e.z or "Sesión"
+        local label = (e.z and e.z ~= "") and e.z or Tr("Sesión")
         if not state.filter then
             label = "|c" .. ClassHex(e.class) .. e.char .. "|r |cff777777· " .. label .. "|r"
         end
@@ -304,7 +305,7 @@ statsLine:SetHeight(1)
 statsLine:SetPoint("TOPLEFT", 2, 0)
 statsLine:SetPoint("TOPRIGHT", -2, 0)
 
-local stats = K.StatGrid(statsBox, { "Sesión más larga", "Día más largo", "Racha actual", "Día favorito" })
+local stats = K.StatGrid(statsBox, { Tr("Sesión más larga"), Tr("Día más largo"), Tr("Racha actual"), Tr("Día favorito") })
 local function SetStat(f, value, sub) f:Set(value, sub) end
 
 ---------------------------------------------------------------------------
@@ -321,18 +322,18 @@ local function UpdateFooter()
     local s = ns.session
     if not s then footer:SetText("") return end
     local parts = {
-        "|cff66c7ffSesión|r  ·  " .. ns.Dur(s.d),
-        "desde las " .. date("%H:%M", s.s),
-        "Hoy con este personaje: |cffffffff" .. ns.Dur(TodayTotal(ns.charKey)) .. "|r",
+        Tr("|cff66c7ffSesión|r  ·  ") .. ns.Dur(s.d),
+        Tr("desde las ") .. date("%H:%M", s.s),
+        Tr("Hoy con este personaje: |cffffffff") .. ns.Dur(TodayTotal(ns.charKey)) .. "|r",
     }
-    if s.a > 0 then parts[#parts + 1] = "|cff8c8c9e" .. ns.Dur(s.a) .. " ausente|r" end
+    if s.a > 0 then parts[#parts + 1] = "|cff8c8c9e" .. ns.Dur(s.a) .. Tr(" ausente|r") end
     footer:SetText(table.concat(parts, "  ·  "))
 end
 
 ---------------------------------------------------------------------------
 -- Refrescar todo
 ---------------------------------------------------------------------------
-local PERIOD_TEXT = { today = "desde las 00:00 de hoy", week = "últimos 7 días", month = "últimos 30 días", all = "desde que instalaste Bitácora" }
+local PERIOD_TEXT = { today = Tr("desde las 00:00 de hoy"), week = Tr("últimos 7 días"), month = Tr("últimos 30 días"), all = Tr("desde que instalaste Bitácora") }
 
 function ns.Refresh()
     if not main:IsShown() or not ns.db then return end
@@ -349,7 +350,7 @@ function ns.Refresh()
     local played, n, lvlTime = ns.TotalPlayed(state.filter)
     cards[1].value:SetText(ns.Dur(played))
     if state.filter then
-        cards[1].sub:SetText(lvlTime > 0 and (ns.Dur(lvlTime) .. " en este nivel") or "Tiempo /played")
+        cards[1].sub:SetText(lvlTime > 0 and (ns.Dur(lvlTime) .. Tr(" en este nivel")) or Tr("Tiempo /played"))
     else
         cards[1].sub:SetText(Plural(n, "personaje", "personajes"))
     end
@@ -357,24 +358,24 @@ function ns.Refresh()
     if sum.total > 0 then
         cards[2].value:SetText(ns.Dur(sum.total))
         if sum.afk >= 60 then
-            cards[2].sub:SetText(("%d%% ausente (AFK)"):format(math.floor(sum.afk / sum.total * 100 + 0.5)))
+            cards[2].sub:SetText((Tr("%d%% ausente (AFK)")):format(math.floor(sum.afk / sum.total * 100 + 0.5)))
         else
-            cards[2].sub:SetText("Sin tiempo ausente")
+            cards[2].sub:SetText(Tr("Sin tiempo ausente"))
         end
         cards[3].value:SetText(ns.Dur(sum.total / sum.days))
-        cards[3].sub:SetText(Plural(sum.days, "día jugado", "días jugados"))
+        cards[3].sub:SetText(Plural(sum.days, Tr("día jugado"), Tr("días jugados")))
     else
         cards[2].value:SetText(DASH)
-        cards[2].sub:SetText("Nada todavía")
+        cards[2].sub:SetText(Tr("Nada todavía"))
         cards[3].value:SetText(DASH)
-        cards[3].sub:SetText("Sin días jugados")
+        cards[3].sub:SetText(Tr("Sin días jugados"))
     end
 
     local s = ns.session
     if s then
         cards[4].value:SetText(ns.Dur(s.d))
         local lt = LevelText(s)
-        cards[4].sub:SetText("Desde las " .. date("%H:%M", s.s) .. (lt and (" · " .. lt) or ""))
+        cards[4].sub:SetText(Tr("Desde las ") .. date("%H:%M", s.s) .. (lt and (" · " .. lt) or ""))
     else
         cards[4].value:SetText(DASH)
         cards[4].sub:SetText("")
@@ -404,8 +405,8 @@ function ns.Refresh()
     -- Ranking
     local list
     if state.filter then
-        rankTitle:SetText("Por zona")
-        rankHint:SetText("dónde pasas el tiempo")
+        rankTitle:SetText(Tr("Por zona"))
+        rankHint:SetText(Tr("dónde pasas el tiempo"))
         list = ns.Zones(state.filter, state.period)
         if #list > RANK_ROWS then
             local rest = 0
@@ -413,11 +414,11 @@ function ns.Refresh()
                 rest = rest + list[i].sec
                 list[i] = nil
             end
-            list[RANK_ROWS] = { name = "Otras zonas", sec = rest }
+            list[RANK_ROWS] = { name = Tr("Otras zonas"), sec = rest }
         end
     else
-        rankTitle:SetText("Por personaje")
-        rankHint:SetText("clic = ver ese personaje")
+        rankTitle:SetText(Tr("Por personaje"))
+        rankHint:SetText(Tr("clic = ver ese personaje"))
         list = ns.CharRanking(state.period)
     end
     local rankMax, rankTotal = 1, 0
@@ -452,7 +453,7 @@ function ns.Refresh()
 
     -- Sesiones
     sessData = ns.Sessions(state.filter, state.period, 500)
-    sessCount:SetText(#sessData >= 500 and "500+ sesiones" or Plural(#sessData, "sesión", "sesiones"))
+    sessCount:SetText(#sessData >= 500 and Tr("500+ sesiones") or Plural(#sessData, Tr("sesión"), "sesiones"))
     UpdateSessions()
 
     -- Estadísticas
@@ -471,9 +472,9 @@ function ns.Refresh()
         SetStat(stats[2], DASH)
     end
     if sum.streak > 0 then
-        SetStat(stats[3], Plural(sum.streak, "día", "días"), "récord: " .. sum.bestStreak)
+        SetStat(stats[3], Plural(sum.streak, Tr("día"), Tr("días")), Tr("récord: ") .. sum.bestStreak)
     else
-        SetStat(stats[3], DASH, sum.bestStreak > 0 and ("récord: " .. sum.bestStreak) or nil)
+        SetStat(stats[3], DASH, sum.bestStreak > 0 and (Tr("récord: ") .. sum.bestStreak) or nil)
     end
     if sum.weekday then
         SetStat(stats[4], DAY_NAMES[sum.weekday], ns.Dur(sum.weekdayT))
@@ -497,24 +498,24 @@ end
 
 local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
-    GameTooltip:AddLine("Bitácora", ACC[1], ACC[2], ACC[3])
+    GameTooltip:AddLine(Tr("Bitácora"), ACC[1], ACC[2], ACC[3])
     local key = ns.charKey
     local s = ns.session
-    if s then GameTooltip:AddDoubleLine("Sesión actual", ns.Dur(s.d), 0.8, 0.8, 0.8, 1, 1, 1) end
-    GameTooltip:AddDoubleLine("Hoy", ns.Dur(TodayTotal(key)), 0.8, 0.8, 0.8, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Últimos 7 días", ns.Dur(ns.Summary(key, "week").total), 0.8, 0.8, 0.8, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Total del personaje", ns.Dur((ns.TotalPlayed(key))), 0.8, 0.8, 0.8, 1, 1, 1)
+    if s then GameTooltip:AddDoubleLine(Tr("Sesión actual"), ns.Dur(s.d), 0.8, 0.8, 0.8, 1, 1, 1) end
+    GameTooltip:AddDoubleLine(Tr("Hoy"), ns.Dur(TodayTotal(key)), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Últimos 7 días"), ns.Dur(ns.Summary(key, "week").total), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Total del personaje"), ns.Dur((ns.TotalPlayed(key))), 0.8, 0.8, 0.8, 1, 1, 1)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddDoubleLine("Hoy en toda la cuenta", ns.Dur(TodayTotal(nil)), 0.8, 0.8, 0.8, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Total de la cuenta", ns.Dur((ns.TotalPlayed(nil))), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Hoy en toda la cuenta"), ns.Dur(TodayTotal(nil)), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Total de la cuenta"), ns.Dur((ns.TotalPlayed(nil))), 0.8, 0.8, 0.8, 1, 1, 1)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 
 -- El botón del minimapa es el de Nexo, compartido por todos los addons
 N.Register({
-    id = "Bitacora", name = "Bitácora", icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", color = ACC, slash = "/bita",
+    id = "Bitacora", name = Tr("Bitácora"), icon = "Interface\\Icons\\INV_Misc_PocketWatch_01", color = ACC, slash = "/bita",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "BitacoraDB",

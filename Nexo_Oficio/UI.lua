@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Oficio: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -70,7 +71,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "OficioMainFrame", w = W, h = H, icon = ICON,
-    title = "Oficio", subtitle = "Profesiones de la cuenta · WoW Forever",
+    title = "Oficio", subtitle = Tr("Profesiones de la cuenta · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -82,7 +83,7 @@ local charBtn = K.CharPicker(main, close, state, ns.CharList, function() ResetSc
 -- Búsqueda y filtro de profesión
 ---------------------------------------------------------------------------
 local search = K.Search(main, {
-    name = "OficioSearchBox", x = PAD, y = -62, hint = "Buscar receta o material...",
+    name = "OficioSearchBox", x = PAD, y = -62, hint = Tr("Buscar receta o material..."),
     bg = { 0.09, 0.08, 0.07 }, border = { 0.32, 0.26, 0.17 }, hintColor = { 0.5, 0.47, 0.42 },
     onChange = function(text)
         state.text = text
@@ -169,10 +170,10 @@ local sorter = K.Sorter(listPanel, state, function()
     ns.Refresh()
 end, { 0.72, 0.62, 0.45 })
 sorter:Add("name", "Receta", 36, 190, "LEFT", true)
-sorter:Add("prof", "Profesión", 236, 100, "LEFT", true)
+sorter:Add("prof", Tr("Profesión"), 236, 100, "LEFT", true)
 local whoHeader = Text(listPanel, 11, "GameFontNormal")
 whoHeader:SetPoint("TOPLEFT", 340, -7)
-whoHeader:SetText("Quién")
+whoHeader:SetText(Tr("Quién"))
 whoHeader:SetTextColor(ACC[1], ACC[2], ACC[3])
 
 
@@ -207,7 +208,7 @@ local function OverviewLines()
             if #lines > 0 then lines[#lines + 1] = {} end
             lines[#lines + 1] = {
                 l = "|c" .. ClassHex(c.class) .. (c.name or ShortName(key)) .. "|r",
-                r = GREY .. "nivel " .. (c.level or "?") .. "|r",
+                r = GREY .. Tr("nivel ") .. (c.level or "?") .. "|r",
             }
             for _, p in ipairs(profs) do
                 local right = "|cffffffff" .. p.rank .. "|r" .. GREY .. "/" .. p.max .. "|r"
@@ -221,7 +222,7 @@ local function OverviewLines()
         end
     end
     if #lines == 0 then
-        lines[1] = { l = GREY .. "Sin profesiones registradas.|r" }
+        lines[1] = { l = GREY .. Tr("Sin profesiones registradas.|r") }
     end
 
     local first = true
@@ -244,7 +245,7 @@ end
 
 -- Detalle de una receta: quién la fabrica y qué materiales lleva
 local function RecipeLines(prof, name, makers)
-    local lines = { Title("Quién lo fabrica") }
+    local lines = { Title(Tr("Quién lo fabrica")) }
     for _, m in ipairs(makers) do
         lines[#lines + 1] = {
             l = "|c" .. ClassHex(m.class) .. m.name .. "|r " .. GREY .. m.rank .. "|r",
@@ -263,7 +264,7 @@ local function RecipeLines(prof, name, makers)
             local right
             if have then
                 alijo = true
-                right = (have >= rg.n and "|cff66ff66" or "|cffff6655") .. have .. "|r" .. GREY .. " en la cuenta|r"
+                right = (have >= rg.n and "|cff66ff66" or "|cffff6655") .. have .. "|r" .. GREY .. Tr(" en la cuenta|r")
             end
             local price = ns.Price(rg.id)
             if price then
@@ -273,25 +274,25 @@ local function RecipeLines(prof, name, makers)
             lines[#lines + 1] = { l = rg.n .. " x " .. ns.ReagName(rg), r = right, item = rg.id }
         end
         if not alijo then
-            lines[#lines + 1] = { l = GREY .. "Con Alijo activado verás cuántos tienes.|r" }
+            lines[#lines + 1] = { l = GREY .. Tr("Con Alijo activado verás cuántos tienes.|r") }
         end
 
         -- Con Lonja: lo que cuestan los materiales en la subasta y por cuánto se vende lo fabricado
         if priced > 0 then
             lines[#lines + 1] = {}
-            lines[#lines + 1] = Title("En la lonja")
+            lines[#lines + 1] = Title(Tr("En la lonja"))
             local partial = priced < #reags
             lines[#lines + 1] = {
-                l = "Materiales" .. (partial and (GREY .. " (" .. priced .. " de " .. #reags .. " con precio)|r") or ""),
+                l = "Materiales" .. (partial and (GREY .. " (" .. priced .. Tr(" de ") .. #reags .. Tr(" con precio)|r")) or ""),
                 r = Lonja.Money(cost, 11),
             }
             local sale = ns.Price(info.id)
             if sale then
-                lines[#lines + 1] = { l = "Se vende por", r = Lonja.Money(sale, 11), item = info.id }
+                lines[#lines + 1] = { l = Tr("Se vende por"), r = Lonja.Money(sale, 11), item = info.id }
                 if not partial then
                     local diff = sale - cost
                     lines[#lines + 1] = {
-                        l = diff >= 0 and "Ganancia" or "Pérdida",
+                        l = diff >= 0 and "Ganancia" or Tr("Pérdida"),
                         r = (diff >= 0 and "|cff66ff66" or "|cffff6655") .. Lonja.Money(diff, 11) .. "|r",
                     }
                 end
@@ -308,7 +309,7 @@ function UpdateDetail()
     dName:SetShown(has)
     dSub:SetShown(has)
     if not has then
-        dTitle:SetText(state.filter and "Profesiones" or "Profesiones de la cuenta")
+        dTitle:SetText(state.filter and "Profesiones" or Tr("Profesiones de la cuenta"))
         RenderLines(OverviewLines(), 32)
         return
     end
@@ -336,9 +337,9 @@ local function UpdateFooter()
     end
     local who = "|c" .. ClassHex(c.class) .. (c.name or ShortName(key)) .. "|r"
     if #missing > 0 then
-        footer:SetText(who .. "  ·  |cffffb347recetas sin registrar: " .. table.concat(missing, ", ") .. " (abre su ventana)|r")
+        footer:SetText(who .. Tr("  ·  |cffffb347recetas sin registrar: ") .. table.concat(missing, ", ") .. Tr(" (abre su ventana)|r"))
     else
-        footer:SetText(who .. "  ·  Mayús+clic en la lista: enlazar en el chat")
+        footer:SetText(who .. Tr("  ·  Mayús+clic en la lista: enlazar en el chat"))
     end
 end
 
@@ -364,7 +365,7 @@ function ns.Refresh()
         for _, name in ipairs(ProfNames()) do if name == state.prof then ok = true end end
         if not ok then state.prof = nil end
     end
-    profBtn.text:SetText(state.prof or "Todas las profesiones")
+    profBtn.text:SetText(state.prof or Tr("Todas las profesiones"))
     profBtn:SetActive(state.prof ~= nil)
 
     sorter:Update()
@@ -389,14 +390,14 @@ function ns.Refresh()
     end)
 
     if text ~= "" then
-        countText:SetText(#listData .. " de " .. Plural(#all, "receta", "recetas"))
+        countText:SetText(#listData .. Tr(" de ") .. Plural(#all, "receta", "recetas"))
     else
         countText:SetText(Plural(#all, "receta", "recetas"))
     end
     if #all == 0 then
-        listEmpty:SetText("Aún no hay recetas. Abre la ventana de cada profesión una vez para registrarlas.")
+        listEmpty:SetText(Tr("Aún no hay recetas. Abre la ventana de cada profesión una vez para registrarlas."))
     else
-        listEmpty:SetText("Ninguna receta coincide con la búsqueda.")
+        listEmpty:SetText(Tr("Ninguna receta coincide con la búsqueda."))
     end
 
     list:SetData(listData)
@@ -434,7 +435,7 @@ local function ShowSummaryTooltip(owner, anchor)
         for _, p in ipairs(profs) do
             GameTooltip:AddDoubleLine(p.name, p.rank .. "/" .. p.max, 0.8, 0.8, 0.8, 1, 1, 1)
         end
-        if #profs == 0 then GameTooltip:AddLine("Sin profesiones registradas", 0.6, 0.6, 0.6) end
+        if #profs == 0 then GameTooltip:AddLine(Tr("Sin profesiones registradas"), 0.6, 0.6, 0.6) end
         local first = true
         for _, cd in ipairs(ns.Cooldowns()) do
             if first then
@@ -446,7 +447,7 @@ local function ShowSummaryTooltip(owner, anchor)
         end
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 

@@ -25,13 +25,93 @@ local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 7
+N.version = 8
 
 local floor = math.floor
 local DAY = 86400
 local TICK = 5
 N.DAY = DAY
-N.DAY_NAMES = { "Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" }
+
+N.Dict({
+    ["no encuentro a otro personaje llamado \""] = "I cannot find another character named \"",
+    ["Objeto "] = "Item ",
+    ["Banco de la banda"] = "Warband bank",
+    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
+    [" borrado."] = " deleted.",
+    ["Buscar objeto..."] = "Search item...",
+    ["Todo"] = "All",
+    [" de "] = " of ",
+    ["objeto distinto"] = "distinct item",
+    ["objetos distintos"] = "distinct items",
+    ["Ningún objeto coincide con la búsqueda."] = "No item matches the search.",
+    ["visto "] = "seen ",
+    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
+    ["registro de este personaje borrado."] = "log of this character deleted.",
+    ["esto borrará TODO el registro de "] = "this will delete ALL the log of ",
+    ["Media diaria"] = "Daily average",
+    ["Últimos 14 días"] = "Last 14 days",
+    ["Sesión"] = "Session",
+    ["desde las 00:00 de hoy"] = "since 00:00 today",
+    ["últimos 7 días"] = "last 7 days",
+    ["últimos 30 días"] = "last 30 days",
+    ["Nada todavía"] = "Nothing yet",
+    ["  ·  |cffffb347recetas sin registrar: "] = "  ·  |cffffb347recipes not recorded: ",
+    ["  ... y "] = "  ... and ",
+    [" más."] = " more.",
+    ["nivel "] = "level ",
+    ["activado"] = "on",
+    ["desactivado"] = "off",
+    ["nunca"] = "never",
+    ["escaneo"] = "scan",
+    ["no"] = "No",
+    ["Domingo"] = "Sunday", ["Lunes"] = "Monday", ["Martes"] = "Tuesday", ["Miércoles"] = "Wednesday",
+    ["Jueves"] = "Thursday", ["Viernes"] = "Friday", ["Sábado"] = "Saturday",
+    ["Hoy"] = "Today", ["Ayer"] = "Yesterday", ["Siempre"] = "All time",
+    ["7 días"] = "7 days", ["30 días"] = "30 days",
+    ["día"] = "day", ["días"] = "days", ["ahora mismo"] = "just now",
+    ["El texto está incompleto o cambiado: cópialo entero otra vez."] = "The text is incomplete or changed: copy it again in full.",
+    ["No es un texto exportado por Nexo."] = "This is not a text exported by Nexo.",
+    ["Este cliente no puede leer texto comprimido."] = "This client cannot read compressed text.",
+    ["No se ha podido descomprimir el texto."] = "The text could not be decompressed.",
+    ["El texto no se puede leer."] = "The text cannot be read.",
+    ["los addons ahora se llaman"] = "the addons are now called",
+    ["nombre"] = "name",
+    ["Tus datos de"] = "Your data for",
+    ["se conservan: recarga la interfaz (|cffffff00/reload|r) para terminar el cambio."] = "is kept: reload the UI (|cffffff00/reload|r) to finish the change.",
+    ["Después puedes borrar de Interface\\AddOns las carpetas antiguas:"] = "Afterwards you can delete the old folders from Interface\\AddOns:",
+    ["Los addons de Nexo ahora se llaman Nexo_<nombre>."] = "The Nexo addons are now called Nexo_<name>.",
+    ["Tus datos se conservan. Recarga la interfaz para terminar el cambio."] = "Your data is kept. Reload the UI to finish the change.",
+    ["Recargar"] = "Reload", ["Luego"] = "Later",
+    ["comandos:"] = "commands:",
+    ["lista de addons conectados"] = "list of connected addons",
+    ["abrir/cerrar la ventana de exportar e importar datos"] = "open/close the export and import data window",
+    ["abrirla para sacar los datos como texto (cambiar de ordenador)"] = "open it to get the data as text (to change computer)",
+    ["abrirla para pegar el texto exportado en otro ordenador"] = "open it to paste the text exported on another computer",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["esta lista"] = "this list",
+    ["comandos de Nexo"] = "Nexo commands",
+    ["addons conectados:"] = "connected addons:",
+    ["botón del minimapa"] = "minimap button",
+    ["oculto"] = "hidden", ["visible"] = "visible",
+    ["Ajustes"] = "Settings",
+    ["Idioma y opciones de Nexo"] = "Language and Nexo options",
+    ["Idioma"] = "Language",
+    ["Automático"] = "Automatic",
+    ["Minimapa"] = "Minimap",
+    ["Mostrar botón"] = "Show button",
+    ["Ocultar botón"] = "Hide button",
+    ["Datos"] = "Data",
+    ["Idioma cambiado."] = "Language changed.",
+    ["Recarga la interfaz para aplicarlo."] = "Reload the UI to apply it.",
+    ["abrir/cerrar la ventana de ajustes (idioma y opciones)"] = "open/close the settings window (language and options)",
+    ["Restablecer posición"] = "Reset position",
+    ["Tooltip"] = "Tooltip",
+    ["Sonidos"] = "Sounds",
+    ["Ventanas"] = "Windows",
+})
+local Tr = N.T
+
+N.DAY_NAMES = { Tr("Domingo"), Tr("Lunes"), Tr("Martes"), Tr("Miércoles"), Tr("Jueves"), Tr("Viernes"), Tr("Sábado") }
 
 ---------------------------------------------------------------------------
 -- Formato y fechas
@@ -70,19 +150,19 @@ end
 
 -- "Hoy", "Ayer" o "Martes 03/11"
 function N.DayLabel(t)
-    if N.DayKey(t) == N.DayKey() then return "Hoy" end
-    if N.DayKey(t) == N.DayKey(time() - DAY) then return "Ayer" end
+    if N.DayKey(t) == N.DayKey() then return Tr("Hoy") end
+    if N.DayKey(t) == N.DayKey(time() - DAY) then return Tr("Ayer") end
     return N.DAY_NAMES[tonumber(date("%w", t)) + 1] .. " " .. date("%d/%m", t)
 end
 
 -- "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"; con year = true, "03/11/26 14:05" en vez de "03/11 14:05"
 function N.WhenLabel(t, year)
     local dl = N.DayLabel(t)
-    if dl == "Hoy" or dl == "Ayer" then return dl .. " " .. date("%H:%M", t) end
+    if dl == Tr("Hoy") or dl == Tr("Ayer") then return dl .. " " .. date("%H:%M", t) end
     return date(year and "%d/%m/%y %H:%M" or "%d/%m %H:%M", t)
 end
 
-function N.Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
+function N.Plural(n, one, many) return n .. " " .. (n == 1 and Tr(one) or Tr(many)) end
 
 -- Añade una línea con la hora al principio de log (lista guardada) y deja como mucho max
 function N.Trace(log, msg, max)
@@ -106,13 +186,19 @@ function N.Money(c, size, full)
 end
 
 -- "ahora mismo", "hace 5 min", "hace 3 h", "hace 2 días"; sin hora devuelve never (o nil)
+-- En inglés la frase va al revés: "5 min ago"
+local function Hace(txt)
+    if N.lang == "es" then return "hace " .. txt end
+    return txt .. " ago"
+end
+
 function N.Ago(t, never)
     if not t then return never end
     local d = time() - t
-    if d < 90 then return "ahora mismo" end
-    if d < 3600 then return "hace " .. floor(d / 60) .. " min" end
-    if d < DAY then return "hace " .. floor(d / 3600) .. " h" end
-    return "hace " .. N.Plural(floor(d / DAY), "día", "días")
+    if d < 90 then return Tr("ahora mismo") end
+    if d < 3600 then return Hace(floor(d / 60) .. " min") end
+    if d < DAY then return Hace(floor(d / 3600) .. " h") end
+    return Hace(N.Plural(floor(d / DAY), "día", "días"))
 end
 
 function N.QualityRGB(q)
@@ -213,7 +299,7 @@ function N.FindChar(chars, who, except)
 end
 
 -- Periodos de los resúmenes: { clave, texto } y los días que abarca cada uno ("all" no tiene límite)
-N.PERIODS = { { "today", "Hoy" }, { "week", "7 días" }, { "month", "30 días" }, { "all", "Siempre" } }
+N.PERIODS = { { "today", Tr("Hoy") }, { "week", Tr("7 días") }, { "month", Tr("30 días") }, { "all", Tr("Siempre") } }
 N.PERIOD_DAYS = { today = 1, week = 7, month = 30 }
 
 ---------------------------------------------------------------------------
@@ -475,19 +561,19 @@ function N.ReadExport(text)
     local first, last = text:find("%S"), #text
     while last > 0 and text:find("^%s", last) do last = last - 1 end
     local flag, sum, from = text:match("^NEXO1([zp]):(%x+):()", first or 1)
-    if not flag then return nil, "No es un texto exportado por Nexo." end
+    if not flag then return nil, Tr("No es un texto exportado por Nexo.") end
     local body = text:sub(from, last)
-    if Checksum(body) ~= sum then return nil, "El texto está incompleto o cambiado: cópialo entero otra vez." end
+    if Checksum(body) ~= sum then return nil, Tr("El texto está incompleto o cambiado: cópialo entero otra vez.") end
     if flag == "z" then
         local E = Codec()
-        if not E then return nil, "Este cliente no puede leer texto comprimido." end
+        if not E then return nil, Tr("Este cliente no puede leer texto comprimido.") end
         local ok, plain = pcall(function() return E.DecompressString(E.DecodeBase64(body)) end)
-        if not ok or type(plain) ~= "string" then return nil, "No se ha podido descomprimir el texto." end
+        if not ok or type(plain) ~= "string" then return nil, Tr("No se ha podido descomprimir el texto.") end
         body = plain
     end
     local ok, pack = pcall(N.Deserialize, body)
     if not ok or type(pack) ~= "table" or type(pack.data) ~= "table" then
-        return nil, "El texto no se puede leer."
+        return nil, Tr("El texto no se puede leer.")
     end
     return pack
 end
@@ -541,12 +627,13 @@ local function RetireOld()
     end
     if SaveAddOns then pcall(SaveAddOns) end
     local names = table.concat(oldLoaded, ", ")
-    print("|cffd9d9e6Nexo:|r los addons ahora se llaman |cffffff00Nexo_<nombre>|r. Tus datos de "
-        .. names .. " se conservan: recarga la interfaz (|cffffff00/reload|r) para terminar el cambio."
-        .. " Después puedes borrar de Interface\\AddOns las carpetas antiguas: " .. names .. ".")
+    print("|cffd9d9e6Nexo:|r " .. Tr("los addons ahora se llaman") .. " |cffffff00Nexo_<" .. Tr("nombre") .. ">|r. "
+        .. Tr("Tus datos de") .. " " .. names .. " " .. Tr("se conservan: recarga la interfaz (|cffffff00/reload|r) para terminar el cambio.")
+        .. " " .. Tr("Después puedes borrar de Interface\\AddOns las carpetas antiguas:") .. " " .. names .. ".")
     StaticPopupDialogs.NEXO_RENOMBRADO = {
-        text = "Los addons de Nexo ahora se llaman Nexo_<nombre>.\n\nTus datos se conservan. Recarga la interfaz para terminar el cambio.\n\nDespués puedes borrar de Interface\\AddOns las carpetas antiguas:\n" .. names,
-        button1 = "Recargar", button2 = "Luego",
+        text = Tr("Los addons de Nexo ahora se llaman Nexo_<nombre>.") .. "\n\n" .. Tr("Tus datos se conservan. Recarga la interfaz para terminar el cambio.") .. "\n\n"
+            .. Tr("Después puedes borrar de Interface\\AddOns las carpetas antiguas:") .. "\n" .. names,
+        button1 = Tr("Recargar"), button2 = Tr("Luego"),
         OnAccept = function() ReloadUI() end,
         timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
     }
@@ -610,22 +697,25 @@ SlashCmdList.NEXO = function(msg)
     local P = "|cffd9d9e6Nexo:|r "
     if msg == "minimapa" then
         local hidden = N.ToggleMinimap()
-        print(P .. "botón del minimapa " .. (hidden and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa") .. " " .. (hidden and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "datos" or msg == "exportar" or msg == "importar" then
         N.ToggleData(msg == "importar" and "import" or "export")
+    elseif msg == "ajustes" or msg == "config" then
+        N.ToggleSettings()
     elseif msg == "ayuda" or msg == "help" then
-        print(P .. "comandos:")
-        print("  |cffffff00/nexo|r - lista de addons conectados")
-        print("  |cffffff00/nexo datos|r - abrir/cerrar la ventana de exportar e importar datos")
-        print("  |cffffff00/nexo exportar|r - abrirla para sacar los datos como texto (cambiar de ordenador)")
-        print("  |cffffff00/nexo importar|r - abrirla para pegar el texto exportado en otro ordenador")
-        print("  |cffffff00/nexo minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/nexo ayuda|r - esta lista")
+        print(P .. Tr("comandos:"))
+        print("  |cffffff00/nexo|r - " .. Tr("lista de addons conectados"))
+        print("  |cffffff00/nexo ajustes|r - " .. Tr("abrir/cerrar la ventana de ajustes (idioma y opciones)"))
+        print("  |cffffff00/nexo datos|r - " .. Tr("abrir/cerrar la ventana de exportar e importar datos"))
+        print("  |cffffff00/nexo exportar|r - " .. Tr("abrirla para sacar los datos como texto (cambiar de ordenador)"))
+        print("  |cffffff00/nexo importar|r - " .. Tr("abrirla para pegar el texto exportado en otro ordenador"))
+        print("  |cffffff00/nexo minimapa|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/nexo ayuda|r - " .. Tr("esta lista"))
     else
-        print(P .. "addons conectados:")
+        print(P .. Tr("addons conectados:"))
         for _, def in ipairs(N.addons or {}) do
             print("  " .. def.name .. (def.slash and ("  |cffffff00" .. def.slash .. "|r") or ""))
         end
-        print("  |cffffff00/nexo ayuda|r - comandos de Nexo")
+        print("  |cffffff00/nexo ayuda|r - " .. Tr("comandos de Nexo"))
     end
 end

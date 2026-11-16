@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Tesorero: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -40,7 +41,7 @@ local ClassHex, ShortName, DayLabel, DayKeyToTime = N.ClassHex, N.ShortName, N.D
 ---------------------------------------------------------------------------
 local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     name = "TesoreroMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_Coin_02",
-    title = "Tesorero", subtitle = "Historial de oro · WoW Forever",
+    title = "Tesorero", subtitle = Tr("Historial de oro · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
     state = state, list = ns.CharList, all = true, pad = PAD,
     onChange = function() ns.Refresh() end,
@@ -50,9 +51,9 @@ local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
 -- Tarjetas resumen
 ---------------------------------------------------------------------------
 local cards = K.Cards(main, {
-    { "Oro actual", { 1, 0.82, 0 }, "Interface\\Icons\\INV_Misc_Coin_17" },
-    { "Ganado", GREEN, "Interface\\Icons\\INV_Misc_Coin_04" },
-    { "Gastado", RED, "Interface\\Icons\\INV_Misc_Coin_06" },
+    { Tr("Oro actual"), { 1, 0.82, 0 }, "Interface\\Icons\\INV_Misc_Coin_17" },
+    { Tr("Ganado"), GREEN, "Interface\\Icons\\INV_Misc_Coin_04" },
+    { Tr("Gastado"), RED, "Interface\\Icons\\INV_Misc_Coin_06" },
     { "Balance", { 0.55, 0.8, 1 }, "Interface\\Icons\\INV_Misc_Bag_11" },
 }, { x = PAD, y = -94, w = W - PAD * 2, valueSize = 15, tint = false })
 
@@ -67,10 +68,10 @@ local CHART_H = 160
 local chart = Panel(main)
 chart:SetPoint("TOPLEFT", PAD, TOP_Y)
 chart:SetSize(LEFT_W, CHART_H)
-SectionTitle(chart, "Últimos 14 días")
+SectionTitle(chart, Tr("Últimos 14 días"))
 local legend = Text(chart, 10)
 legend:SetPoint("TOPRIGHT", -10, -10)
-legend:SetText("|TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:74:222:128|t Ganado   |TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:255:107:107|t Gastado")
+legend:SetText("|TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:74:222:128|t " .. Tr("Ganado") .. "   |TInterface\\Buttons\\WHITE8x8:8:8:0:0:8:8:0:8:0:8:255:107:107|t " .. Tr("Gastado"))
 
 local PLOT_H = 96
 local PLOT_BOTTOM = 22
@@ -90,8 +91,8 @@ local slots, gridLabels = K.Chart(chart, {
     tooltip = function(self, e)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(DAY_NAMES[tonumber(date("%w", e.t)) + 1] .. " " .. date("%d/%m/%Y", e.t), 1, 0.82, 0)
-        GameTooltip:AddDoubleLine("Ganado", ns.Money(e.i, 12, true), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
-        GameTooltip:AddDoubleLine("Gastado", ns.Money(e.o, 12, true), RED[1], RED[2], RED[3], 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Ganado"), ns.Money(e.i, 12, true), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Gastado"), ns.Money(e.o, 12, true), RED[1], RED[2], RED[3], 1, 1, 1)
         GameTooltip:AddDoubleLine("Balance", ns.Signed(e.i - e.o, 12, true), 0.8, 0.8, 0.8, 1, 1, 1)
         GameTooltip:Show()
     end,
@@ -100,7 +101,7 @@ local slots, gridLabels = K.Chart(chart, {
 local chartEmpty = Text(chart, 11)
 chartEmpty:SetPoint("CENTER", 0, 4)
 chartEmpty:SetTextColor(0.5, 0.5, 0.5)
-chartEmpty:SetText("Sin movimientos en las últimas 2 semanas")
+chartEmpty:SetText(Tr("Sin movimientos en las últimas 2 semanas"))
 
 ---------------------------------------------------------------------------
 -- Desglose por categoría
@@ -108,11 +109,11 @@ chartEmpty:SetText("Sin movimientos en las últimas 2 semanas")
 local catPanel = Panel(main)
 catPanel:SetPoint("TOPLEFT", chart, "BOTTOMLEFT", 0, -8)
 catPanel:SetSize(LEFT_W, contentH - CHART_H - 8)
-SectionTitle(catPanel, "Por categoría")
+SectionTitle(catPanel, Tr("Por categoría"))
 local catHint = Text(catPanel, 9)
 catHint:SetPoint("TOPRIGHT", -10, -11)
 catHint:SetTextColor(0.45, 0.45, 0.45)
-catHint:SetText("clic = filtrar movimientos")
+catHint:SetText(Tr("clic = filtrar movimientos"))
 
 -- Barras de composición (de dónde viene / a dónde va el oro)
 local STACK_W = LEFT_W - 20 - 62
@@ -201,11 +202,11 @@ for i = 1, #ns.CAT_ORDER do
         if not self.data then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:AddLine(self.catName, 1, 0.82, 0)
-        GameTooltip:AddDoubleLine("Ganado", ns.Money(self.data.i, 12, true), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
-        GameTooltip:AddDoubleLine("Gastado", ns.Money(self.data.o, 12, true), RED[1], RED[2], RED[3], 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Ganado"), ns.Money(self.data.i, 12, true), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Gastado"), ns.Money(self.data.o, 12, true), RED[1], RED[2], RED[3], 1, 1, 1)
         GameTooltip:AddDoubleLine("Neto", ns.Signed(self.data.i - self.data.o, 12, true), 0.8, 0.8, 0.8, 1, 1, 1)
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine(state.cat == self.cat and "Clic para quitar el filtro" or "Clic para ver solo estos movimientos", 0.6, 0.6, 0.6)
+        GameTooltip:AddLine(state.cat == self.cat and Tr("Clic para quitar el filtro") or Tr("Clic para ver solo estos movimientos"), 0.6, 0.6, 0.6)
         GameTooltip:Show()
     end)
     r:SetScript("OnLeave", function(self) self.hl:Hide() GameTooltip:Hide() end)
@@ -218,7 +219,7 @@ end
 local catEmpty = Text(catPanel, 12)
 catEmpty:SetPoint("CENTER", 0, -10)
 catEmpty:SetTextColor(0.5, 0.5, 0.5)
-catEmpty:SetText("Aún no hay movimientos en este periodo")
+catEmpty:SetText(Tr("Aún no hay movimientos en este periodo"))
 
 ---------------------------------------------------------------------------
 -- Historial de movimientos
@@ -245,7 +246,7 @@ chip.text:SetPoint("CENTER")
 chip:SetScript("OnClick", function() state.cat = nil ns.Refresh() end)
 chip:SetScript("OnEnter", function(s)
     GameTooltip:SetOwner(s, "ANCHOR_TOP")
-    GameTooltip:AddLine("Clic para quitar el filtro", 1, 1, 1)
+    GameTooltip:AddLine(Tr("Clic para quitar el filtro"), 1, 1, 1)
     GameTooltip:Show()
 end)
 chip:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -311,7 +312,7 @@ end
 local histEmpty = Text(hist, 12)
 histEmpty:SetPoint("CENTER", 0, STATS_H / 2)
 histEmpty:SetTextColor(0.5, 0.5, 0.5)
-histEmpty:SetText("Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí.")
+histEmpty:SetText(Tr("Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí."))
 
 function UpdateHistory()
     N.FillRows(scroll, histRows, ROW_H, histData, function(r, e)
@@ -344,7 +345,7 @@ statsLine:SetHeight(1)
 statsLine:SetPoint("TOPLEFT", 2, 0)
 statsLine:SetPoint("TOPRIGHT", -2, 0)
 
-local stats = K.StatGrid(statsBox, { "Mejor día", "Media diaria", "Mayor ingreso", "Mayor gasto" })
+local stats = K.StatGrid(statsBox, { Tr("Mejor día"), Tr("Media diaria"), Tr("Mayor ingreso"), Tr("Mayor gasto") })
 
 ---------------------------------------------------------------------------
 -- Pie: sesión
@@ -356,23 +357,23 @@ local function UpdateFooter()
     local mins = math.floor((time() - s.start) / 60)
     local dur = mins >= 60 and ("%dh %02dm"):format(math.floor(mins / 60), mins % 60) or (mins .. " min")
     if s.i == 0 and s.o == 0 then
-        footer:SetText("|cffffd100Sesión|r  ·  " .. dur .. "  ·  |cff888888sin movimientos todavía|r")
+        footer:SetText(Tr("|cffffd100Sesión|r  ·  ") .. dur .. Tr("  ·  |cff888888sin movimientos todavía|r"))
         return
     end
     local net = s.i - s.o
     local hours = math.max((time() - s.start) / 3600, 1 / 60)
-    local parts = { "|cffffd100Sesión|r  ·  " .. dur }
+    local parts = { Tr("|cffffd100Sesión|r  ·  ") .. dur }
     if s.i > 0 then parts[#parts + 1] = "|cff4ade80+" .. ns.Money(s.i, 11) .. "|r" end
     if s.o > 0 then parts[#parts + 1] = "|cffff6b6b-" .. ns.Money(s.o, 11) .. "|r" end
-    parts[#parts + 1] = "Neto " .. ns.Signed(net, 11)
-    if mins >= 5 then parts[#parts + 1] = ns.Signed(net / hours, 11) .. " /hora" end
+    parts[#parts + 1] = Tr("Neto ") .. ns.Signed(net, 11)
+    if mins >= 5 then parts[#parts + 1] = ns.Signed(net / hours, 11) .. Tr(" /hora") end
     footer:SetText(table.concat(parts, "  ·  "))
 end
 
 ---------------------------------------------------------------------------
 -- Refrescar todo
 ---------------------------------------------------------------------------
-local PERIOD_TEXT = { today = "desde las 00:00 de hoy", week = "últimos 7 días", month = "últimos 30 días", all = "desde que instalaste Tesorero" }
+local PERIOD_TEXT = { today = Tr("desde las 00:00 de hoy"), week = Tr("últimos 7 días"), month = Tr("últimos 30 días"), all = Tr("desde que instalaste Tesorero") }
 
 local function SetStat(f, value, sub) f:Set(value, sub) end
 
@@ -391,9 +392,9 @@ function ns.Refresh()
     local money, n, peak = ns.TotalMoney(state.filter)
     cards[1].value:SetText(ns.Money(money, 14))
     if state.filter then
-        cards[1].sub:SetText("Récord: " .. ns.Money(peak, 10))
+        cards[1].sub:SetText(Tr("Récord: ") .. ns.Money(peak, 10))
     else
-        cards[1].sub:SetText(n .. (n == 1 and " personaje" or " personajes"))
+        cards[1].sub:SetText(n .. (n == 1 and Tr(" personaje") or Tr(" personajes")))
     end
     cards[2].value:SetText(inc > 0 and ns.Money(inc, 14) or "|cff666666—|r")
     cards[3].value:SetText(out > 0 and ns.Money(out, 14) or "|cff666666—|r")
@@ -404,14 +405,14 @@ function ns.Refresh()
         if v.i > bestI then bestI, bestIc = v.i, cat end
         if v.o > bestO then bestO, bestOc = v.o, cat end
     end
-    cards[2].sub:SetText(bestIc and ("Sobre todo: " .. ns.CATS[bestIc].name) or "Nada todavía")
-    cards[3].sub:SetText(bestOc and ("Sobre todo: " .. ns.CATS[bestOc].name) or "Nada todavía")
+    cards[2].sub:SetText(bestIc and (Tr("Sobre todo: ") .. ns.CATS[bestIc].name) or Tr("Nada todavía"))
+    cards[3].sub:SetText(bestOc and (Tr("Sobre todo: ") .. ns.CATS[bestOc].name) or Tr("Nada todavía"))
     if inc > 0 and out <= inc then
-        cards[4].sub:SetText(("Ahorras el %d%%"):format(math.floor((inc - out) / inc * 100 + 0.5)))
+        cards[4].sub:SetText((Tr("Ahorras el %d%%")):format(math.floor((inc - out) / inc * 100 + 0.5)))
     elseif out > inc then
-        cards[4].sub:SetText("|cffff8a8aGastas más de lo que ganas|r")
+        cards[4].sub:SetText(Tr("|cffff8a8aGastas más de lo que ganas|r"))
     else
-        cards[4].sub:SetText("Sin movimientos")
+        cards[4].sub:SetText(Tr("Sin movimientos"))
     end
 
     -- Gráfico
@@ -481,14 +482,14 @@ function ns.Refresh()
     else
         chip:Hide()
     end
-    histCount:SetText(#histData >= 1000 and "1000+ movimientos" or (#histData .. (#histData == 1 and " movimiento" or " movimientos")))
+    histCount:SetText(#histData >= 1000 and Tr("1000+ movimientos") or (#histData .. (#histData == 1 and Tr(" movimiento") or Tr(" movimientos"))))
     UpdateHistory()
 
     -- Estadísticas
     local ps = ns.PeriodStats(state.filter, state.period)
     if ps.bestDay then
         SetStat(stats[1], ns.Signed(ps.bestNet, 11), DayLabel(DayKeyToTime(ps.bestDay)))
-        SetStat(stats[2], ns.Signed(ps.avg, 11), ps.active .. (ps.active == 1 and " día activo" or " días activos"))
+        SetStat(stats[2], ns.Signed(ps.avg, 11), ps.active .. (ps.active == 1 and Tr(" día activo") or Tr(" días activos")))
     else
         SetStat(stats[1], "|cff666666—|r")
         SetStat(stats[2], "|cff666666—|r")
@@ -526,19 +527,19 @@ local function ShowSummaryTooltip(owner, anchor)
     local key = ns.charKey
     local incT, outT = ns.Aggregate(key, "today")
     local incA, outA = ns.Aggregate(key, "all")
-    GameTooltip:AddDoubleLine("Oro actual", ns.Money(GetMoney(), 12, true), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Oro actual"), ns.Money(GetMoney(), 12, true), 0.8, 0.8, 0.8, 1, 1, 1)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("Hoy", 1, 0.82, 0)
-    GameTooltip:AddDoubleLine("  Ganado", ns.Money(incT, 12), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
-    GameTooltip:AddDoubleLine("  Gastado", ns.Money(outT, 12), RED[1], RED[2], RED[3], 1, 1, 1)
-    GameTooltip:AddLine("Total histórico", 1, 0.82, 0)
-    GameTooltip:AddDoubleLine("  Ganado", ns.Money(incA, 12), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
-    GameTooltip:AddDoubleLine("  Gastado", ns.Money(outA, 12), RED[1], RED[2], RED[3], 1, 1, 1)
+    GameTooltip:AddLine(Tr("Hoy"), 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(Tr("  Ganado"), ns.Money(incT, 12), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("  Gastado"), ns.Money(outT, 12), RED[1], RED[2], RED[3], 1, 1, 1)
+    GameTooltip:AddLine(Tr("Total histórico"), 1, 0.82, 0)
+    GameTooltip:AddDoubleLine(Tr("  Ganado"), ns.Money(incA, 12), GREEN[1], GREEN[2], GREEN[3], 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("  Gastado"), ns.Money(outA, 12), RED[1], RED[2], RED[3], 1, 1, 1)
     local all = ns.TotalMoney(nil)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddDoubleLine("Oro de la cuenta", ns.Money(all, 12), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Oro de la cuenta"), ns.Money(all, 12), 0.8, 0.8, 0.8, 1, 1, 1)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 

@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Vuelo: contador en pantalla y tiempo de cada destino en el mapa de vuelo
 local ADDON, ns = ...
 
@@ -57,14 +58,14 @@ local function Paint()
     local f = ns.flight
     if not f then
         -- de muestra, para colocarlo
-        label:SetText("Arrástrame donde quieras")
+        label:SetText(Tr("Arrástrame donde quieras"))
         clock:SetText("2:30")
         bar:SetWidth((W - 2) * 0.4)
         bar:Show()
         return
     end
     local gone = GetTime() - f.start
-    label:SetText(f.to and ("a " .. ns.Place(f.to)) or "En vuelo")
+    label:SetText(f.to and (Tr("a ") .. ns.Place(f.to)) or Tr("En vuelo"))
     if not f.est then
         -- ruta sin medir y sin nada con qué calcularla: cuenta hacia arriba
         clock:SetText("|cffaab4be+|r" .. ns.Clock(gone))
@@ -94,11 +95,11 @@ box:SetScript("OnEnter", function(self)
     GameTooltip:AddLine("Vuelo", ACC[1], ACC[2], ACC[3])
     local f = ns.flight
     if f and f.est and not f.exact then
-        GameTooltip:AddLine("Tiempo aproximado: esta ruta aún no está medida.", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(Tr("Tiempo aproximado: esta ruta aún no está medida."), 0.8, 0.8, 0.8)
     elseif f and not f.est then
-        GameTooltip:AddLine("Ruta sin medir: se guarda lo que tarde.", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(Tr("Ruta sin medir: se guarda lo que tarde."), 0.8, 0.8, 0.8)
     end
-    GameTooltip:AddLine("|cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end)
 box:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -120,12 +121,12 @@ end
 -- Muestra u oculta el contador de muestra, para colocarlo sin estar volando
 function ns.Toggle()
     if ns.flight then
-        print(ns.P .. "estás volando: arrastra el contador para moverlo.")
+        print(ns.P .. Tr("estás volando: arrastra el contador para moverlo."))
         return
     end
     demo = not demo
     Refresh()
-    if demo then print(ns.P .. "arrastra el contador donde quieras. |cffffff00/vuelo|r otra vez para ocultarlo.") end
+    if demo then print(ns.P .. Tr("arrastra el contador donde quieras. |cffffff00/vuelo|r otra vez para ocultarlo.")) end
 end
 
 function ns.ResetPos()
@@ -143,9 +144,9 @@ local function AddTime(slot)
     if r.exact then
         GameTooltip:AddDoubleLine("Vuelo", ns.Clock(r.est) .. " min", ACC[1], ACC[2], ACC[3], 1, 1, 1)
     elseif r.est then
-        GameTooltip:AddDoubleLine("Vuelo", "unos " .. ns.Clock(r.est) .. " min", ACC[1], ACC[2], ACC[3], 0.8, 0.8, 0.8)
+        GameTooltip:AddDoubleLine("Vuelo", Tr("unos ") .. ns.Clock(r.est) .. " min", ACC[1], ACC[2], ACC[3], 0.8, 0.8, 0.8)
     else
-        GameTooltip:AddDoubleLine("Vuelo", "sin medir", ACC[1], ACC[2], ACC[3], 0.6, 0.6, 0.6)
+        GameTooltip:AddDoubleLine("Vuelo", Tr("sin medir"), ACC[1], ACC[2], ACC[3], 0.6, 0.6, 0.6)
     end
     GameTooltip:Show()
 end
@@ -182,11 +183,11 @@ N.Reg(ev, "ADDON_LOADED", "TAXIMAP_OPENED")
 local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
     GameTooltip:AddLine("Vuelo", ACC[1], ACC[2], ACC[3])
-    GameTooltip:AddDoubleLine("Rutas medidas", ns.RouteCount(), 0.8, 0.8, 0.8, 1, 1, 1)
+    GameTooltip:AddDoubleLine(Tr("Rutas medidas"), ns.RouteCount(), 0.8, 0.8, 0.8, 1, 1, 1)
     local f = ns.flight
-    if f and f.to then GameTooltip:AddDoubleLine("Volando a", ns.Place(f.to), 0.8, 0.8, 0.8, 1, 1, 1) end
+    if f and f.to then GameTooltip:AddDoubleLine(Tr("Volando a"), ns.Place(f.to), 0.8, 0.8, 0.8, 1, 1, 1) end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para mostrar el contador y colocarlo", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para mostrar el contador y colocarlo"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 

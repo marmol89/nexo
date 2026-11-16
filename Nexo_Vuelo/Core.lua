@@ -1,3 +1,31 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["vuelo a |cffffffff"] = "flight to |cffffffff",
+    ["unos "] = "about ",
+    ["ruta sin medir, se guarda lo que tarde."] = "route not measured, it will save however long it takes.",
+    [" medido: |cffffff00"] = " measured: |cffffff00",
+    ["contador devuelto a su sitio."] = "counter returned to its place.",
+    ["avisos en el chat "] = "chat alerts ",
+    ["ruta medida"] = "route measured",
+    ["rutas medidas"] = "routes measured",
+    [". Comandos:"] = ". Commands:",
+    ["  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"] = "  |cffffff00/vuelo|r - show/hide the counter to place it (drag it with the mouse)",
+    ["  |cffffff00/vuelo centro|r - devolver el contador a su sitio"] = "  |cffffff00/vuelo centro|r - return the counter to its place",
+    ["  |cffffff00/vuelo chat|r - activar/desactivar los avisos en el chat"] = "  |cffffff00/vuelo chat|r - turn chat alerts on/off",
+    ["  |cffffff00/vuelo minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/vuelo minimapa|r - show/hide the minimap button",
+    ["Arrástrame donde quieras"] = "Drag me wherever you want",
+    ["a "] = "to ",
+    ["En vuelo"] = "In flight",
+    ["Tiempo aproximado: esta ruta aún no está medida."] = "Approximate time: this route is not measured yet.",
+    ["Ruta sin medir: se guarda lo que tarde."] = "Route not measured: it will save however long it takes.",
+    ["|cffffff00Arrastrar|r para mover"] = "|cffffff00Drag|r to move",
+    ["estás volando: arrastra el contador para moverlo."] = "you are flying: drag the counter to move it.",
+    ["arrastra el contador donde quieras. |cffffff00/vuelo|r otra vez para ocultarlo."] = "drag the counter wherever you want. |cffffff00/vuelo|r again to hide it.",
+    ["sin medir"] = "not measured",
+    ["Rutas medidas"] = "Routes measured",
+    ["Volando a"] = "Flying to",
+    ["|cffffff00Clic|r para mostrar el contador y colocarlo"] = "|cffffff00Click|r to show the counter and place it",
+})
 -- Vuelo: cuánto tarda cada vuelo de los maestros de vuelo
 --
 -- El juego no dice cuánto dura un vuelo, así que se mide: cada ruta que vuelas queda
@@ -161,11 +189,11 @@ local function TakeOff(f, start)
     db.flying = { from = f.from, to = f.to, est = f.est, exact = f.exact, len = f.len, cont = f.cont,
         at = time() - floor(GetTime() - f.start) }
     if db.settings.chat and not start and f.to then
-        local where = "vuelo a |cffffffff" .. ns.Place(f.to) .. "|r: "
+        local where = Tr("vuelo a |cffffffff") .. ns.Place(f.to) .. "|r: "
         if f.est then
-            print(P .. where .. (f.exact and "" or "unos ") .. "|cffffff00" .. ns.Clock(f.est) .. "|r min.")
+            print(P .. where .. (f.exact and "" or Tr("unos ")) .. "|cffffff00" .. ns.Clock(f.est) .. "|r min.")
         else
-            print(P .. where .. "ruta sin medir, se guarda lo que tarde.")
+            print(P .. where .. Tr("ruta sin medir, se guarda lo que tarde."))
         end
     end
     Changed()
@@ -183,7 +211,7 @@ local function Land()
             sp.d, sp.t = sp.d + f.len, sp.t + took
         end
         if db.settings.chat and not f.exact then
-            print(P .. ns.Place(f.from) .. " > " .. ns.Place(f.to) .. " medido: |cffffff00" .. ns.Clock(took) .. "|r min.")
+            print(P .. ns.Place(f.from) .. " > " .. ns.Place(f.to) .. Tr(" medido: |cffffff00") .. ns.Clock(took) .. "|r min.")
         end
     end
     Changed()
@@ -252,18 +280,18 @@ SlashCmdList.VUELO = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
     if msg == "centro" then
         ns.ResetPos()
-        print(P .. "contador devuelto a su sitio.")
+        print(P .. Tr("contador devuelto a su sitio."))
     elseif msg == "chat" then
         db.settings.chat = not db.settings.chat
-        print(P .. "avisos en el chat " .. (db.settings.chat and "activados" or "desactivados") .. ".")
+        print(P .. Tr("avisos en el chat ") .. (db.settings.chat and "activados" or "desactivados") .. ".")
     elseif msg == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
-        print(P .. N.Plural(ns.RouteCount(), "ruta medida", "rutas medidas") .. ". Comandos:")
-        print("  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)")
-        print("  |cffffff00/vuelo centro|r - devolver el contador a su sitio")
-        print("  |cffffff00/vuelo chat|r - activar/desactivar los avisos en el chat")
-        print("  |cffffff00/vuelo minimapa|r - mostrar/ocultar el botón del minimapa")
+        print(P .. N.Plural(ns.RouteCount(), Tr("ruta medida"), Tr("rutas medidas")) .. Tr(". Comandos:"))
+        print(Tr("  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"))
+        print(Tr("  |cffffff00/vuelo centro|r - devolver el contador a su sitio"))
+        print(Tr("  |cffffff00/vuelo chat|r - activar/desactivar los avisos en el chat"))
+        print(Tr("  |cffffff00/vuelo minimapa|r - mostrar/ocultar el botón del minimapa"))
     else
         ns.Toggle()
     end

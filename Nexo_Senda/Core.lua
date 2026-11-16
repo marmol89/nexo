@@ -1,3 +1,60 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["Nivel"] = "Level",
+    [" alcanzado. El nivel "] = " reached. Level ",
+    [" te llevó "] = " took you ",
+    ["aviso al subir de nivel "] = "level-up alert ",
+    [". Escribe |cffffff00/senda reset confirmar|r para hacerlo."] = ". Type |cffffff00/senda reset confirmar|r to do it.",
+    ["  |cffffff00/senda|r - abrir/cerrar la ventana"] = "  |cffffff00/senda|r - open/close the window",
+    ["  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel"] = "  |cffffff00/senda avisos|r - turn the chat summary on level-up on/off",
+    ["  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/senda minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/senda reset|r - borrar el registro de este personaje"] = "  |cffffff00/senda reset|r - delete this character's log",
+    ["Exploración"] = "Exploration",
+    ["Nivel "] = "Level ",
+    ["  |cff4ade80(en curso)|r"] = "  |cff4ade80(in progress)|r",
+    ["Tiempo en el nivel"] = "Time in level",
+    ["Experiencia registrada"] = "Experience recorded",
+    ["Ritmo medio"] = "Average pace",
+    ["Senda se instaló con este nivel ya empezado:"] = "Senda was installed with this level already started:",
+    ["el tiempo y la experiencia son parciales."] = "time and experience are partial.",
+    ["la experiencia registrada es parcial."] = "the recorded experience is partial.",
+    ["Subida de nivel · WoW Forever"] = "Leveling · WoW Forever",
+    ["Experiencia por hora"] = "Experience per hour",
+    ["Para subir de nivel"] = "To level up",
+    ["Esta sesión"] = "This session",
+    ["En este nivel"] = "In this level",
+    ["Tiempo por nivel"] = "Time per level",
+    ["últimos "] = "last ",
+    [" niveles"] = " levels",
+    ["Aún no hay tiempo registrado"] = "No time recorded yet",
+    ["De dónde viene la experiencia"] = "Where the experience comes from",
+    ["Muertes con experiencia"] = "Deaths with experience",
+    ["Misiones entregadas"] = "Quests turned in",
+    ["Ganancias cuyo origen no se pudo identificar."] = "Gains whose source could not be identified.",
+    ["|cff4ade80en curso|r"] = "|cff4ade80in progress|r",
+    ["|r  |cff888888nivel "] = "|r  |cff888888level ",
+    ["Sin experiencia que ganar en este nivel"] = "No experience to gain at this level",
+    ["Entra con este personaje para ver su progreso"] = "Log in with this character to see its progress",
+    ["|r  |cff888888· faltan "] = "|r  |cff888888· remaining ",
+    ["Últimos 15 min: "] = "Last 15 min: ",
+    ["Gana experiencia para calcularlo"] = "Gain experience to calculate it",
+    ["Nivel máximo"] = "Max level",
+    ["Hacia las "] = "Around ",
+    [" muertes"] = " deaths",
+    ["Faltan "] = "Remaining ",
+    [" de experiencia"] = " experience",
+    [" · nivel "] = " · level ",
+    ["Solo con el personaje conectado"] = "Only with the character logged in",
+    ["Descanso: "] = "Rested: ",
+    ["Sin experiencia de descanso"] = "No rested experience",
+    [" nivel"] = " level",
+    ["Sin experiencia registrada todavía"] = "No experience recorded yet",
+    ["|cffb88cffHoy|r  ·  "] = "|cffb88cffToday|r  ·  ",
+    [" de experiencia en "] = " experience in ",
+    [" muertes en la sesión"] = " deaths in the session",
+    [" misión"] = " quest",
+    [" misiones"] = " quests",
+})
 -- Senda: registro de la subida de nivel
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -184,7 +241,7 @@ local function SetLevel(new)
         if db.settings.announce == false then return end
         local r = char.levels[old]
         if not r then return end
-        local msg = "nivel " .. new .. " alcanzado. El nivel " .. old .. " te llevó " .. ns.Dur(r.sec)
+        local msg = Tr("nivel ") .. new .. Tr(" alcanzado. El nivel ") .. old .. Tr(" te llevó ") .. ns.Dur(r.sec)
         local xp = r.k + r.q + r.e + r.o
         if r.ts >= 60 and xp > 0 then
             msg = msg .. " (" .. ns.Num(xp / r.ts * 3600) .. " exp/h)"
@@ -382,21 +439,21 @@ SlashCmdList.SENDA = function(msg)
         session = nil
         Snapshot()
         StartSession()
-        print(P .. "registro de este personaje borrado.")
+        print(P .. Tr("registro de este personaje borrado."))
         if ns.Refresh then ns.Refresh() end
     elseif msg == "reset" then
-        print(P .. "esto borrará TODO el registro de " .. charKey .. ". Escribe |cffffff00/senda reset confirmar|r para hacerlo.")
+        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe |cffffff00/senda reset confirmar|r para hacerlo."))
     elseif msg == "avisos" then
         db.settings.announce = (db.settings.announce == false)
-        print(P .. "aviso al subir de nivel " .. (db.settings.announce and "activado" or "desactivado") .. ".")
+        print(P .. Tr("aviso al subir de nivel ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
     elseif msg == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/senda|r - abrir/cerrar la ventana")
-        print("  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel")
-        print("  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/senda reset|r - borrar el registro de este personaje")
+        print(Tr("  |cffffff00/senda|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel"))
+        print(Tr("  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/senda reset|r - borrar el registro de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end

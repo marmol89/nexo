@@ -7,9 +7,9 @@
 ![Addons](https://img.shields.io/badge/addons-7-d9d9e6?style=for-the-badge)
 ![Interfaz](https://img.shields.io/badge/interfaz-16001-66c7ff?style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Lua-5.1-b88cff?style=for-the-badge&logo=lua&logoColor=white)
-![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol-ffd100?style=for-the-badge)
+![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol%20%2F%20English-ffd100?style=for-the-badge)
 
-**Siete addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español.<br>
+**Siete addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español o en inglés, según el idioma de tu juego (si no es español, en inglés).<br>
 Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es el núcleo que comparten.
 
 [Addons](#-los-addons) •
@@ -29,7 +29,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 
 | | Addon | Qué hace | Comando | Versión |
 |:-:|---|---|:-:|:-:|
-| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes y un único botón de minimapa. | `/nexo` | `1.5.2` |
+| 🔗 | **Nexo** | Núcleo común: piezas de interfaz, reloj de juego, registro de personajes, un único botón de minimapa y ajustes (idioma). | `/nexo` | `1.6.0` |
 | 💰 | **Tesorero** | Historial de oro: cuánto ganas, cuánto gastas y en qué (botín, misiones, mercader, reparaciones, subasta...). | `/tesoro` | `1.1.0` |
 | ⏱️ | **Bitácora** | Tiempo de juego: por día, por personaje, por zona y por sesión, con el tiempo ausente aparte. | `/bita` | `1.2.0` |
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
@@ -117,6 +117,7 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | `/nexo` | Lista los addons conectados. |
 | `/nexo ayuda` | Lista los comandos de Nexo. También vale `/nexo help`. |
 | `/nexo minimapa` | Muestra u oculta el botón del minimapa, que es compartido. Al pulsarlo sale un menú con los addons instalados. |
+| `/nexo ajustes` | Abre la ventana de ajustes: **idioma** (Automático, Español o English; se aplica al recargar la interfaz), botón del minimapa (mostrar u ocultar, restablecer su posición y activar o desactivar su tooltip), sonidos al abrir y cerrar las ventanas, y acceso a exportar e importar. También está en el menú del minimapa. `/nexo config` vale igual. |
 | `/nexo datos` | Abre la ventana de exportar e importar los datos, para cambiar de ordenador. También está al final del menú del minimapa. `/nexo exportar` y `/nexo importar` la abren ya en ese modo. |
 
 </details>

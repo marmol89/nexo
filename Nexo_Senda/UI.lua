@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Senda: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -19,10 +20,10 @@ local DASH = "|cff666666—|r"
 local SOURCES = {
     { "k", "Muertes", { 1.00, 0.45, 0.45 } },
     { "q", "Misiones", { 1.00, 0.82, 0.00 } },
-    { "e", "Exploración", { 0.29, 0.87, 0.50 } },
+    { "e", Tr("Exploración"), { 0.29, 0.87, 0.50 } },
     { "o", "Otros", { 0.60, 0.60, 0.66 } },
 }
-local SCOPES = { { "session", "Sesión" }, { "level", "Nivel" }, { "all", "Todo" } }
+local SCOPES = { { "session", Tr("Sesión") }, { "level", Tr("Nivel") }, { "all", Tr("Todo") } }
 
 -- filter = clave del personaje que se está viendo
 local state = { filter = nil, scope = "session" }
@@ -49,13 +50,13 @@ end
 -- Tooltip común de un nivel (gráfico y lista)
 local function LevelTooltip(owner, e, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_RIGHT")
-    GameTooltip:AddLine("Nivel " .. e.lvl .. (e.current and "  |cff4ade80(en curso)|r" or ""), ACC[1], ACC[2], ACC[3])
-    GameTooltip:AddDoubleLine("Tiempo en el nivel", ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
+    GameTooltip:AddLine(Tr("Nivel ") .. e.lvl .. (e.current and Tr("  |cff4ade80(en curso)|r") or ""), ACC[1], ACC[2], ACC[3])
+    GameTooltip:AddDoubleLine(Tr("Tiempo en el nivel"), ns.Dur(e.sec), 0.7, 0.7, 0.7, 1, 1, 1)
     if e.xp > 0 then
-        GameTooltip:AddDoubleLine("Experiencia registrada", ns.Num(e.xp), 0.7, 0.7, 0.7, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Experiencia registrada"), ns.Num(e.xp), 0.7, 0.7, 0.7, 1, 1, 1)
     end
     if e.rate then
-        GameTooltip:AddDoubleLine("Ritmo medio", ns.Num(e.rate) .. " exp/h", 0.7, 0.7, 0.7, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Ritmo medio"), ns.Num(e.rate) .. " exp/h", 0.7, 0.7, 0.7, 1, 1, 1)
     end
     if e.xp > 0 then
         GameTooltip:AddLine(" ")
@@ -75,8 +76,8 @@ local function LevelTooltip(owner, e, anchor)
     if e.done then GameTooltip:AddDoubleLine("Completado", date("%d/%m/%Y %H:%M", e.done), 0.7, 0.7, 0.7, 1, 1, 1) end
     if e.partXP then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("Senda se instaló con este nivel ya empezado:", 0.6, 0.6, 0.6)
-        GameTooltip:AddLine(e.partTime and "el tiempo y la experiencia son parciales." or "la experiencia registrada es parcial.", 0.6, 0.6, 0.6)
+        GameTooltip:AddLine(Tr("Senda se instaló con este nivel ya empezado:"), 0.6, 0.6, 0.6)
+        GameTooltip:AddLine(e.partTime and Tr("el tiempo y la experiencia son parciales.") or Tr("la experiencia registrada es parcial."), 0.6, 0.6, 0.6)
     end
     GameTooltip:Show()
 end
@@ -86,7 +87,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "SendaMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_Map_01",
-    title = "Senda", subtitle = "Subida de nivel · WoW Forever",
+    title = "Senda", subtitle = Tr("Subida de nivel · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -128,10 +129,10 @@ end
 -- Tarjetas resumen
 ---------------------------------------------------------------------------
 local cards = K.Cards(main, {
-    { "Experiencia por hora", ACC, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
-    { "Para subir de nivel", GOLD, "Interface\\Icons\\INV_Misc_Map_01" },
-    { "Esta sesión", GREEN, "Interface\\Icons\\INV_Misc_Note_01" },
-    { "En este nivel", REST, "Interface\\Icons\\INV_Misc_Book_09" },
+    { Tr("Experiencia por hora"), ACC, "Interface\\Icons\\INV_Misc_PocketWatch_01" },
+    { Tr("Para subir de nivel"), GOLD, "Interface\\Icons\\INV_Misc_Map_01" },
+    { Tr("Esta sesión"), GREEN, "Interface\\Icons\\INV_Misc_Note_01" },
+    { Tr("En este nivel"), REST, "Interface\\Icons\\INV_Misc_Book_09" },
 }, { x = PAD, y = -124, w = W - PAD * 2, valueSize = 16, tint = true })
 
 ---------------------------------------------------------------------------
@@ -145,11 +146,11 @@ local CHART_H = 170
 local chart = Panel(main)
 chart:SetPoint("TOPLEFT", PAD, TOP_Y)
 chart:SetSize(LEFT_W, CHART_H)
-SectionTitle(chart, "Tiempo por nivel")
+SectionTitle(chart, Tr("Tiempo por nivel"))
 local chartHint = Text(chart, 9)
 chartHint:SetPoint("TOPRIGHT", -10, -11)
 chartHint:SetTextColor(0.45, 0.45, 0.45)
-chartHint:SetText("últimos " .. CHART_LEVELS .. " niveles")
+chartHint:SetText(Tr("últimos ") .. CHART_LEVELS .. Tr(" niveles"))
 
 local PLOT_H = 104
 local PLOT_BOTTOM = 22
@@ -168,7 +169,7 @@ local slots, gridLabels = K.Chart(chart, {
 local chartEmpty = Text(chart, 11)
 chartEmpty:SetPoint("CENTER", 0, 4)
 chartEmpty:SetTextColor(0.5, 0.5, 0.5)
-chartEmpty:SetText("Aún no hay tiempo registrado")
+chartEmpty:SetText(Tr("Aún no hay tiempo registrado"))
 
 ---------------------------------------------------------------------------
 -- De dónde viene la experiencia
@@ -177,7 +178,7 @@ local SRC_BAR_W = 96
 local srcPanel = Panel(main)
 srcPanel:SetPoint("TOPLEFT", chart, "BOTTOMLEFT", 0, -8)
 srcPanel:SetSize(LEFT_W, contentH - CHART_H - 8)
-SectionTitle(srcPanel, "De dónde viene la experiencia")
+SectionTitle(srcPanel, Tr("De dónde viene la experiencia"))
 
 local scopeBtns = {}
 for i = #SCOPES, 1, -1 do
@@ -231,11 +232,11 @@ for i, src in ipairs(SOURCES) do
         GameTooltip:AddLine(src[2], src[3][1], src[3][2], src[3][3])
         GameTooltip:AddDoubleLine("Experiencia", ns.Num(d.xp), 0.7, 0.7, 0.7, 1, 1, 1)
         if d.n and d.n > 0 then
-            GameTooltip:AddDoubleLine(src[1] == "k" and "Muertes con experiencia" or "Misiones entregadas", ns.Num(d.n), 0.7, 0.7, 0.7, 1, 1, 1)
+            GameTooltip:AddDoubleLine(src[1] == "k" and Tr("Muertes con experiencia") or Tr("Misiones entregadas"), ns.Num(d.n), 0.7, 0.7, 0.7, 1, 1, 1)
             GameTooltip:AddDoubleLine("Media", ns.Num(d.xp / d.n) .. " exp", 0.7, 0.7, 0.7, 1, 1, 1)
         end
         if src[1] == "o" then
-            GameTooltip:AddLine("Ganancias cuyo origen no se pudo identificar.", 0.6, 0.6, 0.6)
+            GameTooltip:AddLine(Tr("Ganancias cuyo origen no se pudo identificar."), 0.6, 0.6, 0.6)
         end
         GameTooltip:Show()
     end)
@@ -317,11 +318,11 @@ end
 
 function UpdateLevels()
     N.FillRows(scroll, lvRows, ROW_H, lvData, function(r, e)
-        r.level:SetText((e.current and "|cff4ade80" or "|cffb88cff") .. "Nivel " .. e.lvl .. "|r")
+        r.level:SetText((e.current and "|cff4ade80" or "|cffb88cff") .. Tr("Nivel ") .. e.lvl .. "|r")
         r.time:SetText((e.partTime and "|cff8c8c9e" or "") .. ns.Dur(e.sec) .. (e.partTime and "+|r" or ""))
         r.rate:SetText(e.rate and ns.Num(e.rate) or DASH)
         if e.current then
-            r.done:SetText("|cff4ade80en curso|r")
+            r.done:SetText(Tr("|cff4ade80en curso|r"))
         elseif e.done then
             r.done:SetText(N.WhenLabel(e.done, true))
         else
@@ -352,19 +353,19 @@ function ns.Refresh()
     local atMax = mx <= 0
     local rec = c.levels[lvl]
 
-    charBtn.text:SetText("|c" .. ClassHex(c.class) .. ShortName(key) .. "|r  |cff888888nivel " .. (lvl > 0 and lvl or "?") .. "|r")
+    charBtn.text:SetText("|c" .. ClassHex(c.class) .. ShortName(key) .. Tr("|r  |cff888888nivel ") .. (lvl > 0 and lvl or "?") .. "|r")
 
     -- Barra de progreso
-    progFrom:SetText("Nivel " .. (lvl > 0 and lvl or "?"))
+    progFrom:SetText(Tr("Nivel ") .. (lvl > 0 and lvl or "?"))
     if atMax then
         progTo:SetText("")
-        progInfo:SetText(lvl > 0 and "Sin experiencia que ganar en este nivel" or "Entra con este personaje para ver su progreso")
+        progInfo:SetText(lvl > 0 and Tr("Sin experiencia que ganar en este nivel") or Tr("Entra con este personaje para ver su progreso"))
         barFill:Hide()
         barRest:Hide()
     else
         local frac = math.min(1, xp / mx)
-        progTo:SetText("Nivel " .. (lvl + 1))
-        progInfo:SetText(ns.Num(xp) .. " / " .. ns.Num(mx) .. "  |cffb88cff" .. Pct(frac * 100) .. "|r  |cff888888· faltan " .. ns.Num(mx - xp) .. "|r")
+        progTo:SetText(Tr("Nivel ") .. (lvl + 1))
+        progInfo:SetText(ns.Num(xp) .. " / " .. ns.Num(mx) .. "  |cffb88cff" .. Pct(frac * 100) .. Tr("|r  |cff888888· faltan ") .. ns.Num(mx - xp) .. "|r")
         barFill:SetWidth(math.max(1, BAR_FULL * frac))
         barFill:SetShown(xp > 0)
         local rest = math.min(c.rested or 0, mx - xp)
@@ -380,35 +381,35 @@ function ns.Refresh()
         local rate, recent = ns.Rates()
         if rate > 0 then
             cards[1].value:SetText(ns.Num(rate))
-            cards[1].sub:SetText("Últimos 15 min: " .. ns.Num(recent))
+            cards[1].sub:SetText(Tr("Últimos 15 min: ") .. ns.Num(recent))
         else
             cards[1].value:SetText(DASH)
-            cards[1].sub:SetText("Gana experiencia para calcularlo")
+            cards[1].sub:SetText(Tr("Gana experiencia para calcularlo"))
         end
 
         local eta, left = ns.ETA()
         if atMax then
             cards[2].value:SetText(DASH)
-            cards[2].sub:SetText("Nivel máximo")
+            cards[2].sub:SetText(Tr("Nivel máximo"))
         elseif eta then
             cards[2].value:SetText(ns.Dur(eta))
-            local sub = "Hacia las " .. date("%H:%M", time() + eta)
+            local sub = Tr("Hacia las ") .. date("%H:%M", time() + eta)
             local kills = ns.KillsLeft()
-            if kills then sub = sub .. " · ~" .. ns.Num(kills) .. " muertes" end
+            if kills then sub = sub .. " · ~" .. ns.Num(kills) .. Tr(" muertes") end
             cards[2].sub:SetText(sub)
         else
             cards[2].value:SetText(DASH)
-            cards[2].sub:SetText("Faltan " .. ns.Num(left) .. " de experiencia")
+            cards[2].sub:SetText(Tr("Faltan ") .. ns.Num(left) .. Tr(" de experiencia"))
         end
 
         cards[3].value:SetText(ns.Num(s.xp))
         local sub = ns.Dur(s.sec)
-        if s.l1 and s.l0 and s.l1 > s.l0 then sub = sub .. " · nivel " .. s.l0 .. " > " .. s.l1 end
+        if s.l1 and s.l0 and s.l1 > s.l0 then sub = sub .. Tr(" · nivel ") .. s.l0 .. " > " .. s.l1 end
         cards[3].sub:SetText(sub)
     else
         for i = 1, 3 do
             cards[i].value:SetText(DASH)
-            cards[i].sub:SetText("Solo con el personaje conectado")
+            cards[i].sub:SetText(Tr("Solo con el personaje conectado"))
         end
     end
 
@@ -418,14 +419,14 @@ function ns.Refresh()
         cards[4].value:SetText(DASH)
     end
     if not atMax and (c.rested or 0) > 0 then
-        cards[4].sub:SetText("Descanso: " .. ns.Num(c.rested) .. " (" .. math.floor(c.rested / mx * 100 + 0.5) .. "%)")
+        cards[4].sub:SetText(Tr("Descanso: ") .. ns.Num(c.rested) .. " (" .. math.floor(c.rested / mx * 100 + 0.5) .. "%)")
     else
-        cards[4].sub:SetText("Sin experiencia de descanso")
+        cards[4].sub:SetText(Tr("Sin experiencia de descanso"))
     end
 
     -- Niveles
     lvData = ns.LevelList(key)
-    lvCount:SetText(#lvData .. (#lvData == 1 and " nivel" or " niveles"))
+    lvCount:SetText(#lvData .. (#lvData == 1 and Tr(" nivel") or Tr(" niveles")))
     UpdateLevels()
 
     -- Gráfico
@@ -488,13 +489,13 @@ function ns.Refresh()
         r.bar:SetShown(v > 0)
         r.amount:SetText(v > 0 and ns.Num(v) or DASH)
     end
-    srcEmpty:SetText(src.total > 0 and "" or "Sin experiencia registrada todavía")
+    srcEmpty:SetText(src.total > 0 and "" or Tr("Sin experiencia registrada todavía"))
 
     -- Pie
     local todayXP, todaySec = ns.Today(key)
-    local parts = { "|cffb88cffHoy|r  ·  " .. ns.Num(todayXP) .. " de experiencia en " .. ns.Dur(todaySec) }
-    if live and s and s.nk > 0 then parts[#parts + 1] = ns.Num(s.nk) .. " muertes en la sesión" end
-    if live and s and s.nq > 0 then parts[#parts + 1] = s.nq .. (s.nq == 1 and " misión" or " misiones") end
+    local parts = { Tr("|cffb88cffHoy|r  ·  ") .. ns.Num(todayXP) .. Tr(" de experiencia en ") .. ns.Dur(todaySec) }
+    if live and s and s.nk > 0 then parts[#parts + 1] = ns.Num(s.nk) .. Tr(" muertes en la sesión") end
+    if live and s and s.nq > 0 then parts[#parts + 1] = s.nq .. (s.nq == 1 and Tr(" misión") or Tr(" misiones")) end
     footer:SetText(table.concat(parts, "  ·  "))
 end
 
@@ -521,21 +522,21 @@ local function ShowSummaryTooltip(owner, anchor)
     if c and c.level then
         local mx = c.xpMax or 0
         if mx > 0 then
-            GameTooltip:AddDoubleLine("Nivel " .. c.level, Pct((c.xp or 0) / mx * 100), 0.8, 0.8, 0.8, 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Nivel ") .. c.level, Pct((c.xp or 0) / mx * 100), 0.8, 0.8, 0.8, 1, 1, 1)
         else
             GameTooltip:AddDoubleLine("Nivel", tostring(c.level), 0.8, 0.8, 0.8, 1, 1, 1)
         end
         local rate = ns.Rates()
-        if rate > 0 then GameTooltip:AddDoubleLine("Experiencia por hora", ns.Num(rate), 0.8, 0.8, 0.8, 1, 1, 1) end
+        if rate > 0 then GameTooltip:AddDoubleLine(Tr("Experiencia por hora"), ns.Num(rate), 0.8, 0.8, 0.8, 1, 1, 1) end
         local eta = ns.ETA()
-        if eta then GameTooltip:AddDoubleLine("Para subir de nivel", ns.Dur(eta), 0.8, 0.8, 0.8, 1, 0.82, 0) end
+        if eta then GameTooltip:AddDoubleLine(Tr("Para subir de nivel"), ns.Dur(eta), 0.8, 0.8, 0.8, 1, 0.82, 0) end
         if ns.session then
-            GameTooltip:AddDoubleLine("Esta sesión", ns.Num(ns.session.xp) .. " exp", 0.8, 0.8, 0.8, 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Esta sesión"), ns.Num(ns.session.xp) .. " exp", 0.8, 0.8, 0.8, 1, 1, 1)
         end
-        GameTooltip:AddDoubleLine("Hoy", ns.Num((ns.Today(ns.charKey))) .. " exp", 0.8, 0.8, 0.8, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Hoy"), ns.Num((ns.Today(ns.charKey))) .. " exp", 0.8, 0.8, 0.8, 1, 1, 1)
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 
