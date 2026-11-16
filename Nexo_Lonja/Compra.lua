@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Lonja: lista de compra
 --
 -- Datos guardados (dentro de cada reino de LonjaDB):
@@ -105,13 +106,13 @@ end
 local function Announce()
     local deals = ns.Deals()
     if #deals == 0 then return end
-    print(P .. Nexo.Plural(#deals, "objeto de tu lista está", "objetos de tu lista están") .. " a tu precio o por debajo:")
+    print(P .. Nexo.Plural(#deals, "objeto de tu lista está", "objetos de tu lista están") .. Tr(" a tu precio o por debajo:"))
     for i = 1, min(#deals, 5) do
         local d = deals[i]
-        print(("  %s: %s (máximo %s) · quedan %d"):format(Name(d.id), ns.Money(d.p, 12, true), ns.Money(d.max, 12, true), d.n))
+        print((Tr("  %s: %s (máximo %s) · quedan %d")):format(Name(d.id), ns.Money(d.p, 12, true), ns.Money(d.max, 12, true), d.n))
     end
-    if #deals > 5 then print("  ... y " .. (#deals - 5) .. " más.") end
-    print("  Pulsa el botón |cffffff00Lonja: comprar|r de encima de la subasta: cada compra pide un clic tuyo.")
+    if #deals > 5 then print(Tr("  ... y ") .. (#deals - 5) .. Tr(" más.")) end
+    print(Tr("  Pulsa el botón |cffffff00Lonja: comprar|r de encima de la subasta: cada compra pide un clic tuyo."))
 end
 
 function ns.OnScanDone()
@@ -124,12 +125,12 @@ end
 ---------------------------------------------------------------------------
 local function Bought(id, qty, cost)
     local b = ns.BuyGet(id)
-    print(P .. ("comprado %d × %s por %s."):format(qty, Name(id), ns.Money(cost, 12, true)))
+    print(P .. (Tr("comprado %d × %s por %s.")):format(qty, Name(id), ns.Money(cost, 12, true)))
     if not b then return end
     b.n = b.n - qty
     if b.n <= 0 then
         ns.BuyList()[id] = nil
-        print(P .. Name(id) .. ": ya tienes todo lo que querías; sale de la lista de compra.")
+        print(P .. Name(id) .. Tr(": ya tienes todo lo que querías; sale de la lista de compra."))
     end
 end
 
@@ -140,7 +141,7 @@ local function Finish(ok)
     if ok then
         Bought(j.id, j.qty, j.cost)
     else
-        print(P .. "no se pudo comprar " .. Name(j.id) .. ".")
+        print(P .. Tr("no se pudo comprar ") .. Name(j.id) .. ".")
     end
     Notify()
 end
@@ -149,7 +150,7 @@ end
 local function Nothing(id, why)
     skip[id] = true
     job = nil
-    print(P .. Name(id) .. ": " .. (why or "ya no hay nada a tu precio") .. ".")
+    print(P .. Name(id) .. ": " .. (why or Tr("ya no hay nada a tu precio")) .. ".")
     Notify()
 end
 
@@ -180,7 +181,7 @@ local function OnCommodityResults(id)
             end
         end
     end
-    if qty == 0 then return Nothing(id, short and "no te llega el dinero") end
+    if qty == 0 then return Nothing(id, short and Tr("no te llega el dinero")) end
     job.step, job.commodity, job.qty, job.cost = "ready", true, qty, cost
     Notify()
 end
@@ -204,7 +205,7 @@ local function OnItemResults(itemKey)
             end
         end
     end
-    if not best then return Nothing(id, short and "no te llega el dinero") end
+    if not best then return Nothing(id, short and Tr("no te llega el dinero")) end
     job.step, job.commodity = "ready", false
     job.auctionID, job.qty, job.cost = best.auctionID, best.quantity or 1, best.buyoutAmount
     Notify()
@@ -218,7 +219,7 @@ local function OnCommodityPrice(_, total)
         if AH.CancelCommoditiesPurchase then AH.CancelCommoditiesPurchase() end
         local id = job.id
         job = nil
-        print(P .. Name(id) .. " ha cambiado de precio mientras tanto; vuelve a pulsar para buscarlo otra vez.")
+        print(P .. Name(id) .. Tr(" ha cambiado de precio mientras tanto; vuelve a pulsar para buscarlo otra vez."))
     else
         job.step, job.cost = "confirm", total
     end
@@ -228,39 +229,39 @@ end
 -- Texto del botón de compra y si el siguiente clic gasta dinero. nil si la lista está vacía
 function ns.BuyStatus()
     if ns.BuyCount() == 0 then return nil end
-    if ns.Scanning() then return "Lista de compra: escaneando...", false end
+    if ns.Scanning() then return Tr("Lista de compra: escaneando..."), false end
     if job then
         local name = Name(job.id)
-        if job.step == "search" then return "Buscando " .. name .. "...", false end
-        if job.step == "quote" then return "Pidiendo precio de " .. name .. "...", false end
-        if job.step == "buying" then return "Comprando " .. name .. "...", false end
+        if job.step == "search" then return Tr("Buscando ") .. name .. "...", false end
+        if job.step == "quote" then return Tr("Pidiendo precio de ") .. name .. "...", false end
+        if job.step == "buying" then return Tr("Comprando ") .. name .. "...", false end
         local what = (job.qty > 1 and (job.qty .. " × ") or "") .. name .. " · " .. ns.Money(job.cost, 11)
-        return (job.step == "confirm" and "Confirmar " or "Comprar ") .. what, true
+        return (job.step == "confirm" and Tr("Confirmar ") or Tr("Comprar ")) .. what, true
     end
     local deals = ns.Deals()
-    if #deals == 0 then return "Lista de compra: nada a tu precio", false end
-    return "Buscar " .. Name(deals[1].id) .. " (" .. #deals .. " a tu precio)", false
+    if #deals == 0 then return Tr("Lista de compra: nada a tu precio"), false end
+    return Tr("Buscar ") .. Name(deals[1].id) .. " (" .. #deals .. Tr(" a tu precio)"), false
 end
 
 -- Un clic = un paso. Tiene que llamarse desde el clic de un botón: el juego no acepta compras de otra forma
 function ns.BuyClick()
     if not (AH and AH.SendSearchQuery and AH.MakeItemKey) then
-        return print(P .. "este cliente no deja comprar desde un addon.")
+        return print(P .. Tr("este cliente no deja comprar desde un addon."))
     end
-    if not ns.IsOpen() then return print(P .. "abre la casa de subastas para comprar.") end
-    if ns.Scanning() then return print(P .. "espera a que termine el escaneo.") end
+    if not ns.IsOpen() then return print(P .. Tr("abre la casa de subastas para comprar.")) end
+    if ns.Scanning() then return print(P .. Tr("espera a que termine el escaneo.")) end
     if job and job.step ~= "ready" and job.step ~= "confirm" then
         if GetTime() - job.t < WAIT then return end        -- esperando la respuesta de la subasta
         if job.step == "quote" and AH.CancelCommoditiesPurchase then AH.CancelCommoditiesPurchase() end
         job = nil
     end
     if AH.IsThrottledMessageSystemReady and not AH.IsThrottledMessageSystemReady() then
-        return print(P .. "la subasta pide esperar un momento; vuelve a pulsar.")
+        return print(P .. Tr("la subasta pide esperar un momento; vuelve a pulsar."))
     end
 
     if not job then
         local deal = ns.Deals()[1]
-        if not deal then return print(P .. "nada de tu lista de compra está a tu precio.") end
+        if not deal then return print(P .. Tr("nada de tu lista de compra está a tu precio.")) end
         Search(deal.id)
     elseif job.step == "ready" and job.commodity then
         job.step, job.t = "quote", GetTime()
@@ -287,15 +288,15 @@ end
 function ns.PrintBuyList()
     local list = ns.BuyList()
     if not next(list) then
-        print(P .. "la lista de compra está vacía. Elige un objeto en la ventana de Lonja y ponle precio y cantidad,")
-        print("  o escribe |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r.")
+        print(P .. Tr("la lista de compra está vacía. Elige un objeto en la ventana de Lonja y ponle precio y cantidad,"))
+        print(Tr("  o escribe |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r."))
         return
     end
-    print(P .. "lista de compra:")
+    print(P .. Tr("lista de compra:"))
     for _, id in ipairs(Nexo.Keys(list)) do
         local b, p = list[id], ns.Price(id)
-        print(("  %s: %d a %s como mucho · %s"):format(Name(id), b.n, ns.Money(b.p, 12, true),
-            p and ("ahora a " .. ns.Money(p, 12, true) .. (p <= b.p and " |cff66ff66(a tu precio)|r" or "")) or "sin precio visto"))
+        print((Tr("  %s: %d a %s como mucho · %s")):format(Name(id), b.n, ns.Money(b.p, 12, true),
+            p and (Tr("ahora a ") .. ns.Money(p, 12, true) .. (p <= b.p and Tr(" |cff66ff66(a tu precio)|r") or "")) or Tr("sin precio visto")))
     end
 end
 
@@ -309,19 +310,19 @@ function ns.BuyCommand(text)
     local price, qty = (rest or ""):match("^(.-)%s+(%d+)$")
     price, qty = ns.ParseMoney(price), tonumber(qty)
     if not id or not price or not qty or qty < 1 then
-        print(P .. "uso: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r")
-        print("  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo: /lonja comprar [Paño de lino] 0.02 40")
+        print(P .. Tr("uso: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r"))
+        print(Tr("  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo: /lonja comprar [Paño de lino] 0.02 40"))
         return
     end
     ns.BuySet(id, price, qty)
-    print(P .. ("%s: comprar %d a %s como mucho."):format(Name(id), qty, ns.Money(price, 12, true)))
+    print(P .. (Tr("%s: comprar %d a %s como mucho.")):format(Name(id), qty, ns.Money(price, 12, true)))
 end
 
 function ns.BuyRemoveCommand(text)
     local id = Nexo.ItemID(text) or tonumber(text)
-    if not id or not ns.BuyGet(id) then return print(P .. "ese objeto no está en la lista de compra.") end
+    if not id or not ns.BuyGet(id) then return print(P .. Tr("ese objeto no está en la lista de compra.")) end
     ns.BuyRemove(id)
-    print(P .. Name(id) .. " quitado de la lista de compra.")
+    print(P .. Name(id) .. Tr(" quitado de la lista de compra."))
 end
 
 ---------------------------------------------------------------------------

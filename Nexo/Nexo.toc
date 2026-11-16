@@ -6,5 +6,6 @@
 ## IconTexture: Interface\Icons\INV_Misc_Gear_01
 ## SavedVariables: NexoDB
 
+Locale.lua
 Core.lua
 UI.lua

@@ -1,3 +1,66 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["Hoy"] = "Today",
+    ["Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí."] = "No movements yet.\nEarn or spend some gold and it will appear here.",
+    ["Ganado"] = "Earned",
+    ["Botín"] = "Loot",
+    ["Mercader"] = "Vendor",
+    ["Subasta"] = "Auction",
+    ["Correo"] = "Mail",
+    ["Comercio"] = "Trade",
+    ["Vuelos"] = "Flights",
+    ["Otros"] = "Other",
+    ["historial de este personaje borrado."] = "history of this character deleted.",
+    ["esto borrará TODO el historial de "] = "this will delete ALL the history of ",
+    [". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."] = ". Type |cffffff00/tesoro reset confirmar|r to do it.",
+    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
+    ["  |cffffff00/tesoro|r - abrir/cerrar la ventana"] = "  |cffffff00/tesoro|r - open/close the window",
+    ["  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/tesoro minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/tesoro reset|r - borrar el historial de este personaje"] = "  |cffffff00/tesoro reset|r - delete this character's history",
+    ["Historial de oro · WoW Forever"] = "Gold history · WoW Forever",
+    ["Oro actual"] = "Current gold",
+    ["Últimos 14 días"] = "Last 14 days",
+    ["Sin movimientos en las últimas 2 semanas"] = "No movements in the last 2 weeks",
+    ["Por categoría"] = "By category",
+    ["clic = filtrar movimientos"] = "click = filter movements",
+    ["Clic para quitar el filtro"] = "Click to remove the filter",
+    ["Clic para ver solo estos movimientos"] = "Click to see only these movements",
+    ["Aún no hay movimientos en este periodo"] = "No movements in this period yet",
+    ["Mejor día"] = "Best day",
+    ["Media diaria"] = "Daily average",
+    ["Mayor ingreso"] = "Biggest income",
+    ["Mayor gasto"] = "Biggest expense",
+    ["|cffffd100Sesión|r  ·  "] = "|cffffd100Session|r  ·  ",
+    ["  ·  |cff888888sin movimientos todavía|r"] = "  ·  |cff888888no movements yet|r",
+    ["Neto "] = "Net ",
+    [" /hora"] = " /hour",
+    ["desde las 00:00 de hoy"] = "since 00:00 today",
+    ["últimos 7 días"] = "last 7 days",
+    ["últimos 30 días"] = "last 30 days",
+    ["desde que instalaste Tesorero"] = "since you installed Tesorero",
+    ["Récord: "] = "Record: ",
+    [" personaje"] = " character",
+    [" personajes"] = " characters",
+    ["Sobre todo: "] = "Mostly: ",
+    ["Nada todavía"] = "Nothing yet",
+    ["Ahorras el %d%%"] = "You save %d%%",
+    ["|cffff8a8aGastas más de lo que ganas|r"] = "|cffff8a8aYou spend more than you earn|r",
+    ["Sin movimientos"] = "No movements",
+    ["1000+ movimientos"] = "1000+ movements",
+    [" movimiento"] = " movement",
+    [" movimientos"] = " movements",
+    [" día activo"] = " active day",
+    [" días activos"] = " active days",
+    ["  Ganado"] = "  Earned",
+    ["  Gastado"] = "  Spent",
+    ["Total histórico"] = "Lifetime total",
+    ["Oro de la cuenta"] = "Account gold",
+    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
+    ["Ganado"] = "Earned",
+    ["Gastado"] = "Spent",
+    ["Botín "] = "Loot ",
+    ["Oro"] = "Gold",
+})
 -- Tesorero: registro de ingresos y gastos de oro
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -12,16 +75,16 @@ local TRIM_TO = 3000
 ---------------------------------------------------------------------------
 ns.CAT_ORDER = { "loot", "quest", "vendor", "repair", "auction", "mail", "trade", "taxi", "trainer", "other" }
 ns.CATS = {
-    loot    = { name = "Botín",        color = { 1.00, 0.82, 0.00 }, icon = "Interface\\Icons\\INV_Misc_Coin_02" },
+    loot    = { name = Tr("Botín"),        color = { 1.00, 0.82, 0.00 }, icon = "Interface\\Icons\\INV_Misc_Coin_02" },
     quest   = { name = "Misiones",     color = { 0.35, 0.75, 1.00 }, icon = "Interface\\Icons\\INV_Misc_Note_01" },
-    vendor  = { name = "Mercader",     color = { 0.95, 0.55, 0.20 }, icon = "Interface\\Icons\\INV_Misc_Bag_10" },
+    vendor  = { name = Tr("Mercader"),     color = { 0.95, 0.55, 0.20 }, icon = "Interface\\Icons\\INV_Misc_Bag_10" },
     repair  = { name = "Reparaciones", color = { 0.70, 0.70, 0.75 }, icon = "Interface\\Icons\\Trade_BlackSmithing" },
-    auction = { name = "Subasta",      color = { 0.80, 0.45, 1.00 }, icon = "Interface\\Icons\\INV_Hammer_15" },
-    mail    = { name = "Correo",       color = { 0.95, 0.90, 0.60 }, icon = "Interface\\Icons\\INV_Letter_15" },
-    trade   = { name = "Comercio",     color = { 0.40, 0.90, 0.60 }, icon = "Interface\\Icons\\INV_Misc_Coin_01" },
-    taxi    = { name = "Vuelos",       color = { 0.55, 0.85, 0.95 }, icon = "Interface\\Icons\\Ability_Hunter_EagleEye" },
+    auction = { name = Tr("Subasta"),      color = { 0.80, 0.45, 1.00 }, icon = "Interface\\Icons\\INV_Hammer_15" },
+    mail    = { name = Tr("Correo"),       color = { 0.95, 0.90, 0.60 }, icon = "Interface\\Icons\\INV_Letter_15" },
+    trade   = { name = Tr("Comercio"),     color = { 0.40, 0.90, 0.60 }, icon = "Interface\\Icons\\INV_Misc_Coin_01" },
+    taxi    = { name = Tr("Vuelos"),       color = { 0.55, 0.85, 0.95 }, icon = "Interface\\Icons\\Ability_Hunter_EagleEye" },
     trainer = { name = "Entrenador",   color = { 1.00, 0.45, 0.45 }, icon = "Interface\\Icons\\INV_Misc_Book_09" },
-    other   = { name = "Otros",        color = { 0.60, 0.60, 0.60 }, icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
+    other   = { name = Tr("Otros"),        color = { 0.60, 0.60, 0.60 }, icon = "Interface\\Icons\\INV_Misc_QuestionMark" },
 }
 
 ---------------------------------------------------------------------------
@@ -304,17 +367,17 @@ SlashCmdList.TESORERO = function(msg)
         db.chars[charKey] = nil
         InitDB()
         char.money, char.peak = GetMoney(), GetMoney()
-        print(P .. "historial de este personaje borrado.")
+        print(P .. Tr("historial de este personaje borrado."))
         if ns.OnDataChanged then ns.OnDataChanged() end
     elseif msg == "reset" then
-        print(P .. "esto borrará TODO el historial de " .. charKey .. ". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo.")
+        print(P .. Tr("esto borrará TODO el historial de ") .. charKey .. Tr(". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."))
     elseif msg == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif msg == "ayuda" or msg == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/tesoro|r - abrir/cerrar la ventana")
-        print("  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/tesoro reset|r - borrar el historial de este personaje")
+        print(Tr("  |cffffff00/tesoro|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/tesoro reset|r - borrar el historial de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end

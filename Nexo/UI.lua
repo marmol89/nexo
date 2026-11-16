@@ -1,3 +1,34 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["y "] = "and ",
+    ["Clic izquierdo: siguiente"] = "Left-click: next",
+    ["Clic derecho: anterior"] = "Right-click: previous",
+    ["|r  |cff888888nivel "] = "|r  |cff888888level ",
+    ["Todos los personajes|r"] = "All characters|r",
+    [" líneas más|r"] = " more lines|r",
+    ["No se han podido exportar los datos: "] = "Could not export the data: ",
+    ["Marca los addons que quieres llevarte y genera el texto."] = "Tick the addons you want to take and generate the text.",
+    ["Generar texto"] = "Generate text",
+    ["|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "] = "|cff66dd88Text ready|r: %s KB%s. It is selected: press |cffffff00Ctrl+C|r and paste it into a ",
+    ["archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."] = "text file. On the other computer, paste it into |cffffff00/nexo importar|r.",
+    ["\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"] = "\n|cffffcc55It is a lot of text to paste at once. If it fails, take Lonja out first.|r",
+    ["|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "] = "|cff66dd88Text read.|r Exported by %s on %s.\nThe data of the ticked addons is |cffffcc55replaced|r by the ",
+    ["del texto (no se mezclan) y la interfaz se recarga."] = "of the text (they are not merged) and the UI reloads.",
+})
+Nexo.Dict({
+    ["Pulsa otra vez para confirmar"] = "Press again to confirm",
+    ["Importar y recargar"] = "Import and reload",
+    ["Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal."] = "Click the box and paste the exported text with Ctrl+V. The box stays empty: that is normal.",
+})
+Nexo.Dict({
+    ["Exportar / importar"] = "Export / import",
+    ["Exportar e importar para cambiar de ordenador"] = "Export and import to change computer",
+    ["|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to choose · |cffffff00Drag|r to move",
+    ["Datos"] = "Data",
+    ["Exportar"] = "Export",
+    ["Importar"] = "Import",
+    [", comprimido"] = ", compressed",
+})
 -- Nexo: piezas de interfaz comunes y botón único del minimapa
 local ADDON = ...
 local N = Nexo
@@ -339,8 +370,8 @@ function N.Kit(t)
         b:HookScript("OnEnter", function(s)
             GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
             GameTooltip:AddLine("Personaje")
-            GameTooltip:AddLine("Clic izquierdo: siguiente", 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("Clic derecho: anterior", 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("Clic izquierdo: siguiente"), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("Clic derecho: anterior"), 0.8, 0.8, 0.8)
             GameTooltip:Show()
         end)
         b:HookScript("OnLeave", function() GameTooltip:Hide() end)
@@ -350,9 +381,9 @@ function N.Kit(t)
         function b:SetChar(key, c, fallback)
             if key then
                 self.text:SetText("|c" .. N.ClassHex(c and c.class, fallback) .. N.ShortName(key)
-                    .. "|r  |cff888888nivel " .. ((c and c.level) or "?") .. "|r")
+                    .. Tr("|r  |cff888888nivel ") .. ((c and c.level) or "?") .. "|r")
             else
-                self.text:SetText(accHex .. "Todos los personajes|r")
+                self.text:SetText(accHex .. Tr("Todos los personajes|r"))
             end
         end
         return b
@@ -817,7 +848,7 @@ function N.Kit(t)
         function l:Render(lines, top)
             local fit = math.max(1, math.min(o.n, math.floor((o.height - top - 8) / o.lineH)))
             if #lines > fit then
-                lines[fit] = { l = (o.grey or "|cff888888") .. "y " .. (#lines - fit + 1) .. " líneas más|r" }
+                lines[fit] = { l = (o.grey or "|cff888888") .. Tr("y ") .. (#lines - fit + 1) ..Tr(" líneas más|r") }
                 for i = #lines, fit + 1, -1 do lines[i] = nil end
             end
             for i, r in ipairs(rows) do
@@ -964,7 +995,7 @@ local function MenuRow(i)
 end
 
 -- Última fila del menú: la ventana de exportar e importar
-local DATA_ROW = { name = "Exportar / importar", icon = GEAR, color = { 0.85, 0.85, 0.90 },
+local DATA_ROW = { name = Tr("Exportar / importar"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
     toggle = function() N.ToggleData() end }
 
 local function ShowMenu()
@@ -1034,7 +1065,7 @@ mb:SetScript("OnEnter", function(self)
         GameTooltip:AddLine("|T" .. def.icon .. ":14:14:0:0:64:64:5:59:5:59|t " .. def.name, c[1], c[2], c[3])
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para elegir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end)
 mb:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1059,8 +1090,8 @@ local function BuildData()
         headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
         closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
     })
-    local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = "Datos",
-        subtitle = "Exportar e importar para cambiar de ordenador",
+    local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = Tr("Datos"),
+        subtitle = Tr("Exportar e importar para cambiar de ordenador"),
         settings = function() return N.db end })
     main:RestorePos()
 
@@ -1081,7 +1112,7 @@ local function BuildData()
         return false
     end
 
-    local tabs = K.Tabs(main, { { "export", "Exportar" }, { "import", "Importar" } }, 110,
+    local tabs = K.Tabs(main, { { "export", Tr("Exportar") }, { "import", Tr("Importar") } }, 110,
         function(key) main:SetMode(key) end)
     tabs[1]:SetPoint("TOPLEFT", DPAD, -62)
 
@@ -1142,7 +1173,7 @@ local function BuildData()
                 box:SetFocus()
                 box:HighlightText()
             else
-                exported, err = nil, "No se han podido exportar los datos: " .. tostring(text)
+                exported, err = nil, Tr("No se han podido exportar los datos: ") .. tostring(text)
             end
             Refresh()
         elseif not armed then
@@ -1215,22 +1246,22 @@ local function BuildData()
 
         local msg = err and ("|cffff6655" .. err .. "|r") or ""
         if mode == "export" then
-            hint:SetText("Marca los addons que quieres llevarte y genera el texto.")
-            action.text:SetText("Generar texto")
+            hint:SetText(Tr("Marca los addons que quieres llevarte y genera el texto."))
+            action.text:SetText(Tr("Generar texto"))
             if exported then
-                msg = ("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "
-                    .. "archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r.")
-                    :format(N.Num(#exported / 1024), zipped and ", comprimido" or "")
+                msg = (Tr("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un ")
+                    .. Tr("archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."))
+                    :format(N.Num(#exported / 1024), zipped and Tr(", comprimido") or "")
                 if #exported > BIG then
-                    msg = msg .. "\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"
+                    msg = msg .. Tr("\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r")
                 end
             end
         else
-            hint:SetText("Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal.")
-            action.text:SetText(armed and "Pulsa otra vez para confirmar" or "Importar y recargar")
+            hint:SetText(Tr("Haz clic en el cuadro y pega con Ctrl+V el texto exportado. El cuadro se queda vacío: es normal."))
+            action.text:SetText(armed and Tr("Pulsa otra vez para confirmar") or Tr("Importar y recargar"))
             if pack then
-                msg = ("|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "
-                    .. "del texto (no se mezclan) y la interfaz se recarga.")
+                msg = (Tr("|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los ")
+                    .. Tr("del texto (no se mezclan) y la interfaz se recarga."))
                     :format(tostring(pack.from or "?"), type(pack.t) == "number" and date("%d/%m/%Y %H:%M", pack.t) or "?")
             end
         end

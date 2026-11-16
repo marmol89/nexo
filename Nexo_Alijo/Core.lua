@@ -1,3 +1,55 @@
+local Tr = Nexo.T
+Nexo.Dict({
+    ["Banco"] = "Bank",
+    ["Equipado"] = "Equipped",
+    ["no encuentro a otro personaje llamado \""] = "I cannot find another character named \"",
+    ["Objeto "] = "Item ",
+    ["Banco de la banda"] = "Warband bank",
+    ["recuento en el tooltip de los objetos "] = "count in the item tooltip ",
+    ["botón del minimapa (compartido, Nexo) "] = "minimap button (shared, Nexo) ",
+    ["inventario de "] = "inventory of ",
+    [" borrado."] = " deleted.",
+    ["  |cffffff00/alijo|r - abrir/cerrar la ventana"] = "  |cffffff00/alijo|r - open/close the window",
+    ["  |cffffff00/alijo <texto>|r - abrir buscando ese texto"] = "  |cffffff00/alijo <texto>|r - open searching for that text",
+    ["  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos"] = "  |cffffff00/alijo tooltip|r - turn the item tooltip count on/off",
+    ["  |cffffff00/alijo minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/alijo minimapa|r - show/hide the minimap button",
+    ["  |cffffff00/alijo olvidar <personaje>|r - borrar el inventario guardado de otro personaje"] = "  |cffffff00/alijo olvidar <personaje>|r - delete the saved inventory of another character",
+    ["Bolsas "] = "Bags ",
+    ["Banda "] = "Warband ",
+    ["Banco "] = "Bank ",
+    ["Equipado "] = "Equipped ",
+    ["Inventario de la cuenta · WoW Forever"] = "Account inventory · WoW Forever",
+    ["Buscar objeto..."] = "Search item...",
+    ["Todo"] = "All",
+    ["Bolsas"] = "Bags",
+    ["Dónde"] = "Where",
+    ["Quién lo tiene"] = "Who has it",
+    ["Elige un objeto de la lista para ver quién lo tiene y dónde."] = "Pick an item from the list to see who has it and where.",
+    ["Mayús+clic en la lista: enlazar en el chat"] = "Shift+click in the list: link in chat",
+    ["Total en la cuenta: |cffffffff"] = "Total in the account: |cffffffff",
+    ["|r  ·  vale "] = "|r  ·  worth ",
+    ["y "] = "and ",
+    [" más"] = " more",
+    ["bolsas vistas "] = "bags seen ",
+    ["banco visto "] = "bank seen ",
+    ["|cffffb347banco sin registrar: ábrelo con este personaje|r"] = "|cffffb347bank not recorded: open it with this character|r",
+    [" de "] = " of ",
+    ["objeto distinto"] = "distinct item",
+    ["objetos distintos"] = "distinct items",
+    ["objeto"] = "item",
+    ["objetos"] = "items",
+    ["sitio"] = "place",
+    ["sitios"] = "places",
+    ["Aquí no hay nada registrado todavía."] = "Nothing recorded here yet.",
+    ["Ningún objeto coincide con la búsqueda."] = "No item matches the search.",
+    ["Personajes registrados"] = "Registered characters",
+    ["Objetos distintos"] = "Distinct items",
+    ["Banco de "] = "Bank of ",
+    ["este personaje"] = "this character",
+    ["visto "] = "seen ",
+    ["sin registrar"] = "not recorded",
+    ["|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"] = "|cffffff00Click|r to open · |cffffff00Drag|r to move",
+})
 -- Alijo: inventario de toda la cuenta
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -164,7 +216,7 @@ function ns.ItemInfo(id)
         local n, _, q, _, _, _, _, _, _, tex = GetItemInfo(id)
         name, quality, icon = name or n, quality or q, icon or tex
     end
-    return name or ("Objeto " .. id), quality or 1, icon or "Interface\\Icons\\INV_Misc_QuestionMark"
+    return name or (Tr("Objeto ") .. id), quality or 1, icon or "Interface\\Icons\\INV_Misc_QuestionMark"
 end
 
 function ns.CharList() return Nexo.Keys(db.chars) end
@@ -207,7 +259,7 @@ function ns.Index(filter, loc)
         end
     end
     if ns.hasWarband and (loc == "warband" or (loc == "all" and not filter)) then
-        local w = { name = "Banco de la banda" }
+        local w = { name = Tr("Banco de la banda") }
         for id, n in pairs(db.warband.items or {}) do add(id, n, ns.WARBAND_KEY, w, "bank") end
     end
     for _, e in ipairs(list) do
@@ -232,7 +284,7 @@ function ns.Owners(id)
     end
     local w = db.warband.items and db.warband.items[id]
     if w and w > 0 then
-        list[#list + 1] = { key = ns.WARBAND_KEY, name = "Banco de la banda", bags = 0, bank = w, equip = 0, total = w }
+        list[#list + 1] = { key = ns.WARBAND_KEY, name = Tr("Banco de la banda"), bags = 0, bank = w, equip = 0, total = w }
         total = total + w
     end
     table.sort(list, function(a, b) return a.total > b.total end)
@@ -312,26 +364,26 @@ SlashCmdList.ALIJO = function(msg)
     local P = "|cff5cdb9eAlijo:|r "
     if low == "tooltip" then
         db.settings.tooltip = not ns.TooltipEnabled()
-        print(P .. "recuento en el tooltip de los objetos " .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
+        print(P .. Tr("recuento en el tooltip de los objetos ") .. (db.settings.tooltip and "activado" or "desactivado") .. ".")
     elseif low == "minimapa" then
-        print(P .. "botón del minimapa (compartido, Nexo) " .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
+        print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and "oculto" or "visible") .. ".")
     elseif low:match("^olvidar%s+%S") then
         local who = low:match("^olvidar%s+(.+)$")
         local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
-            print(P .. "inventario de " .. found .. " borrado.")
+            print(P .. Tr("inventario de ") .. found .. Tr(" borrado."))
             if ns.OnDataChanged then ns.OnDataChanged() end
         else
-            print(P .. "no encuentro a otro personaje llamado \"" .. who .. "\".")
+            print(P .. Tr("no encuentro a otro personaje llamado \"") .. who .. "\".")
         end
     elseif low == "ayuda" or low == "help" then
         print(P .. "comandos:")
-        print("  |cffffff00/alijo|r - abrir/cerrar la ventana")
-        print("  |cffffff00/alijo <texto>|r - abrir buscando ese texto")
-        print("  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos")
-        print("  |cffffff00/alijo minimapa|r - mostrar/ocultar el botón del minimapa")
-        print("  |cffffff00/alijo olvidar <personaje>|r - borrar el inventario guardado de otro personaje")
+        print(Tr("  |cffffff00/alijo|r - abrir/cerrar la ventana"))
+        print(Tr("  |cffffff00/alijo <texto>|r - abrir buscando ese texto"))
+        print(Tr("  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos"))
+        print(Tr("  |cffffff00/alijo minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print(Tr("  |cffffff00/alijo olvidar <personaje>|r - borrar el inventario guardado de otro personaje"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) end
     else

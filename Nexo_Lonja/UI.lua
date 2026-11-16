@@ -1,3 +1,4 @@
+local Tr = Nexo.T
 -- Lonja: interfaz
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -48,7 +49,7 @@ local QualityRGB, ShowItemTooltip = N.QualityRGB, N.ItemTooltip
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "LonjaMainFrame", w = W, h = H, icon = ICON,
-    title = "Lonja", subtitle = "Precios de la casa de subastas · WoW Forever",
+    title = "Lonja", subtitle = Tr("Precios de la casa de subastas · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -56,13 +57,13 @@ local function ScanClick()
     if ns.Scanning() then ns.StopScan() else ns.StartScan() end
 end
 
-local scanBtn = Button(main, 170, 24, "Escanear subasta", ScanClick)
+local scanBtn = Button(main, 170, 24, Tr("Escanear subasta"), ScanClick)
 scanBtn:SetPoint("RIGHT", close, "LEFT", -10, 0)
 scanBtn:HookScript("OnEnter", function(s)
     GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
-    GameTooltip:AddLine("Escanear la casa de subastas")
-    GameTooltip:AddLine("Guarda el precio de compra más bajo de cada objeto.", 0.8, 0.8, 0.8)
-    GameTooltip:AddLine("Tiene que estar abierta la ventana de la subasta.", 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(Tr("Escanear la casa de subastas"))
+    GameTooltip:AddLine(Tr("Guarda el precio de compra más bajo de cada objeto."), 0.8, 0.8, 0.8)
+    GameTooltip:AddLine(Tr("Tiene que estar abierta la ventana de la subasta."), 0.8, 0.8, 0.8)
     GameTooltip:Show()
 end)
 scanBtn:HookScript("OnLeave", function() GameTooltip:Hide() end)
@@ -76,7 +77,7 @@ local function ResetScroll() list:Reset() end
 local BOX_BG, BOX_BORDER, BOX_HINT = { 0.09, 0.07, 0.07 }, { 0.34, 0.20, 0.19 }, { 0.5, 0.44, 0.43 }
 
 local search = K.Search(main, {
-    name = "LonjaSearchBox", x = PAD, y = -62, hint = "Buscar objeto...",
+    name = "LonjaSearchBox", x = PAD, y = -62, hint = Tr("Buscar objeto..."),
     bg = BOX_BG, border = BOX_BORDER, hintColor = BOX_HINT,
     onChange = function(text)
         state.text = text
@@ -201,7 +202,7 @@ buyBox:SetHeight(BUY_H - 8)
 local buyHint = Text(buyBox, 10)
 buyHint:SetPoint("TOPLEFT", 2, -2)
 buyHint:SetTextColor(0.72, 0.64, 0.62)
-buyHint:SetText("Lista de compra: precio máximo por unidad y cantidad")
+buyHint:SetText(Tr("Lista de compra: precio máximo por unidad y cantidad"))
 
 local function Input(name, w, hint)
     local box = K.Search(buyBox, {
@@ -211,7 +212,7 @@ local function Input(name, w, hint)
     box:ClearAllPoints()
     return box
 end
-local buyPrice = Input("LonjaBuyPrice", 78, "Oro: 1.5")
+local buyPrice = Input("LonjaBuyPrice", 78, Tr("Oro: 1.5"))
 buyPrice:SetPoint("BOTTOMLEFT", 0, 0)
 local buyQty = Input("LonjaBuyQty", 50, "Cant.")
 buyQty:SetPoint("LEFT", buyPrice, "RIGHT", 4, 0)
@@ -221,7 +222,7 @@ local filledFor     -- objeto con el que se rellenaron los cuadros: no se pisan 
 local buySave = Button(buyBox, 64, 22, "Apuntar", function()
     local price, qty = ns.ParseMoney(buyPrice:GetText()), tonumber(buyQty:GetText())
     if not price or not qty or qty < 1 then
-        print(ACC_HEX .. "Lonja:|r pon el precio máximo por unidad (en oro: 1.5, o 1g 50s) y cuántas unidades quieres.")
+        print(ACC_HEX .. Tr("Lonja:|r pon el precio máximo por unidad (en oro: 1.5, o 1g 50s) y cuántas unidades quieres."))
         return
     end
     buyPrice:ClearFocus()
@@ -257,34 +258,34 @@ end
 local function OverviewLines()
     local count = ns.Count()
     local lines = {
-        Title("Precios guardados"),
-        { l = "Objetos con precio", r = "|cffffffff" .. N.Num(count) .. "|r" },
-        { l = "Último escaneo completo", r = Ago(ns.realm.lastScan) },
+        Title(Tr("Precios guardados")),
+        { l = Tr("Objetos con precio"), r = "|cffffffff" .. N.Num(count) .. "|r" },
+        { l = Tr("Último escaneo completo"), r = Ago(ns.realm.lastScan) },
     }
-    lines[#lines + 1] = { l = "Escanear al abrir la subasta", r = ns.AutoScan() and GREEN .. "sí|r" or GREY .. "no|r" }
+    lines[#lines + 1] = { l = Tr("Escanear al abrir la subasta"), r = ns.AutoScan() and GREEN .. Tr("sí|r") or GREY .. "no|r" }
     local wanted = ns.BuyCount()
     if wanted > 0 then
         lines[#lines + 1] = {}
-        lines[#lines + 1] = Title("Lista de compra")
-        lines[#lines + 1] = { l = "Objetos apuntados", r = "|cffffffff" .. wanted .. "|r" }
-        lines[#lines + 1] = { l = "A tu precio ahora", r = GREEN .. #ns.Deals() .. "|r" }
+        lines[#lines + 1] = Title(Tr("Lista de compra"))
+        lines[#lines + 1] = { l = Tr("Objetos apuntados"), r = "|cffffffff" .. wanted .. "|r" }
+        lines[#lines + 1] = { l = Tr("A tu precio ahora"), r = GREEN .. #ns.Deals() .. "|r" }
     end
     if count == 0 then
         lines[#lines + 1] = {}
-        lines[#lines + 1] = { l = GREY .. "Abre la casa de subastas y pulsa|r" }
-        lines[#lines + 1] = { l = GREY .. "\"Escanear subasta\" para empezar.|r" }
+        lines[#lines + 1] = { l = GREY .. Tr("Abre la casa de subastas y pulsa|r") }
+        lines[#lines + 1] = { l = GREY .. Tr("\"Escanear subasta\" para empezar.|r") }
         return lines
     end
 
     lines[#lines + 1] = {}
-    lines[#lines + 1] = Title("Valor de lo guardado")
+    lines[#lines + 1] = Title(Tr("Valor de lo guardado"))
     local total, chars = ns.AccountValue()
     if not total then
-        lines[#lines + 1] = { l = GREY .. "Con Alijo activado verás lo que vale|r" }
-        lines[#lines + 1] = { l = GREY .. "lo que tienes en bolsas y bancos.|r" }
+        lines[#lines + 1] = { l = GREY .. Tr("Con Alijo activado verás lo que vale|r") }
+        lines[#lines + 1] = { l = GREY .. Tr("lo que tienes en bolsas y bancos.|r") }
         return lines
     end
-    lines[#lines + 1] = { l = "Toda la cuenta", r = Money(total, 11) }
+    lines[#lines + 1] = { l = Tr("Toda la cuenta"), r = Money(total, 11) }
     for _, c in ipairs(chars) do
         lines[#lines + 1] = {
             l = "|c" .. ClassHex(c.class) .. c.name .. "|r", r = Money(c.value, 11),
@@ -292,7 +293,7 @@ local function OverviewLines()
         }
     end
     if #chars == 0 then
-        lines[#lines + 1] = { l = GREY .. "Nada de lo que tienes tiene precio.|r" }
+        lines[#lines + 1] = { l = GREY .. Tr("Nada de lo que tienes tiene precio.|r") }
     end
     return lines
 end
@@ -302,21 +303,21 @@ local function ItemLines(id)
     local p, t, n = ns.Price(id)
     local lines = {
         Title("Precio"),
-        { l = "Mínimo por unidad", r = p and Money(p, 11, true) or GREY .. "sin ver|r" },
-        { l = "Unidades a la venta", r = "|cffffffff" .. N.Num(n or 0) .. "|r" },
+        { l = Tr("Mínimo por unidad"), r = p and Money(p, 11, true) or GREY .. Tr("sin ver|r") },
+        { l = Tr("Unidades a la venta"), r = "|cffffffff" .. N.Num(n or 0) .. "|r" },
     }
     local have = ns.Have(id)
     if have then
-        lines[#lines + 1] = { l = "Tienes en la cuenta", r = "|cffffffff" .. N.Num(have) .. "|r" }
-        if have > 0 and p then lines[#lines + 1] = { l = "Valor de lo tuyo", r = Money(have * p, 11) } end
+        lines[#lines + 1] = { l = Tr("Tienes en la cuenta"), r = "|cffffffff" .. N.Num(have) .. "|r" }
+        if have > 0 and p then lines[#lines + 1] = { l = Tr("Valor de lo tuyo"), r = Money(have * p, 11) } end
     end
     local b = ns.BuyGet(id)
     if b then
         lines[#lines + 1] = {}
-        lines[#lines + 1] = Title("Lista de compra")
-        lines[#lines + 1] = { l = "Comprar hasta", r = Money(b.p, 11, true) }
-        lines[#lines + 1] = { l = "Quedan por comprar", r = "|cffffffff" .. N.Num(b.n) .. "|r" }
-        if p and p <= b.p then lines[#lines + 1] = { l = GREEN .. "Ahora está a tu precio|r" } end
+        lines[#lines + 1] = Title(Tr("Lista de compra"))
+        lines[#lines + 1] = { l = Tr("Comprar hasta"), r = Money(b.p, 11, true) }
+        lines[#lines + 1] = { l = Tr("Quedan por comprar"), r = "|cffffffff" .. N.Num(b.n) .. "|r" }
+        if p and p <= b.p then lines[#lines + 1] = { l = GREEN .. Tr("Ahora está a tu precio|r") } end
     end
 
     local history = ns.History(id)
@@ -349,7 +350,7 @@ function UpdateDetail()
     dIcon:SetTexture(icon)
     dName:SetText(name)
     dName:SetTextColor(QualityRGB(quality))
-    dSub:SetText("visto " .. Ago(t))
+    dSub:SetText(Tr("visto ") .. Ago(t))
     RenderLines(ItemLines(state.sel), 84, BUY_H)
 end
 
@@ -371,11 +372,11 @@ end
 
 local function UpdateScanState()
     local status = ns.ScanStatus()
-    local label = status and "Parar escaneo" or "Escanear subasta"
+    local label = status and Tr("Parar escaneo") or Tr("Escanear subasta")
     scanBtn.text:SetText(label)
     scanBtn:SetActive(status ~= nil)
     if ahBtn then
-        ahBtn.text:SetText(status and "Lonja: parar" or "Lonja: escanear")
+        ahBtn.text:SetText(status and Tr("Lonja: parar") or Tr("Lonja: escanear"))
         ahBtn:SetActive(status ~= nil)
     end
     UpdateBuyState()
@@ -383,9 +384,9 @@ local function UpdateScanState()
     if status then
         footer:SetText(ACC_HEX .. status .. "|r")
     elseif ns.IsOpen() then
-        footer:SetText(ns.realmKey .. "  ·  |cff66ff66subasta abierta|r: las búsquedas que hagas también se apuntan")
+        footer:SetText(ns.realmKey .. Tr("  ·  |cff66ff66subasta abierta|r: las búsquedas que hagas también se apuntan"))
     else
-        footer:SetText(ns.realmKey .. "  ·  último escaneo " .. Ago(ns.realm.lastScan) .. "  ·  Mayús+clic: enlazar en el chat")
+        footer:SetText(ns.realmKey .. Tr("  ·  último escaneo ") .. Ago(ns.realm.lastScan) .. Tr("  ·  Mayús+clic: enlazar en el chat"))
     end
 end
 ns.OnScanProgress = UpdateScanState
@@ -395,17 +396,17 @@ function ns.OnAuctionShow()
     C_Timer.After(0, function()
         local parent = AuctionFrame or AuctionHouseFrame
         if ahBtn or not parent then return end
-        ahBtn = Button(parent, 120, 22, "Lonja: escanear", ScanClick, 11)
+        ahBtn = Button(parent, 120, 22, Tr("Lonja: escanear"), ScanClick, 11)
         ahBtn:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", -6, 2)
         ahBuy = Button(parent, 300, 22, "", function() ns.BuyClick() end, 11)
         ahBuy:SetPoint("RIGHT", ahBtn, "LEFT", -6, 0)
         ahBuy:HookScript("OnEnter", function(s)
             GameTooltip:SetOwner(s, "ANCHOR_TOP")
-            GameTooltip:AddLine("Lista de compra de Lonja")
-            GameTooltip:AddLine("Cada clic da un paso: buscar el objeto, comprarlo y,", 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("si es un material, confirmar el precio final.", 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("El juego no deja comprar a un addon sin un clic tuyo.", 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("Resaltado: el siguiente clic gasta dinero.", ACC[1], ACC[2], ACC[3])
+            GameTooltip:AddLine(Tr("Lista de compra de Lonja"))
+            GameTooltip:AddLine(Tr("Cada clic da un paso: buscar el objeto, comprarlo y,"), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("si es un material, confirmar el precio final."), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("El juego no deja comprar a un addon sin un clic tuyo."), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine(Tr("Resaltado: el siguiente clic gasta dinero."), ACC[1], ACC[2], ACC[3])
             GameTooltip:Show()
         end)
         ahBuy:HookScript("OnLeave", function() GameTooltip:Hide() end)
@@ -424,7 +425,7 @@ function ns.Refresh()
     -- Sin Alijo, las dos últimas columnas pasan a ser las unidades a la venta y la antigüedad
     -- y con la lista de compra, las unidades que quieres y tu precio máximo
     if state.buy then
-        h3.label, h3.key, h4.label, h4.key = "Quiero", "want", "Máximo", "max"
+        h3.label, h3.key, h4.label, h4.key = "Quiero", "want", Tr("Máximo"), "max"
     else
         h3.label, h3.key = alijo and "Tengo" or "Venta", alijo and "have" or "n"
         h4.label, h4.key = alijo and "Valor" or "Visto", alijo and "value" or "t"
@@ -433,13 +434,13 @@ function ns.Refresh()
     sorter:Update()
 
     ownBtn:SetShown(alijo)
-    ownBtn.text:SetText(state.own and "Solo lo que tengo" or "Todos los objetos")
+    ownBtn.text:SetText(state.own and Tr("Solo lo que tengo") or Tr("Todos los objetos"))
     ownBtn:SetActive(state.own)
 
     local buy = ns.BuyList()
     buyFilter:ClearAllPoints()
     buyFilter:SetPoint("LEFT", alijo and ownBtn or search, "RIGHT", 10, 0)
-    buyFilter.text:SetText("Lista de compra (" .. ns.BuyCount() .. ")")
+    buyFilter.text:SetText(Tr("Lista de compra (") .. ns.BuyCount() .. ")")
     buyFilter:SetActive(state.buy)
 
     local all = ns.Index()
@@ -483,13 +484,13 @@ function ns.Refresh()
         countText:SetText(Plural(#all, "objeto", "objetos"))
     end
     if state.buy and text == "" then
-        listEmpty:SetText("La lista de compra está vacía. Elige un objeto y ponle precio máximo y cantidad.")
+        listEmpty:SetText(Tr("La lista de compra está vacía. Elige un objeto y ponle precio máximo y cantidad."))
     elseif #all == 0 then
-        listEmpty:SetText("Aún no hay precios. Abre la casa de subastas y pulsa \"Escanear subasta\".")
+        listEmpty:SetText(Tr("Aún no hay precios. Abre la casa de subastas y pulsa \"Escanear subasta\"."))
     elseif state.own and text == "" then
-        listEmpty:SetText("Nada de lo que tienes guardado tiene precio en la lonja.")
+        listEmpty:SetText(Tr("Nada de lo que tienes guardado tiene precio en la lonja."))
     else
-        listEmpty:SetText("Ningún objeto coincide con la búsqueda.")
+        listEmpty:SetText(Tr("Ningún objeto coincide con la búsqueda."))
     end
 
     list:SetData(listData)
@@ -537,15 +538,15 @@ local function ShowSummaryTooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
     GameTooltip:AddLine("Lonja", ACC[1], ACC[2], ACC[3])
     if ns.realm then
-        GameTooltip:AddDoubleLine("Objetos con precio", N.Num(ns.Count()), 0.8, 0.8, 0.8, 1, 1, 1)
-        GameTooltip:AddDoubleLine("Último escaneo", Ago(ns.realm.lastScan), 0.8, 0.8, 0.8, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Objetos con precio"), N.Num(ns.Count()), 0.8, 0.8, 0.8, 1, 1, 1)
+        GameTooltip:AddDoubleLine(Tr("Último escaneo"), Ago(ns.realm.lastScan), 0.8, 0.8, 0.8, 1, 1, 1)
         local total = ns.AccountValue()
         if total and total > 0 then
-            GameTooltip:AddDoubleLine("Valor de lo guardado", Money(total, 12), 0.8, 0.8, 0.8, 1, 1, 1)
+            GameTooltip:AddDoubleLine(Tr("Valor de lo guardado"), Money(total, 12), 0.8, 0.8, 0.8, 1, 1, 1)
         end
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine(Tr("|cffffff00Clic|r para abrir · |cffffff00Arrastrar|r para mover"), 0.7, 0.7, 0.7)
     GameTooltip:Show()
 end
 

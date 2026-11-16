@@ -7,9 +7,9 @@
 ![Addons](https://img.shields.io/badge/addons-7-d9d9e6?style=for-the-badge)
 ![Interfaz](https://img.shields.io/badge/interfaz-16001-66c7ff?style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Lua-5.1-b88cff?style=for-the-badge&logo=lua&logoColor=white)
-![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol-ffd100?style=for-the-badge)
+![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol%20%2F%20English-ffd100?style=for-the-badge)
 
-**Siete addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español.<br>
+**Siete addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español o en inglés, según el idioma de tu juego (si no es español, en inglés).<br>
 Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es el núcleo que comparten.
 
 [Addons](#-los-addons) •
