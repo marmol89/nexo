@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "curseforge": {
+      "command": "node",
+      "args": ["herramientas/mcp-curseforge/server.mjs"],
+      "env": {
+        "CF_API_KEY": "${CF_API_KEY}",
+        "CF_PROJECT_ID": "${CF_PROJECT_ID}"
+      }
+    }
+  }
+}
