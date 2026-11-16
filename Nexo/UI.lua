@@ -37,6 +37,12 @@ local BD = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\But
 local TEMPLATE = BackdropTemplateMixin and "BackdropTemplate" or nil
 N.BD, N.TEMPLATE = BD, TEMPLATE
 
+-- Ajuste de Ajustes (/nexo ajustes): activado salvo que se haya desactivado (false)
+function N.Ajuste(clave)
+    local a = N.db and N.db.ajustes
+    return not (a and a[clave] == false)
+end
+
 ---------------------------------------------------------------------------
 -- Piezas sin tema
 ---------------------------------------------------------------------------
@@ -277,11 +283,11 @@ function N.Kit(t)
 
         -- Sonido al abrir y cerrar. El addon puede definir main:OnOpen() y main:OnClose().
         main:SetScript("OnShow", function(s)
-            PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839)
+            if N.Ajuste("sonidos") then PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_OPEN or 839) end
             if s.OnOpen then s:OnOpen() end
         end)
         main:SetScript("OnHide", function(s)
-            PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840)
+            if N.Ajuste("sonidos") then PlaySound(SOUNDKIT and SOUNDKIT.IG_CHARACTER_INFO_CLOSE or 840) end
             if s.OnClose then s:OnClose() end
         end)
 
@@ -944,6 +950,14 @@ function N.ToggleMinimap()
     return N.db.minimap.hide
 end
 
+-- Vuelve a poner el botón en su sitio inicial y lo muestra
+function N.ResetMinimap()
+    N.db.minimap.angle = 200
+    N.db.minimap.hide = false
+    PlaceMinimap()
+    UpdateMinimapButton()
+end
+
 -- Menú con los addons registrados
 local ROW_H, MENU_W = 24, 160
 local menu = CreateFrame("Frame", "NexoMenu", UIParent, TEMPLATE)
@@ -994,14 +1008,17 @@ local function MenuRow(i)
     return r
 end
 
--- Última fila del menú: la ventana de exportar e importar
+-- Últimas filas del menú: ajustes y la ventana de exportar e importar
 local DATA_ROW = { name = Tr("Exportar / importar"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
     toggle = function() N.ToggleData() end }
+local SETTINGS_ROW = { name = Tr("Ajustes"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
+    toggle = function() N.ToggleSettings() end }
+local EXTRA_ROWS = { SETTINGS_ROW, DATA_ROW }
 
 local function ShowMenu()
-    local n = #addons + 1
+    local n = #addons + #EXTRA_ROWS
     for i = 1, n do
-        local def = addons[i] or DATA_ROW
+        local def = addons[i] or EXTRA_ROWS[i - #addons]
         local r = MenuRow(i)
         r.def = def
         r.icon:SetTexture(def.icon)
@@ -1053,7 +1070,7 @@ mb:SetScript("OnClick", function()
 end)
 
 mb:SetScript("OnEnter", function(self)
-    if menu:IsShown() then return end
+    if menu:IsShown() or not N.Ajuste("tooltips") then return end
     if #addons == 1 and addons[1].tooltip then
         addons[1].tooltip(self, "ANCHOR_LEFT")
         return
@@ -1080,16 +1097,19 @@ local DW, DH, DPAD = 560, 300, 14
 local BIG = 400 * 1024   -- a partir de aquí pegar el texto de una vez puede fallar
 local dataWin
 
+-- Colores de las ventanas de Datos y Ajustes
+local PALETTE = {
+    acc = { 0.85, 0.85, 0.90 },
+    panelBg = { 0.08, 0.08, 0.10, 0.92 }, panelBorder = { 0.22, 0.22, 0.27, 1 },
+    btnOn = { 0.24, 0.25, 0.32 }, btnOnText = { 1, 1, 1 },
+    btnOff = { 0.11, 0.11, 0.13 }, btnBorder = { 0.27, 0.27, 0.33 }, btnHover = { 0.60, 0.60, 0.70 },
+    winBg = { 0.05, 0.05, 0.06 }, winBorder = { 0.32, 0.32, 0.38 },
+    headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
+    closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
+}
+
 local function BuildData()
-    local K = N.Kit({
-        acc = { 0.85, 0.85, 0.90 },
-        panelBg = { 0.08, 0.08, 0.10, 0.92 }, panelBorder = { 0.22, 0.22, 0.27, 1 },
-        btnOn = { 0.24, 0.25, 0.32 }, btnOnText = { 1, 1, 1 },
-        btnOff = { 0.11, 0.11, 0.13 }, btnBorder = { 0.27, 0.27, 0.33 }, btnHover = { 0.60, 0.60, 0.70 },
-        winBg = { 0.05, 0.05, 0.06 }, winBorder = { 0.32, 0.32, 0.38 },
-        headBg = { 0.10, 0.10, 0.13 }, sub = { 0.62, 0.62, 0.70 },
-        closeBg = { 0.10, 0.10, 0.12 }, closeBorder = { 0.32, 0.32, 0.38 }, closeX = { 0.90, 0.90, 0.95 },
-    })
+    local K = N.Kit(PALETTE)
     local main = K.Window({ name = "NexoDatos", w = DW, h = DH, icon = GEAR, title = Tr("Datos"),
         subtitle = Tr("Exportar e importar para cambiar de ordenador"),
         settings = function() return N.db end })
@@ -1299,6 +1319,96 @@ function N.ToggleData(mode)
     end
     dataWin:SetMode(mode or dataWin.mode or "export")
     dataWin:Show()
+end
+
+---------------------------------------------------------------------------
+-- Ajustes (/nexo ajustes): idioma y opciones de Nexo.
+-- El idioma se guarda en N.db.lang ("auto", "es" o "en"); se aplica al recargar la interfaz.
+local AW, AH, APAD = 420, 350, 14
+local settingsWin
+
+local function BuildSettings()
+    local K = N.Kit(PALETTE)
+    local main = K.Window({ name = "NexoAjustes", w = AW, h = AH, icon = GEAR, title = Tr("Ajustes"),
+        subtitle = Tr("Idioma y opciones de Nexo"),
+        settings = function() N.db.ajustes = N.db.ajustes or {}; return N.db.ajustes end })
+    main:RestorePos()
+
+    local tabs, mapBtn, tipBtn, soundBtn
+    local function Refresh()
+        tabs:Select(N.db.lang or "auto")
+        mapBtn.text:SetText(N.db.minimap.hide and Tr("Mostrar botón") or Tr("Ocultar botón"))
+        tipBtn.text:SetText(Tr("Tooltip") .. ": " .. (N.Ajuste("tooltips") and Tr("activado") or Tr("desactivado")))
+        soundBtn.text:SetText(Tr("Sonidos") .. ": " .. (N.Ajuste("sonidos") and Tr("activado") or Tr("desactivado")))
+    end
+
+    -- Activa o desactiva un ajuste de sí/no y refresca los textos
+    local function Toggle(clave)
+        N.db.ajustes = N.db.ajustes or {}
+        N.db.ajustes[clave] = not N.Ajuste(clave)
+        Refresh()
+    end
+
+    -- Guarda el idioma; pide recargar solo si es distinto del que está en uso
+    local function SetLang(key)
+        N.db.lang = key
+        if key ~= N.langPref then
+            StaticPopupDialogs.NEXO_IDIOMA = {
+                text = Tr("Idioma cambiado.") .. "\n\n" .. Tr("Recarga la interfaz para aplicarlo."),
+                button1 = Tr("Recargar"), button2 = Tr("Luego"),
+                OnAccept = function() ReloadUI() end,
+                timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+            }
+            StaticPopup_Show("NEXO_IDIOMA")
+        end
+        Refresh()
+    end
+
+    local function Label(y, text)
+        local fs = Text(main, 12)
+        fs:SetPoint("TOPLEFT", APAD, y)
+        fs:SetText(text)
+        fs:SetTextColor(K.acc[1], K.acc[2], K.acc[3])
+    end
+
+    Label(-64, Tr("Idioma"))
+    tabs = K.Tabs(main, { { "auto", Tr("Automático") }, { "es", "Español" }, { "en", "English" } }, 120, SetLang)
+    tabs[1]:SetPoint("TOPLEFT", APAD, -86)
+    local hint = Text(main, 11)
+    hint:SetPoint("TOPLEFT", APAD, -118)
+    hint:SetTextColor(0.62, 0.62, 0.70)
+    hint:SetText(Tr("Recarga la interfaz para aplicarlo."))
+
+    local half = (AW - 2 * APAD - 6) / 2
+    Label(-150, Tr("Minimapa"))
+    mapBtn = K.Button(main, half, 24, "", function() N.ToggleMinimap(); Refresh() end, 12)
+    mapBtn:SetPoint("TOPLEFT", APAD, -170)
+    local resetBtn = K.Button(main, half, 24, Tr("Restablecer posición"), function() N.ResetMinimap(); Refresh() end, 12)
+    resetBtn:SetPoint("TOPLEFT", APAD + half + 6, -170)
+    tipBtn = K.Button(main, AW - 2 * APAD, 24, "", function() Toggle("tooltips") end, 12)
+    tipBtn:SetPoint("TOPLEFT", APAD, -200)
+
+    Label(-236, Tr("Ventanas"))
+    soundBtn = K.Button(main, AW - 2 * APAD, 24, "", function() Toggle("sonidos") end, 12)
+    soundBtn:SetPoint("TOPLEFT", APAD, -256)
+
+    Label(-292, Tr("Datos"))
+    local dataBtn = K.Button(main, AW - 2 * APAD, 24, Tr("Exportar / importar"), function() N.ToggleData() end, 12)
+    dataBtn:SetPoint("TOPLEFT", APAD, -312)
+
+    function main:OnOpen() Refresh() end
+    Refresh()
+    return main
+end
+
+-- Abre o cierra la ventana de ajustes
+function N.ToggleSettings()
+    if not settingsWin then settingsWin = BuildSettings() end
+    if settingsWin:IsShown() then
+        settingsWin:Hide()
+    else
+        settingsWin:Show()
+    end
 end
 
 ---------------------------------------------------------------------------

@@ -9,7 +9,13 @@
 local N = Nexo
 
 local locale = GetLocale and GetLocale() or "enUS"
-N.lang = (locale == "esES" or locale == "esMX") and "es" or "en"
+local auto = (locale == "esES" or locale == "esMX") and "es" or "en"
+
+-- Preferencia de Ajustes: "auto", "es" o "en". Se lee aquí, antes de cargar los demás archivos,
+-- para que los textos que se crean al cargar salgan ya en el idioma elegido.
+local pref = NexoDB and NexoDB.lang
+N.langPref = (pref == "es" or pref == "en") and pref or "auto"
+N.lang = N.langPref == "auto" and auto or N.langPref
 
 local dict = {}
 
