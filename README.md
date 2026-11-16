@@ -331,12 +331,9 @@ La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas
 Los ocho addons se publican juntos, en un solo `.zip` con cada carpeta en la raíz.
 
 - **A mano:** doble clic en `Empaquetar.bat`, de la carpeta [`herramientas`](herramientas). Deja `dist\Nexo-<versión>.zip`, con la versión de `Nexo.toc`, listo para subirlo en *Files → Upload file* del proyecto de CurseForge.
-- **Automático:** al subir una etiqueta `v<versión>` igual a la de `Nexo.toc`, el flujo [`publicar.yml`](.github/workflows/publicar.yml) genera el mismo `.zip`, crea la versión en GitHub con él y lo sube a CurseForge.
-
-  ```
-  git tag v1.5.0
-  git push origin v1.5.0
-  ```
+- **Automático:** cuando hay cambios en los addons desde la última versión, el flujo [`preparar-version.yml`](.github/workflows/preparar-version.yml) abre sola una PR *Publicar Nexo `<versión>`* (rama `release/next`) que sube el número de `Nexo.toc`. Al fusionarla, [`publicar.yml`](.github/workflows/publicar.yml) crea la etiqueta `v<versión>`, genera el `.zip`, crea la versión en GitHub y la sube a CurseForge.
+  - Para otro número (por ejemplo `1.6.0`), sube a esa rama un commit que cambie `Nexo/Nexo.toc` antes de fusionar.
+  - Nada se sube a CurseForge sin que se fusione una PR de versión.
 
 Para que el flujo suba a CurseForge hay que configurar el repositorio en *Settings → Secrets and variables → Actions*; sin ello solo crea la versión en GitHub:
 

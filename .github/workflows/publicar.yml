@@ -1,42 +1,52 @@
-# Publica una versión al subir una etiqueta v<versión> (por ejemplo v1.5.0):
-#   1. genera el .zip con herramientas/Empaquetar.ps1
-#   2. crea la versión en GitHub con el .zip adjunto
-#   3. lo sube a CurseForge, si el proyecto está configurado
+# Publica una versión cuando se fusiona la PR de versión (rama release/next, creada por preparar-version.yml).
+# Nada se publica al subir código ni etiquetas a mano: solo al fusionar esa PR.
+#   1. etiqueta v<versión> sobre el commit fusionado (versión de Nexo/Nexo.toc)
+#   2. genera el .zip con herramientas/Empaquetar.ps1
+#   3. crea la versión en GitHub con el .zip adjunto
+#   4. lo sube a CurseForge, si el proyecto está configurado
 #
-# Para el paso 3 hacen falta, en Settings > Secrets and variables > Actions:
+# Para el paso 4 hacen falta, en Settings > Secrets and variables > Actions:
 #   secreto   CF_API_KEY        token de https://authors.curseforge.com/account/api-tokens
 #   variable  CF_PROJECT_ID     número de proyecto (Project ID, en la página del proyecto)
 #   variable  CF_GAME_VERSION   versión de juego tal como la llama CurseForge; varias, separadas por comas
 #   variable  CF_RELEASE_TYPE   release (por defecto), beta o alpha
-# Sin CF_API_KEY o CF_PROJECT_ID el paso 3 se salta y lo demás funciona igual.
+# Sin CF_API_KEY o CF_PROJECT_ID el paso 4 se salta y lo demás funciona igual.
 name: Publicar
 
 on:
-  push:
-    tags: ['v*']
+  pull_request:
+    types: [closed]
 
 permissions:
   contents: write
 
 jobs:
   publicar:
+    # Solo las PR de versión fusionadas desde este mismo repositorio
+    if: >-
+      github.event.pull_request.merged == true
+      && github.event.pull_request.head.ref == 'release/next'
+      && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
 
-      - name: Comprobar que la etiqueta coincide con Nexo.toc
+      - name: Leer la versión de Nexo.toc y comprobar que no existe ya
         id: version
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          toc="$(sed -n 's/^## *Version: *//p' Nexo/Nexo.toc | tr -d '\r' | head -n1)"
-          if [ "$version" != "$toc" ]; then
-            echo "::error::La etiqueta es $GITHUB_REF_NAME pero Nexo.toc dice Version: $toc"
+          version="$(sed -n 's/^## *Version: *//p' Nexo/Nexo.toc | tr -d '\r' | head -n1)"
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::error::Ya existe la etiqueta $tag. Sube el número de versión en Nexo/Nexo.toc."
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "zip=dist/Nexo-$version.zip" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Generar el .zip
         shell: pwsh
@@ -44,8 +54,8 @@ jobs:
 
       - name: Escribir los cambios desde la versión anterior
         run: |
-          anterior="$(git describe --tags --abbrev=0 "$GITHUB_REF_NAME^" 2>/dev/null || true)"
-          if [ -n "$anterior" ]; then rango="$anterior..$GITHUB_REF_NAME"; else rango="$GITHUB_REF_NAME"; fi
+          anterior="$(git describe --tags --abbrev=0 --match 'v*' HEAD 2>/dev/null || true)"
+          if [ -n "$anterior" ]; then rango="$anterior..HEAD"; else rango="HEAD"; fi
           git log --no-merges --pretty='- %s' "$rango" > cambios.md
           cat cambios.md
 
@@ -53,7 +63,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "${{ steps.version.outputs.zip }}" \
+          gh release create "${{ steps.version.outputs.tag }}" "${{ steps.version.outputs.zip }}" \
+            --target "${{ steps.version.outputs.sha }}" \
             --title "Nexo ${{ steps.version.outputs.version }}" --notes-file cambios.md
 
       - name: Subir a CurseForge
