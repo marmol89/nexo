@@ -44,11 +44,6 @@ local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     settings = function() return ns.db and ns.db.settings end,
     state = state, list = ns.CharList, all = true, pad = PAD,
     onChange = function() ns.Refresh() end,
-    onPeriod = function(period)
-        state.period = period
-        ns.db.settings.period = period
-        ns.Refresh()
-    end,
 })
 
 ---------------------------------------------------------------------------

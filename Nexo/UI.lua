@@ -359,12 +359,18 @@ function N.Kit(t)
     end
 
     -- Ventana con selector de personaje y pestañas de periodo ya colocados (Tesorero, Bitácora).
-    -- o = K.Window + { state, list, all, pad, onChange(), onPeriod(periodo) }
+    -- o = K.Window + { state, list, all, pad, onChange() }. El periodo elegido se guarda en
+    -- state.period y en settings().period, y luego se llama a onChange().
     -- Devuelve main, close, charBtn, periodBtns y periodHint.
     function K.Dashboard(o)
         local main, close = K.Window(o)
         local charBtn = K.CharPicker(main, close, o.state, o.list, o.onChange, o.all)
-        local periodBtns, periodHint = K.Periods(main, o.pad, -62, o.onPeriod)
+        local periodBtns, periodHint = K.Periods(main, o.pad, -62, function(period)
+            o.state.period = period
+            local st = o.settings and o.settings()
+            if st then st.period = period end
+            o.onChange()
+        end)
         return main, close, charBtn, periodBtns, periodHint
     end
 

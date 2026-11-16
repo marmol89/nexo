@@ -46,12 +46,6 @@ local function Pct(v)
     return (("%.1f"):format(v):gsub("%.", ",")) .. " %"
 end
 
-local function DateLabel(t)
-    if ns.DayKey(t) == ns.DayKey() then return "Hoy " .. date("%H:%M", t) end
-    if ns.DayKey(t) == ns.DayKey(time() - 86400) then return "Ayer " .. date("%H:%M", t) end
-    return date("%d/%m/%y %H:%M", t)
-end
-
 -- Tooltip común de un nivel (gráfico y lista)
 local function LevelTooltip(owner, e, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_RIGHT")
@@ -329,7 +323,7 @@ function UpdateLevels()
         if e.current then
             r.done:SetText("|cff4ade80en curso|r")
         elseif e.done then
-            r.done:SetText(DateLabel(e.done))
+            r.done:SetText(N.WhenLabel(e.done, true))
         else
             r.done:SetText(DASH)
         end

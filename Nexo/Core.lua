@@ -16,8 +16,9 @@
 --   Nexo.Movable(marco, ajustes)             marco que se arrastra y recuerda dónde se dejó
 --   Nexo.Register(def)                       apunta el addon en el botón del minimapa
 --   Nexo.Export(ids) / ReadExport / Import   datos de los addons como texto, para cambiar de ordenador
---   Nexo.WhenLabel(t)                        "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"
+--   Nexo.WhenLabel(t, año)                   "Hoy 14:05", "Ayer 09:30" o "03/11 14:05" (año = true: "03/11/26 14:05")
 --   Nexo.Trace(log, msg, max)                línea con la hora al principio de una lista guardada
+--   Nexo.FillRows(scroll, filas, alto, datos, rellenar)   lista con FauxScrollFrame (UI.lua)
 --   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
 --   Nexo.Antiguo(addon)                      ¿sigue cargado el addon con el nombre de antes de Nexo_<nombre>?
 local ADDON = ...
@@ -74,11 +75,11 @@ function N.DayLabel(t)
     return N.DAY_NAMES[tonumber(date("%w", t)) + 1] .. " " .. date("%d/%m", t)
 end
 
--- "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"
-function N.WhenLabel(t)
+-- "Hoy 14:05", "Ayer 09:30" o "03/11 14:05"; con year = true, "03/11/26 14:05" en vez de "03/11 14:05"
+function N.WhenLabel(t, year)
     local dl = N.DayLabel(t)
     if dl == "Hoy" or dl == "Ayer" then return dl .. " " .. date("%H:%M", t) end
-    return date("%d/%m %H:%M", t)
+    return date(year and "%d/%m/%y %H:%M" or "%d/%m %H:%M", t)
 end
 
 function N.Plural(n, one, many) return n .. " " .. (n == 1 and one or many) end
