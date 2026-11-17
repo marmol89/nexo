@@ -67,18 +67,19 @@ local function Paint()
     local gone = GetTime() - f.start
     label:SetText(f.to and (Tr("a ") .. ns.Place(f.to)) or Tr("En vuelo"))
     if not f.est then
-        -- ruta sin medir y sin nada con qué calcularla: cuenta hacia arriba
-        clock:SetText("|cffaab4be+|r" .. ns.Clock(gone))
+        -- ruta sin medir y sin nada con qué calcularla: no se sabe cuánto falta
+        clock:SetText("|cffaab4be--:--|r")
         bar:Hide()
         return
     end
+    -- cuenta lo que falta, y la barra se vacía al acercarse a la llegada
     local left = f.est - gone
     if left > 0 then
         clock:SetText((f.exact and "" or "|cffaab4be~|r") .. ns.Clock(math.ceil(left)))
     else
         clock:SetText("|cffaab4beLlegando|r")
     end
-    bar:SetWidth(math.max(1, (W - 2) * math.min(1, gone / f.est)))
+    bar:SetWidth(math.max(1, (W - 2) * math.min(1, math.max(0, left) / f.est)))
     bar:Show()
 end
 
