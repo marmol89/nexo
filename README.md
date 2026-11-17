@@ -353,12 +353,26 @@ El código se publica con licencia [MIT](LICENSE).
 
 ## 🚦 Estado
 
+### English
+
+| Addon | Status |
+|---|---|
+| 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Tested in-game by its author, on a single client. |
+| ⚒️ Oficio `0.2.0` | ✅ Tested in-game: level and recipe tracking, material details, cross-check with Alijo, and material cost from Lonja. |
+| 🔨 Lonja `0.2.0` | ✅ Tested in-game: full and page-by-page auction scans, price list, value of stored items from Alijo, automatic scan on opening the auction house, shopping list, multi-day history, tooltip price, and cross-check with Oficio. If nothing is recorded, `/lonja diag` shows which auction API the client has. |
+| 🦅 Vuelo `0.1.0` | ✅ Tested in-game. |
+
+> [!NOTE]
+> There are no automated tests.
+
+### Español
+
 | Addon | Estado |
 |---|---|
 | 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Probados en el juego por su autor, en un único cliente. |
-| ⚒️ Oficio `0.2.0` | 🟡 Visto funcionar con un solo personaje: registro de niveles y de recetas, detalle de materiales y cruce con Alijo. **Sin probar:** los enfriamientos, el uso con varios personajes y el coste de los materiales según Lonja. |
-| 🔨 Lonja `0.2.0` | 🟡 Visto funcionar con un solo personaje: escaneo completo de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta y lista de compra. **Sin probar en el juego:** el escaneo página a página, el historial de varios días, el precio en el tooltip y el cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
-| 🦅 Vuelo `0.1.0` | 🔴 **Sin probar en el juego.** |
+| ⚒️ Oficio `0.2.0` | ✅ Probado en el juego: registro de niveles y de recetas, detalle de materiales, cruce con Alijo y coste de los materiales según Lonja. |
+| 🔨 Lonja `0.2.0` | ✅ Probado en el juego: escaneo completo y página a página de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta, lista de compra, historial de varios días, precio en el tooltip y cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
+| 🦅 Vuelo `0.1.0` | ✅ Probado en el juego. |
 
 > [!NOTE]
 > No hay pruebas automáticas.
