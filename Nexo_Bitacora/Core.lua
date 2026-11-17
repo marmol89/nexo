@@ -4,8 +4,9 @@ Nexo.Dict({
     ["Ausente"] = "Away",
     [" sesión pasada estimada"] = " estimated past session",
     [" sesiones pasadas estimadas"] = " estimated past sessions",
-    [" a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r"] = " from Tesorero. To remove them: |cffffff00/bita quitar estimadas|r",
-    [". Escribe |cffffff00/bita reset confirmar|r para hacerlo."] = ". Type |cffffff00/bita reset confirmar|r to do it.",
+    [" a partir de Tesorero. Para quitarlas: "] = " from Tesorero. To remove them: ",
+    [". Escribe "] = ". Type ",
+    [" para hacerlo."] = " to do it.",
     ["no encuentro datos de Tesorero (¿está instalado y activado?)."] = "I can't find Tesorero data (is it installed and enabled?).",
     ["no hay nada nuevo que importar de Tesorero."] = "there is nothing new to import from Tesorero.",
     [" sesión estimada añadida"] = " estimated session added",
@@ -13,12 +14,12 @@ Nexo.Dict({
     [" a partir de Tesorero."] = " from Tesorero.",
     [" sesión estimada eliminada"] = " estimated session removed",
     [" sesiones estimadas eliminadas"] = " estimated sessions removed",
-    [". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."] = " It will not be imported again until you type |cffffff00/bita importar|r.",
-    ["  |cffffff00/bita|r - abrir/cerrar la ventana"] = "  |cffffff00/bita|r - open/close the window",
-    ["  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/bita minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero"] = "  |cffffff00/bita importar|r - estimate the earlier history from Tesorero",
-    ["  |cffffff00/bita quitar estimadas|r - borrar lo estimado y dejar solo lo medido"] = "  |cffffff00/bita quitar estimadas|r - delete the estimated and keep only the measured",
-    ["  |cffffff00/bita reset|r - borrar el registro de este personaje"] = "  |cffffff00/bita reset|r - delete this character's log",
+    [". No se volverá a importar hasta que escribas "] = ". It will not be imported again until you type ",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["estimar el historial anterior a partir de Tesorero"] = "estimate the earlier history from Tesorero",
+    ["borrar lo estimado y dejar solo lo medido"] = "delete the estimated and keep only the measured",
+    ["borrar el registro de este personaje"] = "delete this character's log",
     ["Bitácora"] = "Logbook",
     ["Tiempo de juego · WoW Forever"] = "Playtime · WoW Forever",
     ["Tiempo total"] = "Total time",
@@ -477,7 +478,8 @@ ev:SetScript("OnEvent", function(self, event, ...)
         if db.settings.import ~= false then
             local n = ns.ImportTesorero()
             if n and n > 0 then
-                print("|cff66c7ffBitácora:|r " .. n .. (n == 1 and Tr(" sesión pasada estimada") or Tr(" sesiones pasadas estimadas")) .. Tr(" a partir de Tesorero. Para quitarlas: |cffffff00/bita quitar estimadas|r"))
+                print("|cff66c7ffBitácora:|r " .. n .. (n == 1 and Tr(" sesión pasada estimada") or Tr(" sesiones pasadas estimadas"))
+                    .. Tr(" a partir de Tesorero. Para quitarlas: ") .. "|cffffff00/bita " .. N.Cmd("bitacora", "removeEstimated") .. "|r")
             end
         end
         StartSession()
@@ -498,7 +500,8 @@ SLASH_BITACORA1, SLASH_BITACORA2 = "/bitacora", "/bita"
 SlashCmdList.BITACORA = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
     local P = "|cff66c7ffBitácora:|r "
-    if msg == "reset confirmar" then
+    local Cmd = function(k) return N.Cmd("bitacora", k) end
+    if msg == Cmd("resetConfirm") then
         db.chars[charKey] = nil
         InitDB()
         session = nil
@@ -506,9 +509,9 @@ SlashCmdList.BITACORA = function(msg)
         N.RequestPlayed()
         print(P .. Tr("registro de este personaje borrado."))
         if ns.Refresh then ns.Refresh() end
-    elseif msg == "reset" then
-        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe |cffffff00/bita reset confirmar|r para hacerlo."))
-    elseif msg == "importar" then
+    elseif msg == Cmd("reset") then
+        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe ") .. "|cffffff00/bita " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
+    elseif msg == Cmd("import") then
         db.settings.import = true
         local n = ns.ImportTesorero()
         if not n then
@@ -519,20 +522,20 @@ SlashCmdList.BITACORA = function(msg)
             print(P .. n .. (n == 1 and Tr(" sesión estimada añadida") or Tr(" sesiones estimadas añadidas")) .. Tr(" a partir de Tesorero."))
         end
         if ns.Refresh then ns.Refresh() end
-    elseif msg == "quitar estimadas" then
+    elseif msg == Cmd("removeEstimated") then
         db.settings.import = false
         local n = ns.RemoveEstimated()
-        print(P .. n .. (n == 1 and Tr(" sesión estimada eliminada") or Tr(" sesiones estimadas eliminadas")) .. Tr(". No se volverá a importar hasta que escribas |cffffff00/bita importar|r."))
+        print(P .. n .. (n == 1 and Tr(" sesión estimada eliminada") or Tr(" sesiones estimadas eliminadas")) .. Tr(". No se volverá a importar hasta que escribas ") .. "|cffffff00/bita " .. Cmd("import") .. "|r")
         if ns.Refresh then ns.Refresh() end
-    elseif msg == "minimapa" then
+    elseif msg == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif msg == "ayuda" or msg == "help" then
+    elseif msg == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/bita|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/bita minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/bita importar|r - estimar el historial anterior a partir de Tesorero"))
-        print(Tr("  |cffffff00/bita quitar estimadas|r - borrar lo estimado y dejar solo lo medido"))
-        print(Tr("  |cffffff00/bita reset|r - borrar el registro de este personaje"))
+        print("  |cffffff00/bita|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/bita " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/bita " .. Cmd("import") .. "|r - " .. Tr("estimar el historial anterior a partir de Tesorero"))
+        print("  |cffffff00/bita " .. Cmd("removeEstimated") .. "|r - " .. Tr("borrar lo estimado y dejar solo lo medido"))
+        print("  |cffffff00/bita " .. Cmd("reset") .. "|r - " .. Tr("borrar el registro de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end

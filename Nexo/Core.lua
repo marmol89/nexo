@@ -260,6 +260,7 @@ local function InitDB()
     db.chars = db.chars or {}
     db.minimap = db.minimap or { angle = 200, hide = false }
     N.db = db
+    N.RefreshLang()  -- NexoDB ya es de fiar aquí; antes (al cargar Locale.lua) puede no estarlo
     UpdateChar()
 end
 
@@ -695,27 +696,28 @@ SLASH_NEXO1 = "/nexo"
 SlashCmdList.NEXO = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
     local P = "|cffd9d9e6Nexo:|r "
-    if msg == "minimapa" then
+    -- Los nombres de los subcomandos dependen del idioma (N.Cmd): /nexo ajustes en español, /nexo settings en inglés
+    if msg == N.Cmd("nexo", "minimap") then
         local hidden = N.ToggleMinimap()
         print(P .. Tr("botón del minimapa") .. " " .. (hidden and Tr("oculto") or Tr("visible")) .. ".")
-    elseif msg == "datos" or msg == "exportar" or msg == "importar" then
-        N.ToggleData(msg == "importar" and "import" or "export")
-    elseif msg == "ajustes" or msg == "config" then
+    elseif msg == N.Cmd("nexo", "data") or msg == N.Cmd("nexo", "export") or msg == N.Cmd("nexo", "import") then
+        N.ToggleData(msg == N.Cmd("nexo", "import") and "import" or "export")
+    elseif msg == N.Cmd("nexo", "settings") then
         N.ToggleSettings()
-    elseif msg == "ayuda" or msg == "help" then
+    elseif msg == N.Cmd("nexo", "help") then
         print(P .. Tr("comandos:"))
         print("  |cffffff00/nexo|r - " .. Tr("lista de addons conectados"))
-        print("  |cffffff00/nexo ajustes|r - " .. Tr("abrir/cerrar la ventana de ajustes (idioma y opciones)"))
-        print("  |cffffff00/nexo datos|r - " .. Tr("abrir/cerrar la ventana de exportar e importar datos"))
-        print("  |cffffff00/nexo exportar|r - " .. Tr("abrirla para sacar los datos como texto (cambiar de ordenador)"))
-        print("  |cffffff00/nexo importar|r - " .. Tr("abrirla para pegar el texto exportado en otro ordenador"))
-        print("  |cffffff00/nexo minimapa|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
-        print("  |cffffff00/nexo ayuda|r - " .. Tr("esta lista"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "settings") .. "|r - " .. Tr("abrir/cerrar la ventana de ajustes (idioma y opciones)"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "data") .. "|r - " .. Tr("abrir/cerrar la ventana de exportar e importar datos"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "export") .. "|r - " .. Tr("abrirla para sacar los datos como texto (cambiar de ordenador)"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "import") .. "|r - " .. Tr("abrirla para pegar el texto exportado en otro ordenador"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "help") .. "|r - " .. Tr("esta lista"))
     else
         print(P .. Tr("addons conectados:"))
         for _, def in ipairs(N.addons or {}) do
             print("  " .. def.name .. (def.slash and ("  |cffffff00" .. def.slash .. "|r") or ""))
         end
-        print("  |cffffff00/nexo ayuda|r - " .. Tr("comandos de Nexo"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "help") .. "|r - " .. Tr("comandos de Nexo"))
     end
 end

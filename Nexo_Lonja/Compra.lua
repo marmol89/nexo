@@ -289,7 +289,7 @@ function ns.PrintBuyList()
     local list = ns.BuyList()
     if not next(list) then
         print(P .. Tr("la lista de compra está vacía. Elige un objeto en la ventana de Lonja y ponle precio y cantidad,"))
-        print(Tr("  o escribe |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r."))
+        print(Tr("  o escribe ") .. "|cffffff00/lonja " .. Nexo.Cmd("lonja", "buy") .. Tr(" <enlace del objeto> <precio máximo> <cantidad>|r."))
         return
     end
     print(P .. Tr("lista de compra:"))
@@ -310,8 +310,9 @@ function ns.BuyCommand(text)
     local price, qty = (rest or ""):match("^(.-)%s+(%d+)$")
     price, qty = ns.ParseMoney(price), tonumber(qty)
     if not id or not price or not qty or qty < 1 then
-        print(P .. Tr("uso: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r"))
-        print(Tr("  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo: /lonja comprar [Paño de lino] 0.02 40"))
+        print(P .. Tr("uso: ") .. "|cffffff00/lonja " .. Nexo.Cmd("lonja", "buy") .. Tr(" <enlace del objeto> <precio máximo por unidad> <cantidad>|r"))
+        print(Tr("  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo:")
+            .. " /lonja " .. Nexo.Cmd("lonja", "buy") .. " [Paño de lino] 0.02 40")
         return
     end
     ns.BuySet(id, price, qty)

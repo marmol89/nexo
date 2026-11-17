@@ -49,7 +49,7 @@ local QualityRGB, ShowItemTooltip = N.QualityRGB, N.ItemTooltip
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "LonjaMainFrame", w = W, h = H, icon = ICON,
-    title = "Lonja", subtitle = Tr("Precios de la casa de subastas · WoW Forever"),
+    title = Tr("Lonja"), subtitle = Tr("Precios de la casa de subastas · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -357,7 +357,7 @@ end
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/lonja ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/lonja " .. Nexo.Cmd("lonja", "help") })
 
 -- Botones que se añaden a la ventana de la subasta: escanear y comprar lo de la lista
 local ahBtn, ahBuy
@@ -551,7 +551,7 @@ local function ShowSummaryTooltip(owner, anchor)
 end
 
 N.Register({
-    id = "Lonja", name = "Lonja", icon = ICON, color = ACC, slash = "/lonja",
+    id = "Lonja", name = Tr("Lonja"), icon = ICON, color = ACC, slash = "/lonja",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "LonjaDB",

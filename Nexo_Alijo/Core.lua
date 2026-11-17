@@ -1,14 +1,15 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Alijo"] = "Stash",
     ["Banco"] = "Bank",
     ["Equipado"] = "Equipped",
     ["recuento en el tooltip de los objetos "] = "count in the item tooltip ",
     ["inventario de "] = "inventory of ",
-    ["  |cffffff00/alijo|r - abrir/cerrar la ventana"] = "  |cffffff00/alijo|r - open/close the window",
-    ["  |cffffff00/alijo <texto>|r - abrir buscando ese texto"] = "  |cffffff00/alijo <texto>|r - open searching for that text",
-    ["  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos"] = "  |cffffff00/alijo tooltip|r - turn the item tooltip count on/off",
-    ["  |cffffff00/alijo minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/alijo minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/alijo olvidar <personaje>|r - borrar el inventario guardado de otro personaje"] = "  |cffffff00/alijo olvidar <personaje>|r - delete the saved inventory of another character",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["abrir buscando ese texto"] = "open searching for that text",
+    ["activar/desactivar el recuento en el tooltip de los objetos"] = "turn the item tooltip count on/off",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["borrar el inventario guardado de otro personaje"] = "delete the saved inventory of another character",
     ["Bolsas "] = "Bags ",
     ["Banda "] = "Warband ",
     ["Banco "] = "Bank ",
@@ -349,13 +350,14 @@ SlashCmdList.ALIJO = function(msg)
     msg = (msg or ""):gsub("^%s+", ""):gsub("%s+$", "")
     local low = msg:lower()
     local P = "|cff5cdb9eAlijo:|r "
-    if low == "tooltip" then
+    local Cmd = function(k) return Nexo.Cmd("alijo", k) end
+    if low == Cmd("tooltip") then
         db.settings.tooltip = not ns.TooltipEnabled()
         print(P .. Tr("recuento en el tooltip de los objetos ") .. (db.settings.tooltip and Tr("activado") or Tr("desactivado")) .. ".")
-    elseif low == "minimapa" then
+    elseif low == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif low:match("^olvidar%s+%S") then
-        local who = low:match("^olvidar%s+(.+)$")
+    elseif low:match("^" .. Cmd("forget") .. "%s+%S") then
+        local who = low:match("^" .. Cmd("forget") .. "%s+(.+)$")
         local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
@@ -364,13 +366,13 @@ SlashCmdList.ALIJO = function(msg)
         else
             print(P .. Tr("no encuentro a otro personaje llamado \"") .. who .. "\".")
         end
-    elseif low == "ayuda" or low == "help" then
+    elseif low == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/alijo|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/alijo <texto>|r - abrir buscando ese texto"))
-        print(Tr("  |cffffff00/alijo tooltip|r - activar/desactivar el recuento en el tooltip de los objetos"))
-        print(Tr("  |cffffff00/alijo minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/alijo olvidar <personaje>|r - borrar el inventario guardado de otro personaje"))
+        print("  |cffffff00/alijo|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/alijo <texto>|r - " .. Tr("abrir buscando ese texto"))
+        print("  |cffffff00/alijo " .. Cmd("tooltip") .. "|r - " .. Tr("activar/desactivar el recuento en el tooltip de los objetos"))
+        print("  |cffffff00/alijo " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/alijo " .. Cmd("forget") .. " <personaje>|r - " .. Tr("borrar el inventario guardado de otro personaje"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) end
     else

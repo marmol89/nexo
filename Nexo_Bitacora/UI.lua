@@ -311,7 +311,7 @@ local function SetStat(f, value, sub) f:Set(value, sub) end
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/bita ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/bita " .. Nexo.Cmd("bitacora", "help") })
 
 local function TodayTotal(filter)
     local series = ns.DailySeries(filter, 1)

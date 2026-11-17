@@ -1,5 +1,6 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Oficio"] = "Trade",
     ["nadie sabe fabricar nada que contenga \""] = "nobody knows how to craft anything containing \"",
     ["sin API C_TradeSkillUI"] = "no C_TradeSkillUI API",
     ["omitido: enlazada"] = "skipped: linked",
@@ -14,16 +15,17 @@ Nexo.Dict({
     ["aviso de enfriamientos al entrar "] = "cooldown alert on entering ",
     ["registro de "] = "log of ",
     ["esto borrará las profesiones y recetas guardadas de "] = "this will delete the professions and recipes saved for ",
-    [". Escribe |cffffff00/oficio reset confirmar|r para hacerlo."] = ". Type |cffffff00/oficio reset confirmar|r to do it.",
+    [". Escribe "] = ". Type ",
+    [" para hacerlo."] = " to do it.",
     [" borradas."] = " deleted.",
     ["últimos escaneos (con la ventana de la profesión abierta):"] = "last scans (with the profession window open):",
-    ["  |cffffff00/oficio|r - abrir/cerrar la ventana"] = "  |cffffff00/oficio|r - open/close the window",
-    ["  |cffffff00/oficio <texto>|r - quién sabe fabricar algo con ese nombre"] = "  |cffffff00/oficio <texto>|r - who can craft something with that name",
-    ["  |cffffff00/oficio avisos|r - activar/desactivar el aviso de enfriamientos al entrar"] = "  |cffffff00/oficio avisos|r - turn the cooldown alert on entering on/off",
-    ["  |cffffff00/oficio minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/oficio minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/oficio olvidar <personaje>|r - borrar lo guardado de otro personaje"] = "  |cffffff00/oficio olvidar <personaje>|r - delete the saved data of another character",
-    ["  |cffffff00/oficio reset|r - borrar lo guardado de este personaje"] = "  |cffffff00/oficio reset|r - delete the saved data of this character",
-    ["  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta"] = "  |cffffff00/oficio diag|r - show what was read from the open profession",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["quién sabe fabricar algo con ese nombre"] = "who can craft something with that name",
+    ["activar/desactivar el aviso de enfriamientos al entrar"] = "turn the cooldown alert on entering on/off",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["borrar lo guardado de otro personaje"] = "delete the saved data of another character",
+    ["borrar lo guardado de este personaje"] = "delete the saved data of this character",
+    ["mostrar qué ha leído de la profesión abierta"] = "show what was read from the open profession",
     ["Profesiones de la cuenta · WoW Forever"] = "Professions of the account · WoW Forever",
     ["Buscar receta o material..."] = "Search recipe or material...",
     ["Sin profesiones registradas.|r"] = "No professions recorded.|r",
@@ -527,20 +529,21 @@ SLASH_OFICIO1 = "/oficio"
 SlashCmdList.OFICIO = function(msg)
     msg = (msg or ""):gsub("^%s+", ""):gsub("%s+$", "")
     local low = msg:lower()
-    if low == "avisos" then
+    local Cmd = function(k) return Nexo.Cmd("oficio", k) end
+    if low == Cmd("announce") then
         db.settings.announce = (db.settings.announce == false)
         print(P .. Tr("aviso de enfriamientos al entrar ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
-    elseif low == "minimapa" then
+    elseif low == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif low == "reset confirmar" then
+    elseif low == Cmd("resetConfirm") then
         db.chars[charKey] = nil
         InitDB()
         ScanSkills()
         print(P .. Tr("registro de ") .. charKey .. Tr(" borrado."))
-    elseif low == "reset" then
-        print(P .. Tr("esto borrará las profesiones y recetas guardadas de ") .. charKey .. Tr(". Escribe |cffffff00/oficio reset confirmar|r para hacerlo."))
-    elseif low:match("^olvidar%s+%S") then
-        local who = low:match("^olvidar%s+(.+)$")
+    elseif low == Cmd("reset") then
+        print(P .. Tr("esto borrará las profesiones y recetas guardadas de ") .. charKey .. Tr(". Escribe ") .. "|cffffff00/oficio " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
+    elseif low:match("^" .. Cmd("forget") .. "%s+%S") then
+        local who = low:match("^" .. Cmd("forget") .. "%s+(.+)$")
         local found = Nexo.FindChar(db.chars, who, charKey)
         if found then
             db.chars[found] = nil
@@ -549,19 +552,19 @@ SlashCmdList.OFICIO = function(msg)
         else
             print(P .. Tr("no encuentro a otro personaje llamado \"") .. who .. "\".")
         end
-    elseif low == "diag" then
+    elseif low == Cmd("diag") then
         ScanTrade()
         print(P .. Tr("últimos escaneos (con la ventana de la profesión abierta):"))
         for _, line in ipairs(db.debug or {}) do print("  " .. line) end
-    elseif low == "ayuda" or low == "help" then
+    elseif low == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/oficio|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/oficio <texto>|r - quién sabe fabricar algo con ese nombre"))
-        print(Tr("  |cffffff00/oficio avisos|r - activar/desactivar el aviso de enfriamientos al entrar"))
-        print(Tr("  |cffffff00/oficio minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/oficio olvidar <personaje>|r - borrar lo guardado de otro personaje"))
-        print(Tr("  |cffffff00/oficio reset|r - borrar lo guardado de este personaje"))
-        print(Tr("  |cffffff00/oficio diag|r - mostrar qué ha leído de la profesión abierta"))
+        print("  |cffffff00/oficio|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/oficio <texto>|r - " .. Tr("quién sabe fabricar algo con ese nombre"))
+        print("  |cffffff00/oficio " .. Cmd("announce") .. "|r - " .. Tr("activar/desactivar el aviso de enfriamientos al entrar"))
+        print("  |cffffff00/oficio " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/oficio " .. Cmd("forget") .. " <personaje>|r - " .. Tr("borrar lo guardado de otro personaje"))
+        print("  |cffffff00/oficio " .. Cmd("reset") .. "|r - " .. Tr("borrar lo guardado de este personaje"))
+        print("  |cffffff00/oficio " .. Cmd("diag") .. "|r - " .. Tr("mostrar qué ha leído de la profesión abierta"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) else PrintSearch(msg) end
     else

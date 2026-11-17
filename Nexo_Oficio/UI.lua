@@ -71,7 +71,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "OficioMainFrame", w = W, h = H, icon = ICON,
-    title = "Oficio", subtitle = Tr("Profesiones de la cuenta · WoW Forever"),
+    title = Tr("Oficio"), subtitle = Tr("Profesiones de la cuenta · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -324,7 +324,7 @@ end
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/oficio ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/oficio " .. Nexo.Cmd("oficio", "help") })
 
 -- Avisa de las profesiones cuya ventana aún no se ha abierto con este personaje
 local function UpdateFooter()
@@ -452,7 +452,7 @@ local function ShowSummaryTooltip(owner, anchor)
 end
 
 N.Register({
-    id = "Oficio", name = "Oficio", icon = ICON, color = ACC, slash = "/oficio",
+    id = "Oficio", name = Tr("Oficio"), icon = ICON, color = ACC, slash = "/oficio",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "OficioDB",

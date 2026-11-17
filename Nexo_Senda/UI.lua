@@ -87,7 +87,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "SendaMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_Map_01",
-    title = "Senda", subtitle = Tr("Subida de nivel · WoW Forever"),
+    title = Tr("Senda"), subtitle = Tr("Subida de nivel · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -337,7 +337,7 @@ end)
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/senda ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/senda " .. Nexo.Cmd("senda", "help") })
 
 ---------------------------------------------------------------------------
 -- Refrescar todo
@@ -542,7 +542,7 @@ end
 
 -- El botón del minimapa es el de Nexo, compartido por todos los addons
 N.Register({
-    id = "Senda", name = "Senda", icon = "Interface\\Icons\\INV_Misc_Map_01", color = ACC, slash = "/senda",
+    id = "Senda", name = Tr("Senda"), icon = "Interface\\Icons\\INV_Misc_Map_01", color = ACC, slash = "/senda",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "SendaDB",
