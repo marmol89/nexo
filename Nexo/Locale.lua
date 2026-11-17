@@ -6,6 +6,8 @@
 -- En inglés, cada addon añade sus traducciones con Nexo.Dict (texto en español -> inglés):
 --   Nexo.Dict({ ["Todos los personajes"] = "All characters" })
 -- Si falta una traducción, se muestra el texto en español.
+-- Locale.lua se carga antes que Core.lua, que es quien crea la tabla global
+Nexo = Nexo or {}
 local N = Nexo
 
 local locale = GetLocale and GetLocale() or "enUS"
