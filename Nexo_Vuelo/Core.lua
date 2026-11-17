@@ -172,6 +172,12 @@ function ns.Route(slot)
         local pace = sp and sp.t > 0 and sp.d > 0 and sp.t / sp.d or DefaultPace(r.cont)
         if pace then r.est = r.len * pace end
     end
+    if not r.est then
+        -- sin nada del mapa con qué calcularla: lo que de media tardan tus vuelos medidos
+        local sum, n = 0, 0
+        for _, t in pairs(times) do sum, n = sum + t, n + 1 end
+        if n > 0 then r.est = sum / n end
+    end
     return r
 end
 
