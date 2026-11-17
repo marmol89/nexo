@@ -1,14 +1,16 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Senda"] = "Path",
     ["Nivel"] = "Level",
     [" alcanzado. El nivel "] = " reached. Level ",
     [" te llevó "] = " took you ",
     ["aviso al subir de nivel "] = "level-up alert ",
-    [". Escribe |cffffff00/senda reset confirmar|r para hacerlo."] = ". Type |cffffff00/senda reset confirmar|r to do it.",
-    ["  |cffffff00/senda|r - abrir/cerrar la ventana"] = "  |cffffff00/senda|r - open/close the window",
-    ["  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel"] = "  |cffffff00/senda avisos|r - turn the chat summary on level-up on/off",
-    ["  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/senda minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/senda reset|r - borrar el registro de este personaje"] = "  |cffffff00/senda reset|r - delete this character's log",
+    [". Escribe "] = ". Type ",
+    [" para hacerlo."] = " to do it.",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["activar/desactivar el resumen en el chat al subir de nivel"] = "turn the chat summary on level-up on/off",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["borrar el registro de este personaje"] = "delete this character's log",
     ["Exploración"] = "Exploration",
     ["Nivel "] = "Level ",
     ["  |cff4ade80(en curso)|r"] = "  |cff4ade80(in progress)|r",
@@ -433,7 +435,8 @@ hasTurnIn = Nexo.Reg(ev, "QUEST_TURNED_IN")
 SLASH_SENDA1 = "/senda"
 SlashCmdList.SENDA = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
-    if msg == "reset confirmar" then
+    local Cmd = function(k) return N.Cmd("senda", k) end
+    if msg == Cmd("resetConfirm") then
         db.chars[charKey] = nil
         InitDB()
         session = nil
@@ -441,19 +444,19 @@ SlashCmdList.SENDA = function(msg)
         StartSession()
         print(P .. Tr("registro de este personaje borrado."))
         if ns.Refresh then ns.Refresh() end
-    elseif msg == "reset" then
-        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe |cffffff00/senda reset confirmar|r para hacerlo."))
-    elseif msg == "avisos" then
+    elseif msg == Cmd("reset") then
+        print(P .. Tr("esto borrará TODO el registro de ") .. charKey .. Tr(". Escribe ") .. "|cffffff00/senda " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
+    elseif msg == Cmd("announce") then
         db.settings.announce = (db.settings.announce == false)
         print(P .. Tr("aviso al subir de nivel ") .. (db.settings.announce and Tr("activado") or Tr("desactivado")) .. ".")
-    elseif msg == "minimapa" then
+    elseif msg == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif msg == "ayuda" or msg == "help" then
+    elseif msg == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/senda|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/senda avisos|r - activar/desactivar el resumen en el chat al subir de nivel"))
-        print(Tr("  |cffffff00/senda minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/senda reset|r - borrar el registro de este personaje"))
+        print("  |cffffff00/senda|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/senda " .. Cmd("announce") .. "|r - " .. Tr("activar/desactivar el resumen en el chat al subir de nivel"))
+        print("  |cffffff00/senda " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/senda " .. Cmd("reset") .. "|r - " .. Tr("borrar el registro de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end

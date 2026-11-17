@@ -1,5 +1,6 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Tesorero"] = "Treasurer",
     ["Sin movimientos todavía.\nGana o gasta algo de oro y aparecerá aquí."] = "No movements yet.\nEarn or spend some gold and it will appear here.",
     ["Ganado"] = "Earned",
     ["Botín"] = "Loot",
@@ -11,10 +12,11 @@ Nexo.Dict({
     ["Otros"] = "Other",
     ["historial de este personaje borrado."] = "history of this character deleted.",
     ["esto borrará TODO el historial de "] = "this will delete ALL the history of ",
-    [". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."] = ". Type |cffffff00/tesoro reset confirmar|r to do it.",
-    ["  |cffffff00/tesoro|r - abrir/cerrar la ventana"] = "  |cffffff00/tesoro|r - open/close the window",
-    ["  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/tesoro minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/tesoro reset|r - borrar el historial de este personaje"] = "  |cffffff00/tesoro reset|r - delete this character's history",
+    [". Escribe "] = ". Type ",
+    [" para hacerlo."] = " to do it.",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["borrar el historial de este personaje"] = "delete this character's history",
     ["Historial de oro · WoW Forever"] = "Gold history · WoW Forever",
     ["Oro actual"] = "Current gold",
     ["Sin movimientos en las últimas 2 semanas"] = "No movements in the last 2 weeks",
@@ -354,21 +356,22 @@ SLASH_TESORERO1, SLASH_TESORERO2 = "/tesorero", "/tesoro"
 SlashCmdList.TESORERO = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
     local P = "|cffffd100Tesorero:|r "
-    if msg == "reset confirmar" then
+    local Cmd = function(k) return N.Cmd("tesorero", k) end
+    if msg == Cmd("resetConfirm") then
         db.chars[charKey] = nil
         InitDB()
         char.money, char.peak = GetMoney(), GetMoney()
         print(P .. Tr("historial de este personaje borrado."))
         if ns.OnDataChanged then ns.OnDataChanged() end
-    elseif msg == "reset" then
-        print(P .. Tr("esto borrará TODO el historial de ") .. charKey .. Tr(". Escribe |cffffff00/tesoro reset confirmar|r para hacerlo."))
-    elseif msg == "minimapa" then
+    elseif msg == Cmd("reset") then
+        print(P .. Tr("esto borrará TODO el historial de ") .. charKey .. Tr(". Escribe ") .. "|cffffff00/tesoro " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
+    elseif msg == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif msg == "ayuda" or msg == "help" then
+    elseif msg == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/tesoro|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/tesoro minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/tesoro reset|r - borrar el historial de este personaje"))
+        print("  |cffffff00/tesoro|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/tesoro " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/tesoro " .. Cmd("reset") .. "|r - " .. Tr("borrar el historial de este personaje"))
     else
         if ns.Toggle then ns.Toggle() end
     end

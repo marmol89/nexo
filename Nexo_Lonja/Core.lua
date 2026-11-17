@@ -1,5 +1,6 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Lonja"] = "Market",
     ["no hay ningún precio guardado que contenga \""] = "there is no saved price containing \"",
     ["Aún no hay precios. Abre la casa de subastas y pulsa \"Escanear subasta\"."] = "No prices yet. Open the auction house and press \"Scan auction\".",
     ["\"Escanear subasta\" para empezar.|r"] = "\"Scan auction\" to start.|r",
@@ -48,19 +49,20 @@ Nexo.Dict({
     ["precio en el tooltip de los objetos "] = "price in the item tooltip ",
     [" borrados."] = " deleted.",
     ["esto borrará todos los precios guardados de "] = "this will delete all the saved prices of ",
-    [". Escribe |cffffff00/lonja reset confirmar|r para hacerlo."] = ". Type |cffffff00/lonja reset confirmar|r to do it.",
-    ["  |cffffff00/lonja|r - abrir/cerrar la ventana"] = "  |cffffff00/lonja|r - open/close the window",
-    ["  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados"] = "  |cffffff00/lonja <texto>|r - open searching that text in the saved prices",
-    ["  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)"] = "  |cffffff00/lonja escanear|r - scan the auction house (it must be open)",
-    ["  |cffffff00/lonja parar|r - parar el escaneo en marcha"] = "  |cffffff00/lonja parar|r - stop the scan in progress",
-    ["  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta"] = "  |cffffff00/lonja auto|r - turn the automatic scan on opening the auction on/off",
-    ["  |cffffff00/lonja comprar|r - ver la lista de compra"] = "  |cffffff00/lonja comprar|r - see the shopping list",
-    ["  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra"] = "  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - add an item to the shopping list",
-    ["  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra"] = "  |cffffff00/lonja quitar <enlace>|r - remove it from the shopping list",
-    ["  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos"] = "  |cffffff00/lonja tooltip|r - turn the price in the item tooltip on/off",
-    ["  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/lonja minimapa|r - show/hide the minimap button",
-    ["  |cffffff00/lonja reset|r - borrar los precios guardados de este reino"] = "  |cffffff00/lonja reset|r - delete the saved prices of this realm",
-    ["  |cffffff00/lonja diag|r - mostrar qué API de subasta tiene el cliente y los últimos escaneos"] = "  |cffffff00/lonja diag|r - show which auction API the client has and the last scans",
+    [". Escribe "] = ". Type ",
+    [" para hacerlo."] = " to do it.",
+    ["abrir/cerrar la ventana"] = "open/close the window",
+    ["abrir buscando ese texto en los precios guardados"] = "open searching that text in the saved prices",
+    ["escanear la casa de subastas (tiene que estar abierta)"] = "scan the auction house (it must be open)",
+    ["parar el escaneo en marcha"] = "stop the scan in progress",
+    ["activar/desactivar el escaneo automático al abrir la subasta"] = "turn the automatic scan on opening the auction on/off",
+    ["ver la lista de compra"] = "see the shopping list",
+    ["apuntar un objeto en la lista de compra"] = "add an item to the shopping list",
+    ["quitarlo de la lista de compra"] = "remove it from the shopping list",
+    ["activar/desactivar el precio en el tooltip de los objetos"] = "turn the price in the item tooltip on/off",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
+    ["borrar los precios guardados de este reino"] = "delete the saved prices of this realm",
+    ["mostrar qué API de subasta tiene el cliente y los últimos escaneos"] = "show which auction API the client has and the last scans",
     [" objeto de tu lista está"] = " item on your list is",
     [" objetos de tu lista están"] = " items on your list are",
     [" a tu precio o por debajo:"] = " at your price or below:",
@@ -87,14 +89,16 @@ Nexo.Dict({
     ["la subasta pide esperar un momento; vuelve a pulsar."] = "the auction asks to wait a moment; press again.",
     ["nada de tu lista de compra está a tu precio."] = "nothing on your shopping list is at your price.",
     ["la lista de compra está vacía. Elige un objeto en la ventana de Lonja y ponle precio y cantidad,"] = "the shopping list is empty. Choose an item in the Lonja window and set a price and quantity,",
-    ["  o escribe |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r."] = "  or type |cffffff00/lonja comprar <enlace del objeto> <precio máximo> <cantidad>|r.",
+    ["  o escribe "] = "  or type ",
+    [" <enlace del objeto> <precio máximo> <cantidad>|r."] = " <enlace del objeto> <precio máximo> <cantidad>|r.",
     ["lista de compra:"] = "shopping list:",
     ["  %s: %d a %s como mucho · %s"] = "  %s: %d at %s at most · %s",
     ["ahora a "] = "now at ",
     [" |cff66ff66(a tu precio)|r"] = " |cff66ff66(at your price)|r",
     ["sin precio visto"] = "no price seen",
-    ["uso: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r"] = "usage: |cffffff00/lonja comprar <enlace del objeto> <precio máximo por unidad> <cantidad>|r",
-    ["  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo: /lonja comprar [Paño de lino] 0.02 40"] = "  The price is in gold (|cffffff001.5|r) or in coins (|cffffff001g 50s|r). Example: /lonja comprar [Paño de lino] 0.02 40",
+    ["uso: "] = "usage: ",
+    [" <enlace del objeto> <precio máximo por unidad> <cantidad>|r"] = " <enlace del objeto> <precio máximo por unidad> <cantidad>|r",
+    ["  El precio va en oro (|cffffff001.5|r) o con monedas (|cffffff001g 50s|r). Ejemplo:"] = "  The price is in gold (|cffffff001.5|r) or in coins (|cffffff001g 50s|r). Example:",
     ["%s: comprar %d a %s como mucho."] = "%s: buy %d at %s at most.",
     ["ese objeto no está en la lista de compra."] = "that item is not on the shopping list.",
     [" quitado de la lista de compra."] = " removed from the shopping list.",
@@ -685,49 +689,50 @@ SLASH_LONJA1 = "/lonja"
 SlashCmdList.LONJA = function(msg)
     msg = (msg or ""):gsub("^%s+", ""):gsub("%s+$", "")
     local low = msg:lower()
-    if low == "escanear" then
+    local Cmd = function(k) return Nexo.Cmd("lonja", k) end
+    if low == Cmd("scan") then
         ns.StartScan()
-    elseif low == "parar" then
+    elseif low == Cmd("stop") then
         if scan then ns.StopScan() else print(P .. Tr("no hay ningún escaneo en marcha.")) end
-    elseif low == "auto" then
+    elseif low == Cmd("auto") then
         db.settings.auto = not ns.AutoScan()
         print(P .. Tr("escaneo automático al abrir la subasta ") .. (db.settings.auto and Tr("activado") or Tr("desactivado")) .. ".")
-    elseif low == "comprar" or low == "lista" then
+    elseif low == Cmd("buy") or low == Cmd("list") then
         ns.PrintBuyList()
-    elseif low:find("^comprar%s") then
-        ns.BuyCommand(msg:sub(9):gsub("^%s+", ""))
-    elseif low:find("^quitar%s") then
-        ns.BuyRemoveCommand(msg:sub(8):gsub("^%s+", ""))
-    elseif low == "tooltip" then
+    elseif low:find("^" .. Cmd("buy") .. "%s") then
+        ns.BuyCommand(msg:sub(#Cmd("buy") + 2):gsub("^%s+", ""))
+    elseif low:find("^" .. Cmd("remove") .. "%s") then
+        ns.BuyRemoveCommand(msg:sub(#Cmd("remove") + 2):gsub("^%s+", ""))
+    elseif low == Cmd("tooltip") then
         db.settings.tooltip = not ns.TooltipEnabled()
         print(P .. Tr("precio en el tooltip de los objetos ") .. (db.settings.tooltip and Tr("activado") or Tr("desactivado")) .. ".")
-    elseif low == "minimapa" then
+    elseif low == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (Nexo.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif low == "reset confirmar" then
+    elseif low == Cmd("resetConfirm") then
         local buy = realm.buy       -- la lista de compra no son precios: se conserva
         db.realms[realmKey] = nil
         InitDB()
         realm.buy = buy
         Changed()
         print(P .. Tr("precios de ") .. realmKey .. Tr(" borrados."))
-    elseif low == "reset" then
-        print(P .. Tr("esto borrará todos los precios guardados de ") .. realmKey .. Tr(". Escribe |cffffff00/lonja reset confirmar|r para hacerlo."))
-    elseif low == "diag" then
+    elseif low == Cmd("reset") then
+        print(P .. Tr("esto borrará todos los precios guardados de ") .. realmKey .. Tr(". Escribe ") .. "|cffffff00/lonja " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
+    elseif low == Cmd("diag") then
         PrintDiag()
-    elseif low == "ayuda" or low == "help" then
+    elseif low == Cmd("help") then
         print(P .. "comandos:")
-        print(Tr("  |cffffff00/lonja|r - abrir/cerrar la ventana"))
-        print(Tr("  |cffffff00/lonja <texto>|r - abrir buscando ese texto en los precios guardados"))
-        print(Tr("  |cffffff00/lonja escanear|r - escanear la casa de subastas (tiene que estar abierta)"))
-        print(Tr("  |cffffff00/lonja parar|r - parar el escaneo en marcha"))
-        print(Tr("  |cffffff00/lonja auto|r - activar/desactivar el escaneo automático al abrir la subasta"))
-        print(Tr("  |cffffff00/lonja comprar|r - ver la lista de compra"))
-        print(Tr("  |cffffff00/lonja comprar <enlace> <precio> <cantidad>|r - apuntar un objeto en la lista de compra"))
-        print(Tr("  |cffffff00/lonja quitar <enlace>|r - quitarlo de la lista de compra"))
-        print(Tr("  |cffffff00/lonja tooltip|r - activar/desactivar el precio en el tooltip de los objetos"))
-        print(Tr("  |cffffff00/lonja minimapa|r - mostrar/ocultar el botón del minimapa"))
-        print(Tr("  |cffffff00/lonja reset|r - borrar los precios guardados de este reino"))
-        print(Tr("  |cffffff00/lonja diag|r - mostrar qué API de subasta tiene el cliente y los últimos escaneos"))
+        print("  |cffffff00/lonja|r - " .. Tr("abrir/cerrar la ventana"))
+        print("  |cffffff00/lonja <texto>|r - " .. Tr("abrir buscando ese texto en los precios guardados"))
+        print("  |cffffff00/lonja " .. Cmd("scan") .. "|r - " .. Tr("escanear la casa de subastas (tiene que estar abierta)"))
+        print("  |cffffff00/lonja " .. Cmd("stop") .. "|r - " .. Tr("parar el escaneo en marcha"))
+        print("  |cffffff00/lonja " .. Cmd("auto") .. "|r - " .. Tr("activar/desactivar el escaneo automático al abrir la subasta"))
+        print("  |cffffff00/lonja " .. Cmd("buy") .. "|r - " .. Tr("ver la lista de compra"))
+        print("  |cffffff00/lonja " .. Cmd("buy") .. " <enlace> <precio> <cantidad>|r - " .. Tr("apuntar un objeto en la lista de compra"))
+        print("  |cffffff00/lonja " .. Cmd("remove") .. " <enlace>|r - " .. Tr("quitarlo de la lista de compra"))
+        print("  |cffffff00/lonja " .. Cmd("tooltip") .. "|r - " .. Tr("activar/desactivar el precio en el tooltip de los objetos"))
+        print("  |cffffff00/lonja " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/lonja " .. Cmd("reset") .. "|r - " .. Tr("borrar los precios guardados de este reino"))
+        print("  |cffffff00/lonja " .. Cmd("diag") .. "|r - " .. Tr("mostrar qué API de subasta tiene el cliente y los últimos escaneos"))
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) else PrintSearch(msg) end
     else

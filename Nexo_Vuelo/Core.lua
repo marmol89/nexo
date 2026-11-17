@@ -1,5 +1,6 @@
 local Tr = Nexo.T
 Nexo.Dict({
+    ["Vuelo"] = "Flight",
     ["vuelo a |cffffffff"] = "flight to |cffffffff",
     ["unos "] = "about ",
     ["ruta sin medir, se guarda lo que tarde."] = "route not measured, it will save however long it takes.",
@@ -8,11 +9,13 @@ Nexo.Dict({
     ["avisos en el chat "] = "chat alerts ",
     ["ruta medida"] = "route measured",
     ["rutas medidas"] = "routes measured",
+    ["activados"] = "on",
+    ["desactivados"] = "off",
     [". Comandos:"] = ". Commands:",
-    ["  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"] = "  |cffffff00/vuelo|r - show/hide the counter to place it (drag it with the mouse)",
-    ["  |cffffff00/vuelo centro|r - devolver el contador a su sitio"] = "  |cffffff00/vuelo centro|r - return the counter to its place",
-    ["  |cffffff00/vuelo chat|r - activar/desactivar los avisos en el chat"] = "  |cffffff00/vuelo chat|r - turn chat alerts on/off",
-    ["  |cffffff00/vuelo minimapa|r - mostrar/ocultar el botón del minimapa"] = "  |cffffff00/vuelo minimapa|r - show/hide the minimap button",
+    ["mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"] = "show/hide the counter to place it (drag it with the mouse)",
+    ["devolver el contador a su sitio"] = "return the counter to its place",
+    ["activar/desactivar los avisos en el chat"] = "turn chat alerts on/off",
+    ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
     ["Arrástrame donde quieras"] = "Drag me wherever you want",
     ["a "] = "to ",
     ["En vuelo"] = "In flight",
@@ -278,20 +281,21 @@ N.Reg(ev, "ADDON_LOADED", "PLAYER_ENTERING_WORLD")
 SLASH_VUELO1 = "/vuelo"
 SlashCmdList.VUELO = function(msg)
     msg = (msg or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
-    if msg == "centro" then
+    local Cmd = function(k) return N.Cmd("vuelo", k) end
+    if msg == Cmd("center") then
         ns.ResetPos()
         print(P .. Tr("contador devuelto a su sitio."))
-    elseif msg == "chat" then
+    elseif msg == Cmd("chat") then
         db.settings.chat = not db.settings.chat
-        print(P .. Tr("avisos en el chat ") .. (db.settings.chat and "activados" or "desactivados") .. ".")
-    elseif msg == "minimapa" then
+        print(P .. Tr("avisos en el chat ") .. (db.settings.chat and Tr("activados") or Tr("desactivados")) .. ".")
+    elseif msg == Cmd("minimap") then
         print(P .. Tr("botón del minimapa (compartido, Nexo) ") .. (N.ToggleMinimap() and Tr("oculto") or Tr("visible")) .. ".")
-    elseif msg == "ayuda" or msg == "help" then
+    elseif msg == Cmd("help") then
         print(P .. N.Plural(ns.RouteCount(), Tr("ruta medida"), Tr("rutas medidas")) .. Tr(". Comandos:"))
-        print(Tr("  |cffffff00/vuelo|r - mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"))
-        print(Tr("  |cffffff00/vuelo centro|r - devolver el contador a su sitio"))
-        print(Tr("  |cffffff00/vuelo chat|r - activar/desactivar los avisos en el chat"))
-        print(Tr("  |cffffff00/vuelo minimapa|r - mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/vuelo|r - " .. Tr("mostrar/ocultar el contador para colocarlo (se arrastra con el ratón)"))
+        print("  |cffffff00/vuelo " .. Cmd("center") .. "|r - " .. Tr("devolver el contador a su sitio"))
+        print("  |cffffff00/vuelo " .. Cmd("chat") .. "|r - " .. Tr("activar/desactivar los avisos en el chat"))
+        print("  |cffffff00/vuelo " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
     else
         ns.Toggle()
     end

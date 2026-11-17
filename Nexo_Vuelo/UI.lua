@@ -192,7 +192,7 @@ local function ShowSummaryTooltip(owner, anchor)
 end
 
 N.Register({
-    id = "Vuelo", name = "Vuelo", icon = ICON, color = ACC, slash = "/vuelo",
+    id = "Vuelo", name = Tr("Vuelo"), icon = ICON, color = ACC, slash = "/vuelo",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "VueloDB",

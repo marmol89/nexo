@@ -10,7 +10,7 @@ Nexo.Dict({
     ["Marca los addons que quieres llevarte y genera el texto."] = "Tick the addons you want to take and generate the text.",
     ["Generar texto"] = "Generate text",
     ["|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un "] = "|cff66dd88Text ready|r: %s KB%s. It is selected: press |cffffff00Ctrl+C|r and paste it into a ",
-    ["archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."] = "text file. On the other computer, paste it into |cffffff00/nexo importar|r.",
+    ["archivo de texto. En el otro ordenador, pégalo en"] = "text file. On the other computer, paste it into",
     ["\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r"] = "\n|cffffcc55It is a lot of text to paste at once. If it fails, take Lonja out first.|r",
     ["|cff66dd88Texto leído.|r Exportado por %s el %s.\nLos datos de los addons marcados se |cffffcc55sustituyen|r por los "] = "|cff66dd88Text read.|r Exported by %s on %s.\nThe data of the ticked addons is |cffffcc55replaced|r by the ",
     ["del texto (no se mezclan) y la interfaz se recarga."] = "of the text (they are not merged) and the UI reloads.",
@@ -1008,10 +1008,13 @@ local function MenuRow(i)
     return r
 end
 
--- Últimas filas del menú: ajustes y la ventana de exportar e importar
-local DATA_ROW = { name = Tr("Exportar / importar"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
+-- Últimas filas del menú: ajustes y la ventana de exportar e importar.
+-- key guarda el texto en español para traducirlo cada vez que se abre el menú: estas dos filas
+-- se crean al cargar Nexo, antes de que N.lang tenga el idioma guardado (se calcula al confirmarse
+-- los datos guardados), así que no se puede fijar el texto traducido de una vez para siempre.
+local DATA_ROW = { key = "Exportar / importar", icon = GEAR, color = { 0.85, 0.85, 0.90 },
     toggle = function() N.ToggleData() end }
-local SETTINGS_ROW = { name = Tr("Ajustes"), icon = GEAR, color = { 0.85, 0.85, 0.90 },
+local SETTINGS_ROW = { key = "Ajustes", icon = GEAR, color = { 0.85, 0.85, 0.90 },
     toggle = function() N.ToggleSettings() end }
 local EXTRA_ROWS = { SETTINGS_ROW, DATA_ROW }
 
@@ -1022,7 +1025,7 @@ local function ShowMenu()
         local r = MenuRow(i)
         r.def = def
         r.icon:SetTexture(def.icon)
-        r.name:SetText(def.name)
+        r.name:SetText(def.key and Tr(def.key) or def.name)
         local c = def.color or { 1, 1, 1 }
         r.name:SetTextColor(c[1], c[2], c[3])
         r:Show()
@@ -1270,7 +1273,7 @@ local function BuildData()
             action.text:SetText(Tr("Generar texto"))
             if exported then
                 msg = (Tr("|cff66dd88Texto listo|r: %s KB%s. Está seleccionado: pulsa |cffffff00Ctrl+C|r y pégalo en un ")
-                    .. Tr("archivo de texto. En el otro ordenador, pégalo en |cffffff00/nexo importar|r."))
+                    .. Tr("archivo de texto. En el otro ordenador, pégalo en") .. " |cffffff00/nexo " .. N.Cmd("nexo", "import") .. "|r.")
                     :format(N.Num(#exported / 1024), zipped and Tr(", comprimido") or "")
                 if #exported > BIG then
                     msg = msg .. Tr("\n|cffffcc55Es mucho texto para pegarlo de una vez. Si falla, lleva Lonja aparte.|r")

@@ -41,7 +41,7 @@ local ClassHex, ShortName, DayLabel, DayKeyToTime = N.ClassHex, N.ShortName, N.D
 ---------------------------------------------------------------------------
 local main, close, charBtn, periodBtns, periodHint = K.Dashboard({
     name = "TesoreroMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Misc_Coin_02",
-    title = "Tesorero", subtitle = Tr("Historial de oro · WoW Forever"),
+    title = Tr("Tesorero"), subtitle = Tr("Historial de oro · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
     state = state, list = ns.CharList, all = true, pad = PAD,
     onChange = function() ns.Refresh() end,
@@ -350,7 +350,7 @@ local stats = K.StatGrid(statsBox, { Tr("Mejor día"), Tr("Media diaria"), Tr("M
 ---------------------------------------------------------------------------
 -- Pie: sesión
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/tesoro ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/tesoro " .. Nexo.Cmd("tesorero", "help") })
 
 local function UpdateFooter()
     local s = ns.session
@@ -545,7 +545,7 @@ end
 
 -- El botón del minimapa es el de Nexo, compartido por todos los addons
 N.Register({
-    id = "Tesorero", name = "Tesorero", icon = "Interface\\Icons\\INV_Misc_Coin_02", color = ACC, slash = "/tesoro",
+    id = "Tesorero", name = Tr("Tesorero"), icon = "Interface\\Icons\\INV_Misc_Coin_02", color = ACC, slash = "/tesoro",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "TesoreroDB",

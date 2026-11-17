@@ -10,14 +10,23 @@
 Nexo = Nexo or {}
 local N = Nexo
 
-local locale = GetLocale and GetLocale() or "enUS"
-local auto = (locale == "esES" or locale == "esMX") and "es" or "en"
+local function AutoLang()
+    local locale = GetLocale and GetLocale() or "enUS"
+    return (locale == "esES" or locale == "esMX") and "es" or "en"
+end
 
--- Preferencia de Ajustes: "auto", "es" o "en". Se lee aquí, antes de cargar los demás archivos,
--- para que los textos que se crean al cargar salgan ya en el idioma elegido.
-local pref = NexoDB and NexoDB.lang
-N.langPref = (pref == "es" or pref == "en") and pref or "auto"
-N.lang = N.langPref == "auto" and auto or N.langPref
+-- Calcula N.langPref/N.lang a partir de lo guardado en NexoDB.lang ("auto", "es" o "en").
+-- Se llama aquí abajo para tener algo válido cuanto antes (los textos que se crean al cargar
+-- Locale.lua y Core.lua ya lo usan), y Core.lua la vuelve a llamar en ADDON_LOADED: en este
+-- cliente NexoDB puede no estar todavía disponible en este primer cálculo, aunque sí lo esté más
+-- tarde en ADDON_LOADED, que es cuando de verdad hay que fiarse de la preferencia guardada.
+local function RecomputeLang()
+    local pref = NexoDB and NexoDB.lang
+    N.langPref = (pref == "es" or pref == "en") and pref or "auto"
+    N.lang = N.langPref == "auto" and AutoLang() or N.langPref
+end
+N.RefreshLang = RecomputeLang
+RecomputeLang()
 
 local dict = {}
 
@@ -32,3 +41,35 @@ function N.T(s)
     return dict[s] or s
 end
 local Tr = N.T
+
+-- Nombres de los subcomandos de cada addon en cada idioma (cambian con el idioma elegido).
+-- Cada addon tiene su propia tabla (nexo, alijo, bitacora, lonja, oficio, senda, tesorero, vuelo);
+-- dentro, una clave en español ("minimapa") sirve de nombre interno estable para pedir la traducción.
+local CMDS = {
+    es = {
+        nexo = { settings = "ajustes", data = "datos", export = "exportar", import = "importar", minimap = "minimapa", help = "ayuda" },
+        alijo = { tooltip = "tooltip", minimap = "minimapa", forget = "olvidar", help = "ayuda" },
+        bitacora = { reset = "reset", resetConfirm = "reset confirmar", import = "importar", removeEstimated = "quitar estimadas", minimap = "minimapa", help = "ayuda" },
+        lonja = { scan = "escanear", stop = "parar", auto = "auto", buy = "comprar", list = "lista", remove = "quitar", tooltip = "tooltip", minimap = "minimapa", reset = "reset", resetConfirm = "reset confirmar", diag = "diag", help = "ayuda" },
+        oficio = { announce = "avisos", minimap = "minimapa", reset = "reset", resetConfirm = "reset confirmar", forget = "olvidar", diag = "diag", help = "ayuda" },
+        senda = { reset = "reset", resetConfirm = "reset confirmar", announce = "avisos", minimap = "minimapa", help = "ayuda" },
+        tesorero = { reset = "reset", resetConfirm = "reset confirmar", minimap = "minimapa", help = "ayuda" },
+        vuelo = { center = "centro", chat = "chat", minimap = "minimapa", help = "ayuda" },
+    },
+    en = {
+        nexo = { settings = "settings", data = "data", export = "export", import = "import", minimap = "minimap", help = "help" },
+        alijo = { tooltip = "tooltip", minimap = "minimap", forget = "forget", help = "help" },
+        bitacora = { reset = "reset", resetConfirm = "reset confirm", import = "import", removeEstimated = "remove estimated", minimap = "minimap", help = "help" },
+        lonja = { scan = "scan", stop = "stop", auto = "auto", buy = "buy", list = "list", remove = "remove", tooltip = "tooltip", minimap = "minimap", reset = "reset", resetConfirm = "reset confirm", diag = "diag", help = "help" },
+        oficio = { announce = "alerts", minimap = "minimap", reset = "reset", resetConfirm = "reset confirm", forget = "forget", diag = "diag", help = "help" },
+        senda = { reset = "reset", resetConfirm = "reset confirm", announce = "alerts", minimap = "minimap", help = "help" },
+        tesorero = { reset = "reset", resetConfirm = "reset confirm", minimap = "minimap", help = "help" },
+        vuelo = { center = "center", chat = "chat", minimap = "minimap", help = "help" },
+    },
+}
+
+-- Nombre de un subcomando en el idioma en uso: N.Cmd("lonja", "minimap") -> "minimapa" o "minimap"
+function N.Cmd(ns, name)
+    local t = (CMDS[N.lang] or CMDS.es)[ns] or CMDS.es[ns]
+    return t and t[name]
+end

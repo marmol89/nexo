@@ -54,7 +54,7 @@ end
 ---------------------------------------------------------------------------
 local main, close = K.Window({
     name = "AlijoMainFrame", w = W, h = H, icon = "Interface\\Icons\\INV_Box_01",
-    title = "Alijo", subtitle = Tr("Inventario de la cuenta · WoW Forever"),
+    title = Tr("Alijo"), subtitle = Tr("Inventario de la cuenta · WoW Forever"),
     settings = function() return ns.db and ns.db.settings end,
 })
 
@@ -255,7 +255,7 @@ end
 ---------------------------------------------------------------------------
 -- Pie
 ---------------------------------------------------------------------------
-local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/alijo ayuda" })
+local footer = K.Footer(main, { h = FOOT_H, pad = PAD, right = "/alijo " .. Nexo.Cmd("alijo", "help") })
 
 local function UpdateFooter()
     local key = state.filter or ns.charKey
@@ -381,7 +381,7 @@ end
 
 -- El botón del minimapa es el de Nexo, compartido por todos los addons
 N.Register({
-    id = "Alijo", name = "Alijo", icon = "Interface\\Icons\\INV_Box_01", color = ACC, slash = "/alijo",
+    id = "Alijo", name = Tr("Alijo"), icon = "Interface\\Icons\\INV_Box_01", color = ACC, slash = "/alijo",
     toggle = function() ns.Toggle() end,
     tooltip = ShowSummaryTooltip,
     data = "AlijoDB",
