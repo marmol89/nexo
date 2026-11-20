@@ -239,15 +239,87 @@ end
 ---------------------------------------------------------------------------
 local db
 
-function N.CharKey() return UnitName("player") .. " - " .. GetRealmName() end
+-- Reino del personaje. Al cargar el addon, GetRealmName() a veces aún devuelve "", y la clave
+-- quedaba "Nombre - " (el mismo personaje aparecía dos veces). Por eso se recuerda el último
+-- reino bueno de cada personaje y se usa cuando el juego todavía no lo da.
+local function RealmOf(name)
+    local realm = GetRealmName()
+    if realm and realm ~= "" then
+        if NexoDB then
+            NexoDB.realmOf = NexoDB.realmOf or {}
+            NexoDB.realmOf[name] = realm
+        end
+        return realm
+    end
+    if NexoDB and NexoDB.realmOf and NexoDB.realmOf[name] then return NexoDB.realmOf[name] end
+    -- Sin reino del juego ni memoria: si las entradas ya guardadas de este nombre tienen un
+    -- único reino, es ese (el mismo personaje, no otro).
+    local first = name:match("^(%S+)") or name
+    local found, many = nil, false
+    for k in pairs(NexoDB and NexoDB.chars or {}) do
+        local nm, rl = k:match("^(.-) %- (.*)$")
+        if rl and rl ~= "" and (nm == name or nm == first) then
+            if found and found ~= rl then many = true end
+            found = rl
+        end
+    end
+    if found and not many then return found end
+    return ""
+end
+
+-- Nombre completo del personaje. En WoW Forever UnitName devuelve nombre y apellido por
+-- separado ("Pola", "Kola"); usar solo el primero dejaba el personaje como "Pola".
+function N.FullName()
+    local first, last = UnitName("player")
+    if not first then return nil end
+    if last and last ~= "" then return first .. " " .. last end
+    return first
+end
+
+function N.CharKey()
+    local name = N.FullName() or ""
+    return name .. " - " .. RealmOf(name)
+end
+
+-- Une en chars[key] las entradas viejas de este personaje: las que tienen solo el primer
+-- nombre ("Pola - Reino") o no tienen reino ("Pola - "). Para cada dato que tengan los dos
+-- gana el registro más reciente (lastSeen o tBags); los datos que solo tiene uno se conservan.
+function N.MergeEmptyRealm(chars, key, fullName)
+    local realm = key:match(" %- (.*)$") or ""
+    local first = fullName:match("^(%S+)") or fullName
+    local stale = {}
+    for k in pairs(chars) do
+        if k ~= key then
+            local nm, rl = k:match("^(.-) %- (.*)$")
+            if (nm == fullName or nm == first) and (rl == "" or rl == realm) then stale[#stale + 1] = k end
+        end
+    end
+    table.sort(stale)
+    local function Seen(c) return c.lastSeen or c.tBags or 0 end
+    for _, k in ipairs(stale) do
+        local src = chars[k]
+        chars[k] = nil
+        local dst = chars[key]
+        if not dst then
+            chars[key] = src
+        else
+            local srcNewer = Seen(src) > Seen(dst)
+            for f, v in pairs(src) do
+                if dst[f] == nil or srcNewer then dst[f] = v end
+            end
+        end
+    end
+    if chars[key] then chars[key].name = fullName end   -- el nombre bueno, no el de la entrada vieja
+end
 
 local function UpdateChar()
     if not db or not UnitName("player") then return end   -- aún sin datos del personaje: se repite al entrar
     local key = N.CharKey()
+    N.MergeEmptyRealm(db.chars, key, N.FullName())
     local c = db.chars[key] or {}
     db.chars[key] = c
     local _, class = UnitClass("player")
-    c.name, c.realm, c.class = UnitName("player"), GetRealmName(), class
+    c.name, c.realm, c.class = N.FullName(), GetRealmName(), class
     local lvl = UnitLevel("player")
     if lvl and lvl > 0 then c.level = lvl end
     c.lastSeen = time()
@@ -275,10 +347,11 @@ function N.CharList() return N.Keys(db and db.chars) end
 -- new = tabla con la que se crea si aún no existe. Devuelve la entrada y su clave.
 function N.InitChar(chars, new)
     local key = N.CharKey()
+    N.MergeEmptyRealm(chars, key, N.FullName())
     local c = chars[key] or new or {}
     chars[key] = c
     local _, class = UnitClass("player")
-    c.class, c.name, c.level = class, UnitName("player"), UnitLevel("player")
+    c.class, c.name, c.level = class, N.FullName(), UnitLevel("player")
     return c, key
 end
 
