@@ -110,13 +110,14 @@ local function InitDB()
     db.settings = db.settings or {}
 
     charKey = N.CharKey()
+    N.MergeEmptyRealm(db.chars, charKey, N.FullName())
     db.chars[charKey] = db.chars[charKey] or { levels = {}, days = {} }
     char = db.chars[charKey]
     char.levels = char.levels or {}
     char.days = char.days or {}
     local _, class = UnitClass("player")
     char.class = class
-    char.name = UnitName("player")
+    char.name = N.FullName()
     ns.db, ns.char, ns.charKey = db, char, charKey
 end
 
