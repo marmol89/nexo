@@ -147,6 +147,17 @@ local function StartSession()
     ns.session = session
 end
 
+-- ¿Está el jugador AFK? En algunos casos la API devuelve un booleano «secreto» que
+-- no se puede comprobar con if: la prueba va dentro de pcall y, si falla, cuenta como no AFK.
+local function IsAFK()
+    if not UnitIsAFK then return false end
+    local ok, afk = pcall(function()
+        if UnitIsAFK("player") then return true end
+        return false
+    end)
+    return ok and afk == true
+end
+
 -- El núcleo avisa cada pocos segundos con el tiempo de juego transcurrido
 local function Tick(dt, now)
     if not session then return end
@@ -160,7 +171,7 @@ local function Tick(dt, now)
     day.t = day.t + dt
     day.z[zone] = (day.z[zone] or 0) + dt
     session.d = session.d + dt
-    if UnitIsAFK and UnitIsAFK("player") then
+    if IsAFK() then
         day.a = day.a + dt
         session.a = session.a + dt
     end

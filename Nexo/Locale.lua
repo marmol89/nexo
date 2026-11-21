@@ -47,7 +47,7 @@ local Tr = N.T
 -- dentro, una clave en español ("minimapa") sirve de nombre interno estable para pedir la traducción.
 local CMDS = {
     es = {
-        nexo = { settings = "ajustes", data = "datos", export = "exportar", import = "importar", minimap = "minimapa", help = "ayuda" },
+        nexo = { settings = "ajustes", data = "datos", export = "exportar", import = "importar", minimap = "minimapa", errors = "errores", clear = "borrar", help = "ayuda" },
         alijo = { tooltip = "tooltip", minimap = "minimapa", forget = "olvidar", help = "ayuda" },
         bitacora = { reset = "reset", resetConfirm = "reset confirmar", import = "importar", removeEstimated = "quitar estimadas", minimap = "minimapa", help = "ayuda" },
         lonja = { scan = "escanear", stop = "parar", auto = "auto", buy = "comprar", list = "lista", remove = "quitar", tooltip = "tooltip", minimap = "minimapa", reset = "reset", resetConfirm = "reset confirmar", diag = "diag", help = "ayuda" },
@@ -57,7 +57,7 @@ local CMDS = {
         vuelo = { center = "centro", chat = "chat", minimap = "minimapa", help = "ayuda" },
     },
     en = {
-        nexo = { settings = "settings", data = "data", export = "export", import = "import", minimap = "minimap", help = "help" },
+        nexo = { settings = "settings", data = "data", export = "export", import = "import", minimap = "minimap", errors = "errors", clear = "clear", help = "help" },
         alijo = { tooltip = "tooltip", minimap = "minimap", forget = "forget", help = "help" },
         bitacora = { reset = "reset", resetConfirm = "reset confirm", import = "import", removeEstimated = "remove estimated", minimap = "minimap", help = "help" },
         lonja = { scan = "scan", stop = "stop", auto = "auto", buy = "buy", list = "list", remove = "remove", tooltip = "tooltip", minimap = "minimap", reset = "reset", resetConfirm = "reset confirm", diag = "diag", help = "help" },
