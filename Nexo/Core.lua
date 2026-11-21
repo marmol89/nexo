@@ -25,7 +25,7 @@ local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 8
+N.version = 9
 
 local floor = math.floor
 local DAY = 86400
@@ -90,6 +90,11 @@ N.Dict({
     ["mostrar/ocultar el botón del minimapa"] = "show/hide the minimap button",
     ["esta lista"] = "this list",
     ["comandos de Nexo"] = "Nexo commands",
+    ["errores guardados:"] = "errors saved:",
+    ["ningún error guardado."] = "no errors saved.",
+    ["errores borrados."] = "errors cleared.",
+    ["ver los últimos errores de Nexo"] = "show Nexo's latest errors",
+    ["borrar el registro de errores"] = "clear the error log",
     ["addons conectados:"] = "connected addons:",
     ["botón del minimapa"] = "minimap button",
     ["oculto"] = "hidden", ["visible"] = "visible",
@@ -326,11 +331,37 @@ local function UpdateChar()
     N.charKey = key
 end
 
+---------------------------------------------------------------------------
+-- Registro de errores de Nexo y de sus addons (NexoDB.errors, /nexo errores)
+-- Guarda los errores de Lua cuyo mensaje o pila mencionan Nexo: el mensaje y el
+-- principio de la pila. Antes de cargar NexoDB se guardan en memoria.
+---------------------------------------------------------------------------
+local ERR_MAX = 100
+local errPending = {}
+local prevErrHandler = geterrorhandler()
+
+local function RecordError(err)
+    local msg = tostring(err)
+    local stack = debugstack(3) or ""
+    if not (msg:find("Nexo") or stack:find("Nexo")) then return end
+    local line = msg:sub(1, 300) .. "\n" .. stack:sub(1, 600)
+    if db then N.Trace(db.errors, line, ERR_MAX) else N.Trace(errPending, line, ERR_MAX) end
+end
+
+seterrorhandler(function(err)
+    pcall(RecordError, err)   -- el registro nunca debe fallar dentro del manejador
+    if prevErrHandler then return prevErrHandler(err) end
+end)
+
 local function InitDB()
     NexoDB = NexoDB or {}
     db = NexoDB
     db.chars = db.chars or {}
     db.minimap = db.minimap or { angle = 200, hide = false }
+    db.errors = db.errors or {}
+    for i = #errPending, 1, -1 do table.insert(db.errors, 1, errPending[i]) end
+    for i = #db.errors, ERR_MAX + 1, -1 do db.errors[i] = nil end
+    errPending = {}
     N.db = db
     N.RefreshLang()  -- NexoDB ya es de fiar aquí; antes (al cargar Locale.lua) puede no estarlo
     UpdateChar()
@@ -777,6 +808,17 @@ SlashCmdList.NEXO = function(msg)
         N.ToggleData(msg == N.Cmd("nexo", "import") and "import" or "export")
     elseif msg == N.Cmd("nexo", "settings") then
         N.ToggleSettings()
+    elseif msg == N.Cmd("nexo", "errors") then
+        local list = db and db.errors or errPending
+        print(P .. Tr("errores guardados:") .. " " .. #list)
+        if #list == 0 then print("  " .. Tr("ningún error guardado.")) end
+        for i = 1, math.min(5, #list) do
+            print("  |cffff8080" .. (list[i]:match("^[^\n]*") or "") .. "|r")
+        end
+    elseif msg == N.Cmd("nexo", "errors") .. " " .. N.Cmd("nexo", "clear") then
+        if db then db.errors = {} end
+        errPending = {}
+        print(P .. Tr("errores borrados."))
     elseif msg == N.Cmd("nexo", "help") then
         print(P .. Tr("comandos:"))
         print("  |cffffff00/nexo|r - " .. Tr("lista de addons conectados"))
@@ -785,6 +827,8 @@ SlashCmdList.NEXO = function(msg)
         print("  |cffffff00/nexo " .. N.Cmd("nexo", "export") .. "|r - " .. Tr("abrirla para sacar los datos como texto (cambiar de ordenador)"))
         print("  |cffffff00/nexo " .. N.Cmd("nexo", "import") .. "|r - " .. Tr("abrirla para pegar el texto exportado en otro ordenador"))
         print("  |cffffff00/nexo " .. N.Cmd("nexo", "minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "errors") .. "|r - " .. Tr("ver los últimos errores de Nexo"))
+        print("  |cffffff00/nexo " .. N.Cmd("nexo", "errors") .. " " .. N.Cmd("nexo", "clear") .. "|r - " .. Tr("borrar el registro de errores"))
         print("  |cffffff00/nexo " .. N.Cmd("nexo", "help") .. "|r - " .. Tr("esta lista"))
     else
         print(P .. Tr("addons conectados:"))

@@ -217,11 +217,18 @@ local function CountQuest()
     rec.nq = rec.nq + 1
 end
 
+-- ¿El texto del chat encaja con el patrón? Algunos textos llegan como «secretos» que
+-- no se pueden buscar: pcall evita el error y cuenta como no encajado.
+local function Matches(text, pat)
+    if type(text) ~= "string" or not pat then return false end
+    local ok, found = pcall(string.find, text, pat)
+    return ok and found ~= nil
+end
+
 local function OnSystemText(text)
-    if type(text) ~= "string" then return end
-    if explorePat and text:find(explorePat) then
+    if Matches(text, explorePat) then
         Mark("e")
-    elseif questPat and text:find(questPat) then
+    elseif Matches(text, questPat) then
         if hasTurnIn then Mark("q") else CountQuest() end
     end
 end
@@ -415,7 +422,7 @@ ev:SetScript("OnEvent", function(self, event, ...)
         if char then char.rested = GetXPExhaustion and GetXPExhaustion() or nil end
     elseif event == "CHAT_MSG_COMBAT_XP_GAIN" then
         local text = ...
-        if not killPat or (type(text) == "string" and text:find(killPat)) then CountKill() end
+        if not killPat or Matches(text, killPat) then CountKill() end
     elseif event == "QUEST_TURNED_IN" then
         CountQuest()
     elseif event == "CHAT_MSG_SYSTEM" then
