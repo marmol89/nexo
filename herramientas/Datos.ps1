@@ -21,7 +21,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-$ADDONS = 'Nexo', 'Nexo_Tesorero', 'Nexo_Bitacora', 'Nexo_Alijo', 'Nexo_Senda', 'Nexo_Oficio', 'Nexo_Lonja'
+$ADDONS = 'Nexo', 'Nexo_Tesorero', 'Nexo_Bitacora', 'Nexo_Alijo', 'Nexo_Senda', 'Nexo_Oficio', 'Nexo_Lonja', 'Nexo_Vuelo', 'Nexo_Cosecha'
 
 # Antes de llamarse Nexo_<nombre>, los addons (y sus archivos de datos) se llamaban solo <nombre>
 function Nombre-Antiguo($a) { $a -replace '^Nexo_', '' }

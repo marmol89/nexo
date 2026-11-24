@@ -21,11 +21,14 @@
 --   Nexo.FillRows(scroll, filas, alto, datos, rellenar)   lista con FauxScrollFrame (UI.lua)
 --   Nexo.Serialize(t) / Deserialize(s)       tabla <-> texto compacto
 --   Nexo.Antiguo(addon)                      ¿sigue cargado el addon con el nombre de antes de Nexo_<nombre>?
+--   Nexo.CacheItem(caché, id, enlace, calidad, icono)   nombre/calidad/icono de un objeto, completados con GetItemInfo
+--   Nexo.SafeCall(fn, ...) / Secret(v)       llama a una función del juego sin fallar si devuelve un valor protegido
+--   Nexo.PlayerMapPos()                      mapa y posición (x, y de 0 a 1) del jugador, o nil si no se puede saber ahora
 local ADDON = ...
 
 Nexo = Nexo or {}
 local N = Nexo
-N.version = 9
+N.version = 10
 
 local floor = math.floor
 local DAY = 86400
@@ -213,6 +216,28 @@ function N.QualityRGB(q)
 end
 
 function N.ItemID(link) return link and tonumber(link:match("item:(%d+)")) end
+
+-- Nombre, calidad e icono de un objeto, guardados en caché[id] = { n, q, i }. El nombre sale
+-- del enlace si lo hay; lo que falte (nombre, calidad si no es válida, icono) se completa con
+-- GetItemInfo. Devuelve la entrada de la caché.
+function N.CacheItem(cache, id, link, quality, icon)
+    local it = cache[id]
+    if not it then
+        it = {}
+        cache[id] = it
+    end
+    local name = link and link:match("%[(.-)%]")
+    if name and name ~= "" then it.n = name end
+    if not it.n or not quality or quality < 0 or not icon then
+        local gname, _, gquality, _, _, _, _, _, _, gicon = GetItemInfo and GetItemInfo(link or id)
+        if not it.n and gname then it.n = gname end
+        if not quality or quality < 0 then quality = gquality end
+        if not icon then icon = gicon end
+    end
+    if quality and quality >= 0 then it.q = quality end
+    if icon then it.i = icon end
+    return it
+end
 
 -- Claves de una tabla, ordenadas
 function N.Keys(t)
@@ -457,6 +482,38 @@ function N.Debounce(key, delay, fn, ...)
         local ok, err = pcall(fn, a, b)
         if not ok then geterrorhandler()(err) end
     end)
+end
+
+---------------------------------------------------------------------------
+-- Valores protegidos de este cliente y posición del jugador
+--
+-- WoW Forever puede devolver un valor "secreto" (protegido) en vez del dato real en algunas
+-- funciones del juego; guardarlo o compararlo falla o ensucia los datos. Vuelo lo encontró en
+-- el mapa de vuelo.
+---------------------------------------------------------------------------
+
+-- ¿v es un valor secreto de este cliente?
+function N.Secret(v) return issecretvalue and issecretvalue(v) end
+
+-- Llama a fn(...) sin fallar si no es una función, si el juego da error, o si el primer valor
+-- devuelto es secreto (entonces nil). Devuelve hasta dos valores.
+function N.SafeCall(fn, ...)
+    if type(fn) ~= "function" then return end
+    local ok, a, b = pcall(fn, ...)
+    if ok and not N.Secret(a) then return a, b end
+end
+
+-- Mapa y posición del jugador (x, y de 0 a 1 dentro de ese mapa), o nil si ahora no se puede
+-- saber (API no disponible, o valor protegido).
+function N.PlayerMapPos()
+    if not (C_Map and C_Map.GetBestMapForUnit and C_Map.GetPlayerMapPosition) then return end
+    local mapID = N.SafeCall(C_Map.GetBestMapForUnit, "player")
+    if not mapID then return end
+    local pos = N.SafeCall(C_Map.GetPlayerMapPosition, mapID, "player")
+    if not pos then return end
+    local ok, x, y = pcall(pos.GetXY, pos)
+    if not ok or N.Secret(x) or N.Secret(y) then return end
+    return mapID, x, y
 end
 
 -- /played pedido en silencio, sin ensuciar el chat.

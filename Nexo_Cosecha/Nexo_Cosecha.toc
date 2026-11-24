@@ -1,0 +1,15 @@
+## Interface: 16001
+## Title: |cffb3cc57Cosecha|r
+## Notes: Minerales, hierbas y demás nodos de recolección: dónde los has encontrado, para volver a por más y un buscador por nombre.
+## Author: marmol89
+## Version: 0.1.0
+## Dependencies: Nexo
+## Group: Nexo
+## IconTexture: Interface\Icons\Trade_Herbalism
+## SavedVariables: CosechaDB
+## AddonCompartmentFunc: Cosecha_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: Cosecha_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: Cosecha_OnCompartmentLeave
+
+Core.lua
+UI.lua
