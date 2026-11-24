@@ -358,23 +358,40 @@ end
 
 ---------------------------------------------------------------------------
 -- Registro de errores de Nexo y de sus addons (NexoDB.errors, /nexo errores)
--- Guarda los errores de Lua cuyo mensaje o pila mencionan Nexo: el mensaje y el
+-- Guarda solo los errores que se originan en un addon Nexo: el mensaje y el
 -- principio de la pila. Antes de cargar NexoDB se guardan en memoria.
+-- El origen es el addon del mensaje ("Interface/AddOns/<addon>/...:línea: ...") o, si el
+-- mensaje no lo trae (lo lanzó una función del juego), el primer marco de Lua que no es [C].
+-- No se mira si Nexo aparece "en algún sitio" de la pila: el propio manejador está en Nexo.
 ---------------------------------------------------------------------------
 local ERR_MAX = 100
 local errPending = {}
 local prevErrHandler = geterrorhandler()
 
-local function RecordError(err)
+local function IsNexoError(msg, stack)
+    local owner = msg:match("^Interface/AddOns/([^/]+)/")
+    if not owner then
+        for frame in stack:gmatch("[^\n]+") do
+            if not frame:find("^%[C%]") then
+                owner = frame:match("AddOns/([^/]+)/")
+                break
+            end
+        end
+    end
+    return owner ~= nil and owner:find("^Nexo") ~= nil
+end
+
+local function RecordError(err, stack)
     local msg = tostring(err)
-    local stack = debugstack(3) or ""
-    if not (msg:find("Nexo") or stack:find("Nexo")) then return end
+    if not IsNexoError(msg, stack) then return end
     local line = msg:sub(1, 300) .. "\n" .. stack:sub(1, 600)
     if db then N.Trace(db.errors, line, ERR_MAX) else N.Trace(errPending, line, ERR_MAX) end
 end
 
 seterrorhandler(function(err)
-    pcall(RecordError, err)   -- el registro nunca debe fallar dentro del manejador
+    -- debugstack(1) empieza por este mismo manejador: se quita esa primera línea
+    local stack = (debugstack(1) or ""):gsub("^[^\n]*\n?", "", 1)
+    pcall(RecordError, err, stack)   -- el registro nunca debe fallar dentro del manejador
     if prevErrHandler then return prevErrHandler(err) end
 end)
 
