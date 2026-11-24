@@ -66,15 +66,9 @@ function ns.Place(name) return name and (name:match("^[^,]+") or name) end
 ---------------------------------------------------------------------------
 -- Mapa de vuelo
 ---------------------------------------------------------------------------
-local function Secret(v) return issecretvalue and issecretvalue(v) end
-
--- Llama a una función global del juego si existe; nil si no existe o falla
-local function Call(name, ...)
-    local fn = _G[name]
-    if type(fn) ~= "function" then return end
-    local ok, a, b = pcall(fn, ...)
-    if ok and not Secret(a) then return a, b end
-end
+-- Llama a una función global del juego si existe; nil si no existe, falla o da un valor
+-- protegido de este cliente (Nexo.SafeCall)
+local function Call(name, ...) return N.SafeCall(_G[name], ...) end
 
 local function NodeName(slot)
     local name = slot and Call("TaxiNodeName", slot)

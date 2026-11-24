@@ -4,13 +4,13 @@
 
 <br>
 
-![Addons](https://img.shields.io/badge/addons-7-d9d9e6?style=for-the-badge)
+![Addons](https://img.shields.io/badge/addons-8-d9d9e6?style=for-the-badge)
 ![Interfaz](https://img.shields.io/badge/interfaz-16001-66c7ff?style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Lua-5.1-b88cff?style=for-the-badge&logo=lua&logoColor=white)
 ![Idioma](https://img.shields.io/badge/idioma-espa%C3%B1ol%20%2F%20English-ffd100?style=for-the-badge)
 
-**Siete addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español o en inglés, según el idioma de tu juego (si no es español, en inglés).<br>
-Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es el núcleo que comparten.
+**Ocho addons propios para World of Warcraft** (cliente Classic, interfaz `16001`), con la interfaz en español o en inglés, según el idioma de tu juego (si no es español, en inglés).<br>
+Siete de ellos registran algo distinto de tu cuenta y el octavo, **Nexo**, es el núcleo que comparten.
 
 [Addons](#-los-addons) •
 [Instalación](#-instalación) •
@@ -37,6 +37,7 @@ Seis de ellos registran algo distinto de tu cuenta y el séptimo, **Nexo**, es e
 | ⚒️ | **Oficio** | Profesiones: nivel de cada una, qué recetas conoce cada personaje y enfriamientos de fabricación. | `/oficio` | `0.2.0` |
 | 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta. | `/lonja` | `0.2.0` |
 | 🦅 | **Vuelo** | Vuelos de los maestros de vuelo: cuánto tarda cada destino y una cuenta atrás en pantalla, que se puede mover, mientras vuelas. | `/vuelo` | `0.1.0` |
+| 🌾 | **Cosecha** | Minerales, hierbas y demás nodos de recolección: dónde los has encontrado, con un buscador por nombre y los puntos en el mapa del mundo para volver a por más. | `/cosecha` | `0.1.0` |
 
 ```mermaid
 flowchart TD
@@ -48,6 +49,7 @@ flowchart TD
     N --> O["⚒️ Oficio<br><i>profesiones</i>"]
     N --> L["🔨 Lonja<br><i>precios de subasta</i>"]
     N --> V["🦅 Vuelo<br><i>tiempos de vuelo</i>"]
+    N --> G["🌾 Cosecha<br><i>recolección</i>"]
     T -. "estima el historial" .-> B
     A -. "materiales en la cuenta" .-> O
     A -. "lo que tienes" .-> L
@@ -61,6 +63,7 @@ flowchart TD
     style S fill:#2a2040,stroke:#b88cff,color:#b88cff
     style O fill:#3a2b12,stroke:#e0a84c,color:#e0a84c
     style L fill:#3d1c18,stroke:#f0786a,color:#f0786a
+    style G fill:#2b3310,stroke:#b3cc57,color:#b3cc57
 ```
 
 <sub>Línea continua: depende de Nexo. Línea discontinua: aprovecha los datos del otro addon si está instalado.</sub>
@@ -69,7 +72,7 @@ flowchart TD
 
 ## 📦 Instalación
 
-1. **Copia** las ocho carpetas a `World of Warcraft\<versión>\Interface\AddOns`:
+1. **Copia** las nueve carpetas a `World of Warcraft\<versión>\Interface\AddOns`:
 
    ```
    Interface\AddOns\
@@ -80,17 +83,18 @@ flowchart TD
    ├── Nexo_Senda\
    ├── Nexo_Oficio\
    ├── Nexo_Lonja\
-   └── Nexo_Vuelo\
+   ├── Nexo_Vuelo\
+   └── Nexo_Cosecha\
    ```
 
 2. **Reinicia el juego por completo.**
-3. En la lista de addons, Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja aparecen **agrupados debajo de Nexo**.
+3. En la lista de addons, Tesorero, Bitácora, Alijo, Senda, Oficio, Lonja, Vuelo y Cosecha aparecen **agrupados debajo de Nexo**.
 
 > [!WARNING]
 > Con `/reload` no basta cuando se añade un addon nuevo o cambia un `.toc`: hay que cerrar y volver a abrir el juego.
 
 > [!IMPORTANT]
-> **Nexo tiene que estar activado**: los otros seis dependen de él y no cargan sin él. No hace falta instalar los seis; cada uno funciona con solo Nexo.
+> **Nexo tiene que estar activado**: los otros siete dependen de él y no cargan sin él. No hace falta instalarlos todos; cada uno funciona con solo Nexo.
 
 ### Actualizar desde una versión anterior a `Nexo_<nombre>`
 
@@ -107,7 +111,7 @@ Hasta Nexo `1.3.0` las carpetas se llamaban `Tesorero`, `Bitacora`, `Alijo`, `Se
 
 ## ⌨️ Comandos
 
-Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana** si su comando se escribe sin nada más, y los seis aceptan `ayuda` y `minimapa`.
+Tesorero, Bitácora, Alijo, Senda, Oficio, Lonja y Cosecha **abren o cierran su ventana** si su comando se escribe sin nada más, y todos (Vuelo incluido, que no tiene ventana) aceptan `ayuda` y `minimapa`.
 
 <details open>
 <summary><b>🔗 Nexo</b> — <code>/nexo</code></summary>
@@ -202,6 +206,19 @@ Vuelo no tiene ventana: `/vuelo` enseña u oculta el contador de muestra para co
 |---|---|
 | `/vuelo centro` | Devuelve el contador a su sitio de origen. |
 | `/vuelo chat` | Activa o desactiva los avisos en el chat al despegar y al medir una ruta nueva. |
+| `/vuelo minimapa` | Muestra u oculta el botón del minimapa, que es compartido. |
+| `/vuelo ayuda` | Lista los comandos de Vuelo. |
+
+</details>
+
+<details>
+<summary><b>🌾 Cosecha</b> — <code>/cosecha</code></summary>
+
+| Comando | Qué hace |
+|---|---|
+| `/cosecha <texto>` | Abre la ventana buscando ese texto. |
+| `/cosecha mapa` | Muestra u oculta los puntos sobre el mapa del mundo. |
+| `/cosecha reset` | Borra todo lo recolectado (pide confirmación). |
 
 </details>
 
@@ -215,6 +232,7 @@ Vuelo no tiene ventana: `/vuelo` enseña u oculta el contador de muestra para co
 | 🏦 | **El banco solo se registra al abrirlo.** | Alijo necesita que visites el banco una vez con cada personaje. |
 | 📜 | **Las recetas solo se registran al abrir la ventana de la profesión.** | Oficio necesita que abras cada profesión una vez con cada personaje, y otra vez cuando aprendas recetas nuevas. Los niveles se leen solos al entrar. |
 | 🦅 | **Los tiempos de vuelo se aprenden volando.** | El juego no dice cuánto dura un vuelo. Vuelo guarda lo que tarda cada ruta la primera vez que la haces; hasta entonces da un tiempo aproximado (marcado con `~` o «unos») calculado con lo que mide la ruta en el mapa y los vuelos ya medidos en ese continente, o cuenta hacia arriba si aún no tiene con qué calcularlo. |
+| 🌾 | **Cosecha solo apunta lo que recolectas tú.** | El juego no dice qué hay en un nodo de minería o herboristería hasta que lo recolectas. Cosecha mira el objeto que cae justo después de minar o de recolectar una hierba con éxito, y la posición del personaje en ese momento; nodos que no has cogido nunca no salen en el mapa. |
 | ⏳ | **Los enfriamientos se calculan desde la última vez que abriste la profesión.** | Si fabricas algo con enfriamiento, Oficio lo sabe porque la ventana está abierta en ese momento. |
 | 🔀 | **Los materiales de una receta se cruzan con Alijo.** | Si Alijo está activado, Oficio muestra cuántas unidades de cada material hay en la cuenta (bolsas y banco). |
 | 🔨 | **Los precios son de la última vez que escaneaste.** | Lonja solo puede leer la subasta con su ventana abierta. Guarda el precio de compra más bajo por unidad; las subastas que solo admiten puja no cuentan. Lo que ya no está a la venta conserva su último precio, con la fecha en que se vio. |
@@ -242,6 +260,7 @@ Cada addon guarda lo suyo en `WTF\Account\<cuenta>\SavedVariables`, en un archiv
 | ⚒️ Oficio | `Nexo_Oficio.lua` | `OficioDB` |
 | 🔨 Lonja | `Nexo_Lonja.lua` | `LonjaDB` |
 | 🦅 Vuelo | `Nexo_Vuelo.lua` | `VueloDB` |
+| 🌾 Cosecha | `Nexo_Cosecha.lua` | `CosechaDB` |
 
 > [!TIP]
 > Actualizar los addons no toca esos archivos. Los de antes del cambio de nombre (`Tesorero.lua`, `Bitacora.lua`...) se quedan donde estaban, como copia de ese momento.
@@ -267,7 +286,7 @@ Un addon no puede leer ni escribir archivos, así que hay dos caminos: copiar y 
 
 Con la carpeta [`herramientas`](herramientas), que copia los archivos tal cual y sirve también de copia de seguridad:
 
-1. **En el ordenador viejo**, cierra el juego y haz doble clic en `Exportar datos.bat`. Deja en el Escritorio un `nexo-datos-<fecha>.zip` con los datos de los siete addons.
+1. **En el ordenador viejo**, cierra el juego y haz doble clic en `Exportar datos.bat`. Deja en el Escritorio un `nexo-datos-<fecha>.zip` con los datos de los nueve addons.
 2. Lleva ese `.zip` al otro ordenador (y la carpeta `herramientas`), e instala allí los addons.
 3. **En el ordenador nuevo**, con el juego cerrado, arrastra el `.zip` encima de `Importar datos.bat`. Si lo ejecutas sin arrastrar nada, usa el `.zip` más reciente del Escritorio o de Descargas.
 
@@ -309,6 +328,9 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 | `Nexo.FillRows(scroll, filas, altura, datos, rellenar)` | Pinta una lista con barra de desplazamiento: `rellenar(fila, dato)` en las filas visibles y oculta el resto. |
 | `Nexo.Money(cobre)`, `Nexo.Ago(hora)` | Dinero con los iconos de las monedas y textos como «hace 5 min». |
 | `Nexo.QualityRGB(q)`, `Nexo.ItemID(enlace)`, `Nexo.Keys(tabla)` | Color por calidad, id de un enlace de objeto y claves ordenadas de una tabla. |
+| `Nexo.CacheItem(caché, id, enlace, calidad, icono)` | Guarda nombre, calidad e icono de un objeto en `caché[id] = { n, q, i }`, completando con `GetItemInfo` lo que no venga ya sabido. |
+| `Nexo.SafeCall(fn, ...)`, `Nexo.Secret(v)` | Llama a una función del juego sin fallar si no existe, da error o devuelve un valor protegido de este cliente (`nil` en ese caso). |
+| `Nexo.PlayerMapPos()` | Mapa y posición (x, y de 0 a 1) del jugador ahora mismo, o `nil` si no se puede saber. Lo usa Cosecha para apuntar dónde se recolecta un nodo. |
 | `Nexo.Reg(marco, ...)` | Registra eventos en un marco; los que no existen en el cliente se ignoran. |
 | `Nexo.Debounce(clave, espera, fn, ...)` | Muchos avisos seguidos con la misma clave acaban en una sola llamada. |
 | `Nexo.OnItemTooltip(fn)`, `Nexo.ItemTooltip(marco, id)`, `Nexo.LinkItem(id)` | Añadir líneas al tooltip de los objetos, enseñar el tooltip de uno y enlazarlo en el chat. |
@@ -331,7 +353,7 @@ La carpeta y el `.toc` se llaman `Nexo_<nombre>`. En el `.toc` hacen falta estas
 
 ## 📤 Publicar una versión
 
-Los ocho addons se publican juntos, en un solo `.zip` con cada carpeta en la raíz.
+Los nueve addons se publican juntos, en un solo `.zip` con cada carpeta en la raíz.
 
 - **A mano:** doble clic en `Empaquetar.bat`, de la carpeta [`herramientas`](herramientas). Deja `dist\Nexo-<versión>.zip`, con la versión de `Nexo.toc`, listo para subirlo en *Files → Upload file* del proyecto de CurseForge.
 - **Automático:** cuando hay cambios en los addons desde la última versión, el flujo [`preparar-version.yml`](.github/workflows/preparar-version.yml) abre sola una PR *Publicar Nexo `<versión>`* (rama `release/next`) que sube el número de `Nexo.toc`. Al fusionarla, [`publicar.yml`](.github/workflows/publicar.yml) crea la etiqueta `v<versión>`, genera el `.zip`, crea la versión en GitHub y la sube a CurseForge.
@@ -361,6 +383,7 @@ El código se publica con licencia [MIT](LICENSE).
 | ⚒️ Oficio `0.2.0` | ✅ Tested in-game: level and recipe tracking, material details, cross-check with Alijo, and material cost from Lonja. |
 | 🔨 Lonja `0.2.0` | ✅ Tested in-game: full and page-by-page auction scans, price list, value of stored items from Alijo, automatic scan on opening the auction house, shopping list, multi-day history, tooltip price, and cross-check with Oficio. If nothing is recorded, `/lonja diag` shows which auction API the client has. |
 | 🦅 Vuelo `0.1.0` | ✅ Tested in-game. |
+| 🌾 Cosecha `0.1.0` | ⚠️ Not tested in-game yet: gathering detection, the search window, and the world map pins. |
 
 > [!NOTE]
 > There are no automated tests.
@@ -373,6 +396,7 @@ El código se publica con licencia [MIT](LICENSE).
 | ⚒️ Oficio `0.2.0` | ✅ Probado en el juego: registro de niveles y de recetas, detalle de materiales, cruce con Alijo y coste de los materiales según Lonja. |
 | 🔨 Lonja `0.2.0` | ✅ Probado en el juego: escaneo completo y página a página de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta, lista de compra, historial de varios días, precio en el tooltip y cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
 | 🦅 Vuelo `0.1.0` | ✅ Probado en el juego. |
+| 🌾 Cosecha `0.1.0` | ⚠️ Sin probar todavía en el juego: la detección de la recolección, la ventana de búsqueda y los puntos en el mapa del mundo. |
 
 > [!NOTE]
 > No hay pruebas automáticas.

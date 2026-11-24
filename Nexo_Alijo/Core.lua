@@ -120,21 +120,7 @@ local function InitDB()
     ns.db, ns.char, ns.charKey = db, char, charKey
 end
 
-local function Remember(id, link, quality, icon)
-    local it = db.items[id]
-    if not it then
-        it = {}
-        db.items[id] = it
-    end
-    local name = link and link:match("%[(.-)%]")
-    if name and name ~= "" then it.n = name end
-    if (not quality or quality < 0) and GetItemInfo then
-        local _, _, q = GetItemInfo(id)
-        quality = q
-    end
-    if quality and quality >= 0 then it.q = quality end
-    if icon then it.i = icon end
-end
+local function Remember(id, link, quality, icon) Nexo.CacheItem(db.items, id, link, quality, icon) end
 
 local function ScanContainers(list)
     local out = {}
