@@ -47,6 +47,7 @@ un arreglo vale para todos.
 | Tabla a texto y vuelta | `Nexo.Serialize(t)`, `Nexo.Deserialize(s)` |
 | Heredar los datos del addon de antes de llamarse `Nexo_<nombre>` | `if Nexo.Antiguo(ADDON) then return end` al principio de cada archivo, y el nombre antiguo en `OptionalDeps`. Solo en los seis addons que existían entonces; uno nuevo no lo necesita |
 | Ventana con cabecera, sonido al abrir y refresco periódico | `K.Window` → `main:OnOpen()`, `main:OnClose()`, `main:Every(seg, fn)` |
+| Botón que recorre opciones (clic izquierdo siguiente, derecho anterior) | `K.Cycle(padre, ancho, alto, título, alPasar(dir))` |
 | Selector de personaje y su texto | `K.CharButton` → `charBtn:SetChar(clave, datos)` |
 | Botones excluyentes (periodos, sitios) | `K.Tabs(padre, defs, ancho, alElegir)` → `tabs:Select(clave)` |
 | Cuadro de búsqueda | `K.Search` |

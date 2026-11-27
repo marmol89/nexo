@@ -128,7 +128,6 @@ Nexo.Dict({
     ["sin ver|r"] = "not seen|r",
     ["Unidades a la venta"] = "Units for sale",
     ["Tienes en la cuenta"] = "You have in the account",
-    ["Valor de lo tuyo"] = "Value of yours",
     ["Comprar hasta"] = "Buy up to",
     ["Quedan por comprar"] = "Left to buy",
     ["Ahora está a tu precio|r"] = "Now it is at your price|r",
@@ -151,19 +150,34 @@ Nexo.Dict({
     ["Nada de lo que tienes guardado tiene precio en la lonja."] = "None of what you have saved has a price at the auction house.",
     ["Último escaneo"] = "Last scan",
 })
+Nexo.Dict({
+    ["objeto"] = "item",
+    ["objetos"] = "items",
+    ["gangas: %d (precio un %d%% o más por debajo de lo habitual). Escribe %s para verlas."] = "deals: %d (price %d%% or more below the usual). Type %s to see them.",
+    ["Categoría "] = "Category ",
+    ["ver las gangas: objetos por debajo de su precio habitual"] = "see the deals: items below their usual price",
+    ["cambiar el porcentaje que marca una ganga o un cambio de precio"] = "change the percentage that marks a deal or a price change",
+    ["abrir con ese objeto elegido (pega su enlace)"] = "open with that item chosen (paste its link)",
+    ["umbral de gangas y cambios de precio: %d%%."] = "threshold for deals and price changes: %d%%.",
+    [" (ahora "] = " (now ",
+    ["no hay ningún precio guardado de "] = "there is no saved price for ",
+    ["los precios guardados sin nombre de reino se han unido a los de %s (%d objetos)."] = "the saved prices without a realm name were merged into those of %s (%d items).",
+})
 -- Lonja: precios de la casa de subastas
 --
 -- Datos guardados (LonjaDB):
 --   realms[reino - facción] = {
 --       items[id] = { p = precio mínimo por unidad (cobre), n = unidades a la venta, t = cuándo se vio,
---                     h = { [día] = precio mínimo de ese día }, name, q = calidad, i = icono },
+--                     h = { [día] = precio mínimo de ese día } (HISTORY_DAYS días), name, q = calidad, i = icono },
 --       lastScan = hora del último escaneo completo, lastCount = objetos distintos que encontró,
 --       buy = lista de compra (ver Compra.lua) }
---   settings = { tooltip, pos, auto = false si no se quiere escanear al abrir la subasta }
+--   settings = { tooltip, pos, auto = false si no se quiere escanear al abrir la subasta,
+--                threshold = % de diferencia que marca una ganga o un cambio de precio }
 --   replicateAt = hora en que se pidió la última lista completa (el juego solo la da cada 15 minutos)
 --
 -- Otros addons leen los precios con la tabla global Lonja:
 --   Lonja.Price(id)   -> precio por unidad, hora en que se vio, unidades a la venta (nil si no hay precio)
+--   Lonja.Stats(id)   -> estadísticas del historial (ver Fill más abajo): precio habitual, mínimo, máximo... (nil si no hay precio)
 --   Lonja.Money(c)    -> texto con las monedas
 local ADDON, ns = ...
 if Nexo.Antiguo(ADDON) then return end
@@ -172,11 +186,17 @@ local P = "|cfff0786aLonja:|r "
 local floor, min, max, abs = math.floor, math.min, math.max, math.abs
 local GetItemInfo = GetItemInfo or (C_Item and C_Item.GetItemInfo)
 
-local HISTORY_DAYS = 14     -- días de historial que se conservan por objeto
+local HISTORY_DAYS = 14     -- días de historial que se conservan por objeto (con 30, el archivo guardado pasa de unos 8 a unos 15 MB)
+local MIN_BASE = 3          -- días anteriores que hacen falta para saber cuál es el precio habitual
+local DEFAULT_THRESHOLD = 30    -- % por debajo (o por encima) de lo habitual que marca una ganga (o un precio caro)
+local MIN_DIFF = 10         -- diferencia mínima, en cobre por unidad, para que algo cuente como ganga o cambio
+local LIVE_SLACK = 60       -- segundos de margen para decir que un objeto estaba en el último escaneo
 local FRESH = 3600          -- una página suelta no sube un precio visto hace menos de esto
 local PAGE = 50             -- subastas por página en la API clásica
 local CHUNK = 1000          -- subastas que se leen por fotograma en un escaneo rápido
 local FULL_WAIT = 15 * 60 + 10  -- el juego solo da la lista completa cada 15 minutos
+
+ns.HISTORY_DAYS, ns.MIN_BASE = HISTORY_DAYS, MIN_BASE
 
 ---------------------------------------------------------------------------
 -- Formato
@@ -190,7 +210,72 @@ function ns.Ago(t) return Nexo.Ago(t, Tr("nunca")) end
 -- Base de datos
 ---------------------------------------------------------------------------
 local db, realm, realmKey
-local indexCache
+local indexCache            -- lista de todos los objetos con precio (ns.Index)
+local marketCache           -- cuántos objetos hay en cada vista (ns.Market); cambia solo cuando cambian los precios
+
+-- Nombre del reino. En este cliente GetRealmName() a veces devuelve "": entonces vale el reino que Nexo ya
+-- sabe de este personaje, para no abrir una lista de precios aparte (" - Alliance") que parte el historial en dos
+local function RealmName()
+    local name = GetRealmName()
+    if name and name ~= "" then return name end
+    return (Nexo.CharKey():match(" %- (.*)$")) or ""
+end
+
+-- Cada facción de cada reino tiene su propia casa de subastas: "Reino - Facción"
+local function CurrentKey() return RealmName() .. " - " .. (UnitFactionGroup("player") or "Neutral") end
+
+-- Junta en dst (los precios de un reino) lo que haya en src, que son los de la misma subasta guardados con otro nombre:
+-- de cada objeto gana lo que se vio más tarde y los días de historial se suman (si un día está en los dos, el más bajo)
+local function MergeRealm(dst, src)
+    local cutoff = Nexo.DayKey(time() - (HISTORY_DAYS - 1) * Nexo.DAY)
+    dst.items = dst.items or {}
+    local count = 0
+    for id, s in pairs(src.items or {}) do
+        local d = dst.items[id]
+        if not d then
+            dst.items[id] = s
+        else
+            local keep, other = s, d
+            if (d.t or 0) >= (s.t or 0) then keep, other = d, s end
+            local h = keep.h or {}
+            for day, v in pairs(other.h or {}) do
+                if not h[day] or v < h[day] then h[day] = v end
+            end
+            keep.h = h
+            keep.name, keep.q, keep.i = keep.name or other.name, keep.q or other.q, keep.i or other.i
+            dst.items[id] = keep
+        end
+        local h = dst.items[id].h
+        for day in pairs(h or {}) do
+            if day < cutoff then h[day] = nil end
+        end
+        count = count + 1
+    end
+    if (src.lastScan or 0) > (dst.lastScan or 0) then dst.lastScan, dst.lastCount = src.lastScan, src.lastCount end
+    for id, b in pairs(src.buy or {}) do        -- la lista de compra: si ya estaba en dst, manda la de dst
+        dst.buy = dst.buy or {}
+        if not dst.buy[id] then dst.buy[id] = b end
+    end
+    return count
+end
+
+-- Los precios guardados cuando el juego no daba el nombre del reino (" - Alliance") pasan al reino de verdad,
+-- siempre que sea el único de esa facción: así no se sabe de otro al que pudieran pertenecer
+local function AdoptOrphans()
+    local name, faction = realmKey:match("^(.*) %- (.*)$")
+    local src = faction and db.realms[" - " .. faction]
+    if not name or name == "" or not src or src == realm then return end
+    for key in pairs(db.realms) do
+        local other, f = key:match("^(.*) %- (.*)$")
+        if f == faction and other ~= "" and key ~= realmKey then return end
+    end
+    local count = MergeRealm(realm, src)
+    db.realms[" - " .. faction] = nil
+    local key = realmKey
+    C_Timer.After(4, function()
+        print(P .. (Tr("los precios guardados sin nombre de reino se han unido a los de %s (%d objetos).")):format(key, count))
+    end)
+end
 
 local function InitDB()
     LonjaDB = LonjaDB or {}
@@ -198,13 +283,13 @@ local function InitDB()
     db.realms = db.realms or {}
     db.settings = db.settings or {}
 
-    -- Cada facción tiene su propia casa de subastas
-    realmKey = GetRealmName() .. " - " .. (UnitFactionGroup("player") or "Neutral")
+    realmKey = CurrentKey()
     db.realms[realmKey] = db.realms[realmKey] or {}
     realm = db.realms[realmKey]
     realm.items = realm.items or {}
+    AdoptOrphans()
     ns.db, ns.realm, ns.realmKey = db, realm, realmKey
-    indexCache = nil
+    indexCache, marketCache = nil, nil
 end
 
 local function Changed()
@@ -242,8 +327,9 @@ end
 -- si no, es solo una parte y no puede subir un precio reciente
 local function Apply(obs, full)
     local now, day = time(), Nexo.DayKey()
-    local cutoff = Nexo.DayKey(now - HISTORY_DAYS * 86400)
+    local cutoff = Nexo.DayKey(now - (HISTORY_DAYS - 1) * Nexo.DAY)     -- hoy y los HISTORY_DAYS - 1 anteriores
     local count = 0
+    marketCache = nil
     for id, o in pairs(obs) do
         count = count + 1
         local it = realm.items[id]
@@ -305,6 +391,12 @@ local function StopScan(full, why)
     if full then
         realm.lastScan, realm.lastCount = time(), count
         print(P .. Tr("escaneo completo: ") .. Nexo.Plural(count, Tr("objeto distinto"), Tr("objetos distintos")) .. Tr(" con precio."))
+        -- Tras apuntar lastScan: "a la venta" se cuenta desde este escaneo
+        local market = ns.Market()
+        if market.deal > 0 then
+            print(P .. (Tr("gangas: %d (precio un %d%% o más por debajo de lo habitual). Escribe %s para verlas.")):format(
+                market.deal, ns.Threshold(), "|cffffff00/lonja " .. (Nexo.Cmd("lonja", "deals") or "") .. "|r"))
+        end
     else
         print(P .. Tr("escaneo interrumpido") .. (why and (" (" .. why .. ")") or "") .. Tr(": guardados ") ..
             Nexo.Plural(count, "objeto", "objetos") .. Tr(" de lo que dio tiempo a leer."))
@@ -524,16 +616,145 @@ end
 
 function ns.HasAlijo() return AlijoDB ~= nil and AlijoDB.chars ~= nil end
 
--- Todos los objetos con precio: { id, name, lower, q, icon, p, t, n, have, value }
+---------------------------------------------------------------------------
+-- Historial y mercado
+---------------------------------------------------------------------------
+-- Primer día que cuenta del historial ("2026-11-01"): hoy y los HISTORY_DAYS - 1 anteriores
+local function Cutoff() return Nexo.DayKey(time() - (HISTORY_DAYS - 1) * Nexo.DAY) end
+
+-- Estadísticas del historial de un objeto, rellenadas en s (que se reutiliza). Precios en cobre por unidad.
+--   p      precio de ahora                          live   estaba a la venta en el último escaneo
+--   days   días con precio en el historial          lo, hi  el más bajo y el más alto de esos días
+--   base   días anteriores al último en que se vio: con ellos se compara el precio de ahora
+--   prev   precio del último de esos días           chg    p / prev - 1        step   p - prev
+--   usual  precio habitual: mediana de esos días (solo si base >= MIN_BASE)
+--   dev    p / usual - 1                            diff   p - usual
+-- (dev, chg, diff y step son negativos si ahora está más barato)
+-- cutoff = primer día que cuenta (ver Cutoff)
+local function Fill(s, it, cutoff)
+    local p, t, h = it.p, it.t, it.h
+    s.p, s.live = p, (t or 0) >= (realm.lastScan or 0) - LIVE_SLACK
+    s.days, s.base = 0, 0
+    s.lo, s.hi, s.prev, s.chg, s.step, s.usual, s.dev, s.diff = nil, nil, nil, nil, nil, nil, nil, nil
+    if not (p and t and h) then return s end
+    local last = Nexo.DayKey(t)
+    local vals, prevDay = {}, nil
+    for day, v in pairs(h) do
+        if day >= cutoff then
+            s.days = s.days + 1
+            if not s.lo or v < s.lo then s.lo = v end
+            if not s.hi or v > s.hi then s.hi = v end
+            if day < last then
+                s.base = s.base + 1
+                vals[s.base] = v
+                if not prevDay or day > prevDay then prevDay, s.prev = day, v end
+            end
+        end
+    end
+    if s.prev then s.chg, s.step = p / s.prev - 1, p - s.prev end
+    if s.base >= MIN_BASE then
+        table.sort(vals)
+        local mid = floor(s.base / 2)
+        local usual = (s.base % 2 == 1) and vals[mid + 1] or (vals[mid] + vals[mid + 1]) / 2
+        s.usual = max(1, floor(usual + 0.5))
+        s.dev, s.diff = p / s.usual - 1, p - s.usual
+    end
+    return s
+end
+
+-- Estadísticas de un objeto con precio (ver Fill); nil si no lo hay
+function ns.Stats(id)
+    local it = id and realm and realm.items[id]
+    if it and it.p then return Fill({}, it, Cutoff()) end
+end
+
+-- Precio mínimo de cada uno de los últimos n días, del más antiguo al de hoy: { day, t = hora de ese día, p = precio o nil }
+function ns.Series(id, n)
+    local it = id and realm.items[id]
+    local h = it and it.h or {}
+    local noon = Nexo.DayKeyToTime(Nexo.DayKey())      -- a mediodía, para que un cambio de hora no salte de día
+    local out = {}
+    for i = 1, n do
+        local t = noon - (n - i) * Nexo.DAY
+        local day = Nexo.DayKey(t)
+        out[i] = { day = day, t = t, p = h[day] }
+    end
+    return out
+end
+
+-- % de diferencia que marca una ganga, un precio caro o una subida o bajada (se cambia con /lonja umbral)
+function ns.Threshold() return (db and db.settings.threshold) or DEFAULT_THRESHOLD end
+
+-- ¿Cae s (las estadísticas de Fill) en la vista view?
+--   all = todo   deal = ganga: bastante por debajo de lo habitual   dear = caro: bastante por encima
+--   down / up = ha bajado / subido bastante desde la vez anterior
+-- Salvo "all", piden que estuviera a la venta en el último escaneo y una diferencia de al menos MIN_DIFF por unidad
+function ns.InView(view, s)
+    if view == "all" then return true end
+    if not s.live then return false end
+    local thr = ns.Threshold() / 100
+    if view == "deal" then return s.dev ~= nil and s.dev <= -thr and s.diff <= -MIN_DIFF end
+    if view == "dear" then return s.dev ~= nil and s.dev >= thr and s.diff >= MIN_DIFF end
+    if view == "down" then return s.chg ~= nil and s.chg <= -thr and s.step <= -MIN_DIFF end
+    if view == "up" then return s.chg ~= nil and s.chg >= thr and s.step >= MIN_DIFF end
+    return true
+end
+
+-- Cuántos objetos hay en cada vista, y cuántos tienen ya precio habitual (known): { known, deal, dear, down, up }
+-- Se calcula una vez y vale hasta que cambian los precios
+local VIEWS = { "deal", "dear", "down", "up" }
+
+function ns.Market()
+    if marketCache then return marketCache end
+    local m = { known = 0, deal = 0, dear = 0, down = 0, up = 0 }
+    local s, cutoff = {}, Cutoff()
+    for _, it in pairs(realm.items) do
+        if it.p then
+            Fill(s, it, cutoff)
+            if s.usual then m.known = m.known + 1 end
+            for _, view in ipairs(VIEWS) do
+                if ns.InView(view, s) then m[view] = m[view] + 1 end
+            end
+        end
+    end
+    marketCache = m
+    return m
+end
+
+-- Categoría de un objeto (Enum.ItemClass: armas, armadura, consumibles...). No hace falta que el cliente lo tenga en caché
+local GetInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+local GetClassName = GetItemClassInfo or (C_Item and C_Item.GetItemClassInfo)
+local classOf = {}      -- id -> categoría, o false si no se sabe
+
+function ns.ItemClass(id)
+    local c = classOf[id]
+    if c == nil then
+        c = GetInstant and select(6, GetInstant(id)) or false
+        classOf[id] = c
+    end
+    return c or nil
+end
+
+function ns.ClassName(c) return (GetClassName and GetClassName(c)) or (Tr("Categoría ") .. c) end
+
+-- Lo que paga el vendedor por una unidad (nil mientras el cliente no tenga el objeto en caché)
+function ns.Vendor(id)
+    if not GetItemInfo then return end
+    local sell = select(11, GetItemInfo(id))
+    return sell and sell > 0 and sell or nil
+end
+
+-- Todos los objetos con precio: { id, name, lower, q, icon, t, n, have, value, cls } y las estadísticas de Fill
 function ns.Index()
     if indexCache then return indexCache end
-    local list = {}
+    local list, cutoff = {}, Cutoff()
     for id, it in pairs(realm.items) do
         if it.p then
             local name, quality, icon = ns.ItemInfo(id)
             local have = ns.Have(id) or 0
-            list[#list + 1] = { id = id, name = name, lower = name:lower(), q = quality, icon = icon,
-                                p = it.p, t = it.t, n = it.n or 0, have = have, value = have * it.p }
+            local e = { id = id, name = name, lower = name:lower(), q = quality, icon = icon,
+                        t = it.t or 0, n = it.n or 0, have = have, value = have * it.p, cls = ns.ItemClass(id) }
+            list[#list + 1] = Fill(e, it, cutoff)
         end
     end
     indexCache = list
@@ -551,13 +772,43 @@ function ns.Count()
     return n
 end
 
--- Historial de un objeto, del día más reciente al más antiguo: { day, p }
-function ns.History(id)
-    local it = realm.items[id]
-    local list = {}
-    for day, p in pairs(it and it.h or {}) do list[#list + 1] = { day = day, p = p } end
-    table.sort(list, function(a, b) return a.day > b.day end)
-    return list
+-- Unidades de cada objeto en bolsas y bancos de la cuenta según Alijo: { [id] = unidades } (nil si Alijo no está)
+function ns.Owned()
+    if not ns.HasAlijo() then return nil end
+    local own = {}
+    local function add(items)
+        for id, n in pairs(items or {}) do own[id] = (own[id] or 0) + n end
+    end
+    for _, c in pairs(AlijoDB.chars) do
+        add(c.bags)
+        add(c.bank)
+    end
+    if AlijoDB.warband then add(AlijoDB.warband.items) end
+    return own
+end
+
+-- Cómo ha cambiado lo que tienes en la cuenta en los últimos days días: valor ahora, valor entonces y
+-- cuántos objetos cuentan. Son los mismos objetos y unidades, solo los que tenían precio guardado
+-- entonces (el último de hace days días o más, sin pasarse de el doble). nil si Alijo no está o no hay con qué comparar
+function ns.AccountTrend(days)
+    local own = ns.Owned()
+    if not own then return nil end
+    local noon = Nexo.DayKeyToTime(Nexo.DayKey())
+    local ref = Nexo.DayKey(noon - days * Nexo.DAY)
+    local far = Nexo.DayKey(noon - days * 2 * Nexo.DAY)
+    local now, old, count = 0, 0, 0
+    for id, n in pairs(own) do
+        local it = realm.items[id]
+        if n > 0 and it and it.p and it.h then
+            local bestDay, bestP
+            for day, v in pairs(it.h) do
+                if day <= ref and day >= far and (not bestDay or day > bestDay) then bestDay, bestP = day, v end
+            end
+            if bestP then now, old, count = now + n * it.p, old + n * bestP, count + 1 end
+        end
+    end
+    if count == 0 then return nil end
+    return now, old, count
 end
 
 -- Lo que vale en la lonja lo guardado en bolsas y bancos, según Alijo.
@@ -594,6 +845,7 @@ function ns.TooltipEnabled() return db and db.settings.tooltip ~= false end
 -- Para los demás addons
 Lonja = {
     Price = function(id) if realm then return ns.Price(id) end end,
+    Stats = function(id) if realm then return ns.Stats(id) end end,
     Money = ns.Money,
 }
 
@@ -609,8 +861,8 @@ ev:SetScript("OnEvent", function(self, event, ...)
             if ns.OnInit then ns.OnInit() end
         end
     elseif event == "PLAYER_LOGIN" then
-        -- La facción puede no saberse todavía al cargar el addon
-        if realmKey ~= GetRealmName() .. " - " .. (UnitFactionGroup("player") or "Neutral") then
+        -- La facción (o el reino) puede no saberse todavía al cargar el addon
+        if realmKey ~= CurrentKey() then
             InitDB()
             Changed()
         end
@@ -719,10 +971,25 @@ SlashCmdList.LONJA = function(msg)
         print(P .. Tr("esto borrará todos los precios guardados de ") .. realmKey .. Tr(". Escribe ") .. "|cffffff00/lonja " .. Cmd("resetConfirm") .. "|r" .. Tr(" para hacerlo."))
     elseif low == Cmd("diag") then
         PrintDiag()
+    elseif low == Cmd("deals") then
+        if ns.OpenView then ns.OpenView("deal") end
+    elseif low == Cmd("threshold") or low:find("^" .. Cmd("threshold") .. "%s") then
+        local n = tonumber(low:match("(%d+)%s*%%?%s*$"))
+        if n and n >= 5 and n <= 95 then
+            db.settings.threshold = floor(n)
+            marketCache = nil
+            Changed()
+            print(P .. (Tr("umbral de gangas y cambios de precio: %d%%.")):format(floor(n)))
+        else
+            print(P .. Tr("uso: ") .. "|cffffff00/lonja " .. Cmd("threshold") .. " <5-95>|r" .. Tr(" (ahora ") .. ns.Threshold() .. "%).")
+        end
     elseif low == Cmd("help") then
-        print(P .. "comandos:")
+        print(P .. Tr("comandos:"))
         print("  |cffffff00/lonja|r - " .. Tr("abrir/cerrar la ventana"))
         print("  |cffffff00/lonja <texto>|r - " .. Tr("abrir buscando ese texto en los precios guardados"))
+        print("  |cffffff00/lonja <enlace>|r - " .. Tr("abrir con ese objeto elegido (pega su enlace)"))
+        print("  |cffffff00/lonja " .. Cmd("deals") .. "|r - " .. Tr("ver las gangas: objetos por debajo de su precio habitual"))
+        print("  |cffffff00/lonja " .. Cmd("threshold") .. " <5-95>|r - " .. Tr("cambiar el porcentaje que marca una ganga o un cambio de precio"))
         print("  |cffffff00/lonja " .. Cmd("scan") .. "|r - " .. Tr("escanear la casa de subastas (tiene que estar abierta)"))
         print("  |cffffff00/lonja " .. Cmd("stop") .. "|r - " .. Tr("parar el escaneo en marcha"))
         print("  |cffffff00/lonja " .. Cmd("auto") .. "|r - " .. Tr("activar/desactivar el escaneo automático al abrir la subasta"))
@@ -733,6 +1000,8 @@ SlashCmdList.LONJA = function(msg)
         print("  |cffffff00/lonja " .. Cmd("minimap") .. "|r - " .. Tr("mostrar/ocultar el botón del minimapa"))
         print("  |cffffff00/lonja " .. Cmd("reset") .. "|r - " .. Tr("borrar los precios guardados de este reino"))
         print("  |cffffff00/lonja " .. Cmd("diag") .. "|r - " .. Tr("mostrar qué API de subasta tiene el cliente y los últimos escaneos"))
+    elseif Nexo.ItemID(msg) then
+        if ns.OpenItem then ns.OpenItem(Nexo.ItemID(msg)) end
     elseif msg ~= "" then
         if ns.OpenSearch then ns.OpenSearch(msg) else PrintSearch(msg) end
     else
