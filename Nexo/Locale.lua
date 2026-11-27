@@ -55,7 +55,6 @@ local CMDS = {
         senda = { reset = "reset", resetConfirm = "reset confirmar", announce = "avisos", minimap = "minimapa", help = "ayuda" },
         tesorero = { reset = "reset", resetConfirm = "reset confirmar", minimap = "minimapa", help = "ayuda" },
         vuelo = { center = "centro", chat = "chat", minimap = "minimapa", help = "ayuda" },
-        cosecha = { map = "mapa", minimap = "minimapa", reset = "reset", resetConfirm = "reset confirmar", help = "ayuda" },
     },
     en = {
         nexo = { settings = "settings", data = "data", export = "export", import = "import", minimap = "minimap", errors = "errors", clear = "clear", help = "help" },
@@ -66,7 +65,6 @@ local CMDS = {
         senda = { reset = "reset", resetConfirm = "reset confirm", announce = "alerts", minimap = "minimap", help = "help" },
         tesorero = { reset = "reset", resetConfirm = "reset confirm", minimap = "minimap", help = "help" },
         vuelo = { center = "center", chat = "chat", minimap = "minimap", help = "help" },
-        cosecha = { map = "map", minimap = "minimap", reset = "reset", resetConfirm = "reset confirm", help = "help" },
     },
 }
 

@@ -23,7 +23,6 @@
 --   Nexo.Antiguo(addon)                      ¿sigue cargado el addon con el nombre de antes de Nexo_<nombre>?
 --   Nexo.CacheItem(caché, id, enlace, calidad, icono)   nombre/calidad/icono de un objeto, completados con GetItemInfo
 --   Nexo.SafeCall(fn, ...) / Secret(v)       llama a una función del juego sin fallar si devuelve un valor protegido
---   Nexo.PlayerMapPos()                      mapa y posición (x, y de 0 a 1) del jugador, o nil si no se puede saber ahora
 local ADDON = ...
 
 Nexo = Nexo or {}
@@ -502,7 +501,7 @@ function N.Debounce(key, delay, fn, ...)
 end
 
 ---------------------------------------------------------------------------
--- Valores protegidos de este cliente y posición del jugador
+-- Valores protegidos de este cliente
 --
 -- WoW Forever puede devolver un valor "secreto" (protegido) en vez del dato real en algunas
 -- funciones del juego; guardarlo o compararlo falla o ensucia los datos. Vuelo lo encontró en
@@ -518,19 +517,6 @@ function N.SafeCall(fn, ...)
     if type(fn) ~= "function" then return end
     local ok, a, b = pcall(fn, ...)
     if ok and not N.Secret(a) then return a, b end
-end
-
--- Mapa y posición del jugador (x, y de 0 a 1 dentro de ese mapa), o nil si ahora no se puede
--- saber (API no disponible, o valor protegido).
-function N.PlayerMapPos()
-    if not (C_Map and C_Map.GetBestMapForUnit and C_Map.GetPlayerMapPosition) then return end
-    local mapID = N.SafeCall(C_Map.GetBestMapForUnit, "player")
-    if not mapID then return end
-    local pos = N.SafeCall(C_Map.GetPlayerMapPosition, mapID, "player")
-    if not pos then return end
-    local ok, x, y = pcall(pos.GetXY, pos)
-    if not ok or N.Secret(x) or N.Secret(y) then return end
-    return mapID, x, y
 end
 
 -- /played pedido en silencio, sin ensuciar el chat.
