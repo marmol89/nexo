@@ -35,7 +35,7 @@ Siete de ellos registran algo distinto de tu cuenta y el octavo, **Nexo**, es el
 | 🎒 | **Alijo** | Inventario de toda la cuenta: busca un objeto y mira qué personaje lo tiene, en bolsas, banco o equipado. | `/alijo` | `1.2.0` |
 | 📈 | **Senda** | Subida de nivel: experiencia por hora, tiempo para subir, tiempo en cada nivel y origen de la experiencia. | `/senda` | `1.1.0` |
 | ⚒️ | **Oficio** | Profesiones: nivel de cada una, qué recetas conoce cada personaje y enfriamientos de fabricación. | `/oficio` | `0.2.0` |
-| 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear y valora lo que tienes en la cuenta. | `/lonja` | `0.2.0` |
+| 🔨 | **Lonja** | Precios de subasta: guarda el precio mínimo de cada objeto al escanear, lleva su historial, señala gangas y valora lo que tienes en la cuenta. | `/lonja` | `0.3.0` |
 | 🦅 | **Vuelo** | Vuelos de los maestros de vuelo: cuánto tarda cada destino y una cuenta atrás en pantalla, que se puede mover, mientras vuelas. | `/vuelo` | `0.1.0` |
 
 ```mermaid
@@ -181,6 +181,9 @@ Tesorero, Bitácora, Alijo, Senda, Oficio y Lonja **abren o cierran su ventana**
 | Comando | Qué hace |
 |---|---|
 | `/lonja <texto>` | Abre la ventana buscando ese texto en los precios guardados. |
+| `/lonja <enlace>` | Abre la ventana con ese objeto elegido (pega su enlace con Mayús+clic). |
+| `/lonja gangas` | Abre la ventana en la vista de gangas: lo que ahora está por debajo de su precio habitual. |
+| `/lonja umbral <5-95>` | Cambia el porcentaje de diferencia que marca una ganga, un precio caro o una subida o bajada (viene en 30). |
 | `/lonja escanear` | Escanea la casa de subastas, que tiene que estar abierta. También hay un botón en la ventana de Lonja y otro encima de la ventana de la subasta. |
 | `/lonja parar` | Para el escaneo en marcha y guarda lo que dio tiempo a leer. |
 | `/lonja auto` | Activa o desactiva el escaneo automático al abrir la subasta (viene activado). |
@@ -223,7 +226,11 @@ Vuelo no tiene ventana: `/vuelo` enseña u oculta el contador de muestra para co
 | ⚡ | **El escaneo rápido solo se puede usar cada 15 minutos.** | Es un límite del juego. Si no está disponible, Lonja escanea página a página, que tarda más. Las búsquedas que hagas a mano en la subasta también se apuntan. |
 | 🔁 | **Lonja escanea sola al abrir la subasta.** | Solo si han pasado los 15 minutos del escaneo rápido; si no, avisa de cuánto falta y usa los precios que ya tenía. Se apaga con `/lonja auto`. |
 | 🛒 | **La lista de compra pide un clic por compra.** | El juego no deja a ningún addon comprar por su cuenta. Lonja avisa de lo que está a tu precio y prepara la compra (objeto, unidades y coste, sin pasar de tu precio máximo ni de la cantidad que pediste); el botón de encima de la subasta la hace paso a paso: buscar, comprar y, en los materiales, confirmar el precio final. |
-| ⚖️ | **Cada facción tiene sus precios.** | Lonja guarda los precios por reino y facción, y conserva 14 días de historial por objeto. |
+| ⚖️ | **Cada facción tiene sus precios.** | Lonja guarda los precios por reino y facción, y conserva 14 días de historial por objeto (el precio mínimo de cada día). |
+| 🧭 | **Lonja junta los precios que quedaron sin nombre de reino.** | A veces el juego no da el nombre del reino al cargar y Lonja guardaba esos precios en una lista aparte (`" - Alliance"`), que partía el historial en dos. Ahora usa el reino que Nexo ya sabe del personaje y, al cargar, une esa lista con la del reino de verdad si es el único de su facción (de cada objeto gana lo que se vio más tarde y los días del historial se suman). |
+| 📈 | **Lo «habitual» es la mediana de los días anteriores.** | Lonja compara el precio de ahora con el que tuvo los días anteriores en que lo vio, y hacen falta tres de esos días: hasta entonces no hay gangas ni subidas que marcar. Una **ganga** es un precio un 30% o más por debajo de lo habitual (`/lonja umbral` lo cambia); **caro**, un 30% o más por encima; y **suben** y **bajan**, lo que ha cambiado tanto desde la vez anterior. Solo cuenta lo que estaba a la venta en el último escaneo completo y con al menos 10 de cobre de diferencia por unidad. En esas vistas manda el dinero y no el porcentaje: lo que más dinero mueve por unidad va primero. |
+| 🔎 | **Los filtros de la ventana se suman.** | Búsqueda, calidad (varias a la vez), categoría, última vez que se vio el precio, rango de precio, «Solo lo que tengo» (con Alijo), lista de compra y las vistas: un objeto tiene que cumplirlos todos. «Quitar filtros» lo deja todo como estaba. |
+| 🏷️ | **El tooltip de un objeto enseña su precio habitual.** | Además del precio de ahora, con el porcentaje que se aleja de lo habitual y el rango de los días guardados. Se apaga con `/lonja tooltip`. |
 | 💱 | **Los precios se cruzan con Alijo y Oficio.** | Con Lonja activado, Alijo muestra lo que vale cada objeto, Oficio lo que cuestan los materiales de una receta y por cuánto se vende lo fabricado, y Lonja lo que vale todo lo guardado en bolsas y bancos (lo equipado no cuenta). |
 | 🗓️ | **El historial empieza al instalar.** | El juego no guarda el pasado. La única excepción es Bitácora, que puede estimarlo a partir de Tesorero y lo marca como estimado. |
 | 🔍 | **El origen de la experiencia y del oro es deducido.** | El juego solo avisa de que la cantidad ha cambiado; Senda y Tesorero lo relacionan con lo que ocurre en ese instante (una muerte, una misión entregada, un mercader abierto). Lo que no se identifica cae en "Otros". |
@@ -300,7 +307,7 @@ Los demás addons lo usan a través de la tabla global `Nexo`:
 
 | Función | Para qué sirve |
 |---|---|
-| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `CharButton`, `CharPicker(main, close, state, list, onChange, all)` (selector ligado a `state.filter`), `Tabs`, `Periods(main, x, y, onPick)` (pestañas de periodo con su texto de ayuda), `Dashboard(o)` (ventana + selector de personaje + periodos, en una llamada; `o` lleva `state, list, all, pad, onChange`, y el periodo se guarda en `settings().period`), `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
+| `Nexo.Kit(tema)` | Devuelve las piezas de interfaz con los colores del addon: `Window`, `Panel`, `Button`, `Card`, `Cards`, `Cycle(parent, w, h, título, alPasar(dir), tamaño)` (botón que recorre opciones: clic izquierdo, la siguiente; derecho, la anterior), `CharButton`, `CharPicker(main, close, state, list, onChange, all)` (selector ligado a `state.filter`), `Tabs`, `Periods(main, x, y, onPick)` (pestañas de periodo con su texto de ayuda), `Dashboard(o)` (ventana + selector de personaje + periodos, en una llamada; `o` lleva `state, list, all, pad, onChange`, y el periodo se guarda en `settings().period`), `Search`, `List` (lista con desplazamiento), `Sorter` (cabeceras que la ordenan), `DetailHead`, `Lines` (líneas de un panel de detalle), `Chart` (gráfico de barras), `StatGrid`, `Footer`, `SectionTitle`, `Text` y `Tex`. |
 | `Nexo.Movable(marco, ajustes)` | Hace que un marco se arrastre con el ratón y guarda dónde queda en `ajustes().pos`; `marco:RestorePos()` lo devuelve ahí. Lo usan las ventanas y el contador de Vuelo. |
 | `Nexo.Register(def)` | Apunta el addon en el menú del botón del minimapa. |
 | `Nexo.OnTick(fn)` | Llama a `fn(dt, ahora)` cada 5 segundos de juego, sin contar el tiempo con el equipo suspendido. |
@@ -363,7 +370,7 @@ El código se publica con licencia [MIT](LICENSE).
 |---|---|
 | 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Tested in-game by its author, on a single client. |
 | ⚒️ Oficio `0.2.0` | ✅ Tested in-game: level and recipe tracking, material details, cross-check with Alijo, and material cost from Lonja. |
-| 🔨 Lonja `0.2.0` | ✅ Tested in-game: full and page-by-page auction scans, price list, value of stored items from Alijo, automatic scan on opening the auction house, shopping list, multi-day history, tooltip price, and cross-check with Oficio. If nothing is recorded, `/lonja diag` shows which auction API the client has. |
+| 🔨 Lonja `0.3.0` | 🟡 Up to `0.2.0` tested in-game: full and page-by-page auction scans, price list, value of stored items from Alijo, automatic scan on opening the auction house, shopping list, multi-day history, tooltip price, and cross-check with Oficio. **Not tested in-game yet (only against a simulated client and a copy of real saved prices):** the filters, the deals / pricey / rising / falling views, the usual-price statistics, the history chart, the market summary, the merge of prices saved without a realm name, and the `/lonja deals`, `/lonja threshold` and `/lonja <link>` commands. If nothing is recorded, `/lonja diag` shows which auction API the client has. |
 | 🦅 Vuelo `0.1.0` | ✅ Tested in-game. |
 
 > [!NOTE]
@@ -375,7 +382,7 @@ El código se publica con licencia [MIT](LICENSE).
 |---|---|
 | 🔗 Nexo · 💰 Tesorero · ⏱️ Bitácora · 🎒 Alijo · 📈 Senda | ✅ Probados en el juego por su autor, en un único cliente. |
 | ⚒️ Oficio `0.2.0` | ✅ Probado en el juego: registro de niveles y de recetas, detalle de materiales, cruce con Alijo y coste de los materiales según Lonja. |
-| 🔨 Lonja `0.2.0` | ✅ Probado en el juego: escaneo completo y página a página de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta, lista de compra, historial de varios días, precio en el tooltip y cruce con Oficio. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
+| 🔨 Lonja `0.3.0` | 🟡 Hasta la `0.2.0`, probado en el juego: escaneo completo y página a página de la subasta, lista de precios, valor de lo guardado según Alijo, escaneo automático al abrir la subasta, lista de compra, historial de varios días, precio en el tooltip y cruce con Oficio. **Sin probar aún en el juego (solo contra un cliente simulado y una copia de precios reales guardados):** los filtros, las vistas de gangas, caros, suben y bajan, las estadísticas del precio habitual, el gráfico del historial, el resumen del mercado, la unión de los precios guardados sin nombre de reino y los comandos `/lonja gangas`, `/lonja umbral` y `/lonja <enlace>`. Si no registra nada, `/lonja diag` dice qué API de subasta tiene el cliente. |
 | 🦅 Vuelo `0.1.0` | ✅ Probado en el juego. |
 
 > [!NOTE]

@@ -3,6 +3,7 @@ Nexo.Dict({
     ["y "] = "and ",
     ["Clic izquierdo: siguiente"] = "Left-click: next",
     ["Clic derecho: anterior"] = "Right-click: previous",
+    ["Personaje"] = "Character",
     ["|r  |cff888888nivel "] = "|r  |cff888888level ",
     ["Todos los personajes|r"] = "All characters|r",
     [" líneas más|r"] = " more lines|r",
@@ -353,34 +354,42 @@ function N.Kit(t)
         return main, close
     end
 
-    -- Selector de personaje de la cabecera (clic izquierdo: siguiente; derecho: anterior).
-    -- o = { list = function() return claves end, get = function() return clave end,
-    --       set = function(clave) end, all = true si existe la opción "todos" (clave nil) }
-    function K.CharButton(main, close, o)
-        local lo = o.all and 0 or 1
-        local b = K.Button(main, 210, 24, "", function(_, mouse)
-            local list = o.list()
-            if #list == 0 then return end
-            local cur = o.get()
-            local idx = lo
-            for i, k in ipairs(list) do if k == cur then idx = i end end
-            if mouse == "RightButton" then idx = idx - 1 else idx = idx + 1 end
-            if idx > #list then idx = lo elseif idx < lo then idx = #list end
-            o.set(list[idx])
-        end)
+    -- Botón que recorre una lista de opciones: clic izquierdo, la siguiente; derecho, la anterior.
+    -- title = título de su tooltip; onStep(dir) con dir = 1 (siguiente) o -1 (anterior).
+    -- Devuelve el botón: el addon lo coloca y le pone el texto con b.text:SetText. size = tamaño del texto.
+    function K.Cycle(parent, w, h, title, onStep, size)
+        local b = K.Button(parent, w, h, "", function(_, mouse) onStep(mouse == "RightButton" and -1 or 1) end, size)
         b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-        b:SetPoint("RIGHT", close, "LEFT", -10, 0)
-        local arrows = Text(b, 11)
-        arrows:SetPoint("RIGHT", -8, 0)
-        arrows:SetText("|cff888888< >|r")
         b:HookScript("OnEnter", function(s)
             GameTooltip:SetOwner(s, "ANCHOR_BOTTOM")
-            GameTooltip:AddLine("Personaje")
+            GameTooltip:AddLine(title)
             GameTooltip:AddLine(Tr("Clic izquierdo: siguiente"), 0.8, 0.8, 0.8)
             GameTooltip:AddLine(Tr("Clic derecho: anterior"), 0.8, 0.8, 0.8)
             GameTooltip:Show()
         end)
         b:HookScript("OnLeave", function() GameTooltip:Hide() end)
+        return b
+    end
+
+    -- Selector de personaje de la cabecera (clic izquierdo: siguiente; derecho: anterior).
+    -- o = { list = function() return claves end, get = function() return clave end,
+    --       set = function(clave) end, all = true si existe la opción "todos" (clave nil) }
+    function K.CharButton(main, close, o)
+        local lo = o.all and 0 or 1
+        local b = K.Cycle(main, 210, 24, Tr("Personaje"), function(dir)
+            local list = o.list()
+            if #list == 0 then return end
+            local cur = o.get()
+            local idx = lo
+            for i, k in ipairs(list) do if k == cur then idx = i end end
+            idx = idx + dir
+            if idx > #list then idx = lo elseif idx < lo then idx = #list end
+            o.set(list[idx])
+        end)
+        b:SetPoint("RIGHT", close, "LEFT", -10, 0)
+        local arrows = Text(b, 11)
+        arrows:SetPoint("RIGHT", -8, 0)
+        arrows:SetText("|cff888888< >|r")
 
         -- Pinta el personaje elegido (c = sus datos, con .class y .level) o, si key es nil,
         -- "Todos los personajes". fallback = color "ffrrggbb" si no se conoce la clase.
